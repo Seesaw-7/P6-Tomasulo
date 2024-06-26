@@ -1,11 +1,11 @@
 module RegisterRenaming (
     input logic clk,
     input logic reset,
-    input logic [4:0] arch_reg_src1,
+    input logic [4:0] arch_reg_src1, 
     input logic [4:0] arch_reg_src2,
     input logic [4:0] arch_reg_dest,
-    input logic commit,
-    input logic [4:0] commit_phys_reg,
+    input logic commit, //from ROB 
+    input logic [4:0] commit_phys_reg, 
     output logic [4:0] phys_reg_src1,
     output logic [4:0] phys_reg_src2,
     output logic [4:0] phys_reg_dest
@@ -17,10 +17,10 @@ endmodule
 module FreeList (
     input logic clk,
     input logic reset,
-    input logic allocate,
-    input logic return,
+    input logic allocate, 
+    input logic return, //from ROB
     input logic [4:0] return_reg,
-    output logic [4:0] allocate_reg
+    output logic [4:0] allocate_reg //phys_reg_dest
 );
 
 endmodule
@@ -33,10 +33,8 @@ module RAT (
     input logic [4:0] arch_reg_src2,
     input logic [4:0] arch_reg_dest,
     input logic [4:0] allocate_reg,
-    input logic commit,
-    input logic [4:0] commit_phys_reg,
     output logic [4:0] phys_reg_src1,
-    output logic [4:0] phys_reg_src2,
+    output logic [4:0] phys_reg_src2
 );
 
 endmodule 
