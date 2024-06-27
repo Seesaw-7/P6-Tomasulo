@@ -7,17 +7,21 @@ module RegisterRenaming (
     input logic commit_flag, //from ROB
     input logic assign_flag, // form decoder
     input logic [4:0] commit_phys_reg, 
-    output PHYS_REG phys_reg
+    output PHYS_REG phys_reg,
+    output done
 );
 
     logic [4:0] assign_dest_reg;
+    logic freelist_inst_done;
     
     RAT rat_inst(
         .clk(clk),
         .reset(reset),
+        .en(freelist_inst_done),
         .arch_reg(arch_reg),
         .allocate_reg(assign_dest_reg),
-        .phys_reg(phys_reg)
+        .phys_reg(phys_reg),
+        .done(done)
     );
     
     FreeList freelist_inst(
@@ -26,7 +30,8 @@ module RegisterRenaming (
         .assign_flag(assign_flag),
         .return_flag(commit_flag),
         .return_reg(commit_phys_reg),
-        .assign_reg(assign_dest_reg)
+        .assign_reg(assign_dest_reg),
+        .done(freelist_inst_done)
     )
 
 endmodule
@@ -35,9 +40,11 @@ endmodule
 module RAT (
     input logic clk,
     input logic reset,
+    input logic en,
     input ARCH_REG arch_reg,
     input logic [4:0] allocate_reg,
-    output PHYS_REG phys_reg
+    output PHYS_REG phys_reg,
+    output done
 );
 
 logic [(REG_LEN*REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
