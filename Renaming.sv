@@ -50,7 +50,6 @@ module RAT (
 );
 
 logic [(REG_LEN*REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
-logic [4:0] old_phys_reg_dest;
 
 always_ff @(posedge clock) begin
     unique if (reset) begin
