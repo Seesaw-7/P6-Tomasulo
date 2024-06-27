@@ -4,6 +4,7 @@
 // Global header
 
 `define REG_ADDR_WIDTH           5 // regFile has 2^5 entries
+`define REG_NUM 32
 
 typedef enum logic [4:0] {
 	ALU_ADD     = 4'h0,
