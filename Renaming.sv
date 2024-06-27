@@ -1,17 +1,4 @@
-`define REG_LEN 32
-`define REG_WIDTH 32
-`define REG_ADDR_LEN 5
-
-typedef struct packed {
-    logic [REG_ADDR_LEN:0] arch_reg_src1;
-    logic [REG_ADDR_LEN:0] arch_reg_src2;
-    logic [REG_ADDR_LEN:0] arch_reg_dest;
-    logic [REG_ADDR_LEN:0] phys_reg_src1;
-    logic [REG_ADDR_LEN:0] phys_reg_src2;
-    logic [REG_ADDR_LEN:0] phys_reg_dest;
-    logic [REG_ADDR_LEN:0] phys_reg_dest_old;
-} INST;
-
+`include "Renaming.svh"
 
 module RegisterRenaming (
     input logic clk,
@@ -25,6 +12,7 @@ module RegisterRenaming (
     output logic [4:0] phys_reg_src2,
     output logic [4:0] phys_reg_dest
 );
+
 
 endmodule
 
@@ -52,13 +40,7 @@ always_ff @(posedge clock) begin
 end
 
 // initialization
-always_comb begin 
-    map_on_reset = 1'b0 << (REG_LEN*REG_ADDR_LEN-1); 
-    for (int i=0; i<REG_LEN; ++i) begin
-        // 00000 to 11111
-       map_on_reset[(i+1)*REG_ADDR_LEN-1 : i*REG_ADDR_LEN] = REG_ADDR_LEN'd i; 
-    end
-end
+assign map_on_reset = 1'b0 << REG_LEN*REG_ADDR_LEN; 
 
 assign phys_reg_src1 = map_curr[(arch_reg_src1+1)*REG_ADDR_LEN-1 : arch_reg_src1*REG_ADDR_LEN];
 assign phys_reg_src2 = map_curr[(arch_reg_src2+1)*reg_addr_len-1 : arch_reg_src2*reg_addr_len];
