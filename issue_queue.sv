@@ -31,7 +31,7 @@ module issue_queue #(
 
     // input data
     input ALU1_FUNC insn, 
-    input logic [REG_ADDR_WIDTH-1:0] inp1, inp2, dst,
+    input logic [REG_ADDR_WIDTH-1:0] inp1, inp2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
 
     // output signals
     output logic issue_ready, // indicates if an instruction is ready to be executed
@@ -71,21 +71,25 @@ module issue_queue #(
             inp2_out <= 0;
         end else begin
             // Add new instruction to reservation station
-            // if (load && ~is_full) begin
-            //     for (int i = 0; i < NUM_ENTRIES; i++) begin
-            //         if (!entries[i].valid) begin
-            //             entries[i].instruction <= instruction_in;
-            //             entries[i].operand1 <= operand1_in;
-            //             entries[i].operand2 <= operand2_in;
-            //             entries[i].ready1 <= operand1_ready;
-            //             entries[i].ready2 <= operand2_ready;
-            //             entries[i].valid <= 1;
-            //             break;
-            //         end
-            //     end
-            // end
+            if (load && ~is_full) begin //TODO: add else
+                for (int i = 0; i < NUM_ENTRIES; i++) begin
+                    if (!entries[i].valid) begin
+                        entries[i].insn <= insn;
+                        entries[i].inp1 <= inp1;
+                        entries[i].inp2 <= inp2;
+                        entries[i].ready1 <= ready_table[inp1];
+                        entries[i].ready2 <= ready_table[inp2];
+                        entries[i].dst <= dst;
+                        entries[i].Bday <= num_entry_used;
+                        entries[i].valid <= 1;
+                        break;
+                    end
+                end
+                ready_table[dst] <= 0;
+                num_entry_used <= num_entry_used + 1;
+            end
 
-            // // Check for ready instructions and dispatch
+            // Check for ready instructions and dispatch
             // dispatch_ready <= 0;
             // for (int i = 0; i < NUM_ENTRIES; i++) begin
             //     if (entries[i].valid && entries[i].ready1 && entries[i].ready2) begin
