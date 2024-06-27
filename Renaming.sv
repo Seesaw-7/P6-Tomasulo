@@ -52,17 +52,6 @@ module RAT (
 logic [(REG_LEN*REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
 logic [4:0] old_phys_reg_dest;
 
-// ARCH_REG arch_reg_reg;
-// always_ff @(posedge clock) begin
-//     unique if (en) begin 
-//         arch_reg_reg <= arch_reg;
-//         done <= 1'b0;
-//     end else begin 
-//         arch_reg_reg <= arch_reg_reg;
-//         done <= done;
-//     end
-// end
-
 always_ff @(posedge clock) begin
     unique if (reset) begin
         map_curr <= map_on_reset;
@@ -77,9 +66,9 @@ end
 assign map_on_reset = 1'b0 << REG_LEN*REG_ADDR_LEN; 
 
 always_comb begin
-    phys_reg.src1 = map_curr[(arch_reg_reg.src1+1)*REG_ADDR_LEN-1 : arch_reg_reg.src1*REG_ADDR_LEN];
-    phys_reg.src2 = map_curr[(arch_reg_reg.src2+1)*REG_ADDR_LEN-1 : arch_reg_reg.src2*REG_ADDR_LEN];
-    phys_reg.dest_old = map_curr[(arch_reg_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg_reg.dest*REG_ADDR_LEN];
+    phys_reg.src1 = map_curr[(arch_reg.src1+1)*REG_ADDR_LEN-1 : arch_reg.src1*REG_ADDR_LEN];
+    phys_reg.src2 = map_curr[(arch_reg.src2+1)*REG_ADDR_LEN-1 : arch_reg.src2*REG_ADDR_LEN];
+    phys_reg.dest_old = map_curr[(arch_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg.dest*REG_ADDR_LEN];
     map_next = map_curr;
     if (assign_flag) map_next[(arch_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg.dest*REG_ADDR_LEN] = assign_reg;
 end
