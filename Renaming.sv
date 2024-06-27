@@ -3,14 +3,10 @@
 module RegisterRenaming (
     input logic clk,
     input logic reset,
-    input logic [4:0] arch_reg_src1, 
-    input logic [4:0] arch_reg_src2,
-    input logic [4:0] arch_reg_dest,
+    input ARCH_REG arch_reg,
     input logic commit, //from ROB 
     input logic [4:0] commit_phys_reg, 
-    output logic [4:0] phys_reg_src1,
-    output logic [4:0] phys_reg_src2,
-    output logic [4:0] phys_reg_dest
+    output PHYS_REG phys_reg
 );
 
 
@@ -20,12 +16,9 @@ endmodule
 module RAT (
     input logic clk,
     input logic reset,
-    input logic [4:0] arch_reg_src1,
-    input logic [4:0] arch_reg_src2,
-    input logic [4:0] arch_reg_dest,
+    input ARCH_REG arch_reg,
     input logic [4:0] allocate_reg,
-    output logic [4:0] phys_reg_src1,
-    output logic [4:0] phys_reg_src2
+    output PHYS_REG phys_reg
 );
 
 logic [(REG_LEN*REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
@@ -42,13 +35,13 @@ end
 // initialization
 assign map_on_reset = 1'b0 << REG_LEN*REG_ADDR_LEN; 
 
-assign phys_reg_src1 = map_curr[(arch_reg_src1+1)*REG_ADDR_LEN-1 : arch_reg_src1*REG_ADDR_LEN];
-assign phys_reg_src2 = map_curr[(arch_reg_src2+1)*reg_addr_len-1 : arch_reg_src2*reg_addr_len];
-assign old_phys_reg_dest = map_curr[(arch_reg_dest+1)*REG_ADDR_LEN-1 : arch_reg_dest*REG_ADDR_LEN];
+assign phys_reg.src1 = map_curr[(arch_reg.src1+1)*REG_ADDR_LEN-1 : arch_reg.src1*REG_ADDR_LEN];
+assign phys_reg.src2 = map_curr[(arch_reg.src2+1)*REG_ADDR_LEN-1 : arch_reg.src2*REG_ADDR_LEN];
+assign phys_reg.dest_old = map_curr[(arch_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg.dest*REG_ADDR_LEN];
 
 always_comb begin
     map_next = map_curr;
-    map_next[(arch_reg_dest+1)*REG_ADDR_LEN-1 : arch_reg_dest*REG_ADDR_LEN]; = allocate_reg;
+    map_next[(arch_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg.dest*REG_ADDR_LEN]; = allocate_reg;
 end
 
 endmodule 
