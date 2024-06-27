@@ -1,3 +1,18 @@
+`define REG_LEN 32
+`define REG_WIDTH 32
+`define REG_ADDR_LEN 5
+
+typedef struct packed {
+    logic [REG_ADDR_LEN:0] arch_reg_src1;
+    logic [REG_ADDR_LEN:0] arch_reg_src2;
+    logic [REG_ADDR_LEN:0] arch_reg_dest;
+    logic [REG_ADDR_LEN:0] phys_reg_src1;
+    logic [REG_ADDR_LEN:0] phys_reg_src2;
+    logic [REG_ADDR_LEN:0] phys_reg_dest;
+    logic [REG_ADDR_LEN:0] phys_reg_dest_old;
+} INST;
+
+
 module RegisterRenaming (
     input logic clk,
     input logic reset,
