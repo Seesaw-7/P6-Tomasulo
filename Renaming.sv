@@ -50,28 +50,40 @@ module RAT (
 logic [(REG_LEN*REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
 logic [4:0] old_phys_reg_dest;
 
+ARCH_REG arch_reg_reg;
 always_ff @(posedge clock) begin
-    if (reset) begin
+    unique if (en) begin 
+        arch_reg_reg <= arch_reg;
+        done <= 1'b0;
+    end else begin 
+        arch_reg_reg <= arch_reg_reg;
+        done <= done;
+    end
+end
+
+always_ff @(posedge clock) begin
+    unique if (reset) begin
         map_curr <= map_on_reset;
+        done <= 1'b0;
     end else begin
         map_curr <= map_next;
+        done <= done;
     end 
 end
 
 // initialization
 assign map_on_reset = 1'b0 << REG_LEN*REG_ADDR_LEN; 
 
-assign phys_reg.src1 = map_curr[(arch_reg.src1+1)*REG_ADDR_LEN-1 : arch_reg.src1*REG_ADDR_LEN];
-assign phys_reg.src2 = map_curr[(arch_reg.src2+1)*REG_ADDR_LEN-1 : arch_reg.src2*REG_ADDR_LEN];
-assign phys_reg.dest_old = map_curr[(arch_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg.dest*REG_ADDR_LEN];
-
 always_comb begin
+    phys_reg.src1 = map_curr[(arch_reg_reg.src1+1)*REG_ADDR_LEN-1 : arch_reg_reg.src1*REG_ADDR_LEN];
+    phys_reg.src2 = map_curr[(arch_reg_reg.src2+1)*REG_ADDR_LEN-1 : arch_reg_reg.src2*REG_ADDR_LEN];
+    phys_reg.dest_old = map_curr[(arch_reg_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg_reg.dest*REG_ADDR_LEN];
     map_next = map_curr;
-    map_next[(arch_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg.dest*REG_ADDR_LEN]; = allocate_reg;
+    map_next[(arch_reg.dest+1)*REG_ADDR_LEN-1 : arch_reg.dest*REG_ADDR_LEN] = allocate_reg;
+    done = 1'b1;
 end
 
 endmodule 
-
 
 module FreeList (
     input logic clk,
@@ -79,8 +91,8 @@ module FreeList (
     input logic assign_flag, 
     input logic return_flag, //from ROB
     input logic [4:0] return_reg,  
-    output logic [4:0] assign_reg //phys_reg_dest
-);
+    output logic [4:0] assign_reg, //phys_reg_dest
+    output done
 
     logic [4:0] free_list [31:0];
     logic [4:0] free_list_front; //assign
