@@ -25,6 +25,35 @@ module RAT (
     output logic [4:0] phys_reg_src2
 );
 
+logic [(REG_LEN*REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
+logic [4:0] old_phys_reg_dest;
+
+always_ff @(posedge clock) begin
+    if (reset) begin
+        map_curr <= map_on_reset;
+    end else begin
+        map_curr <= map_next;
+    end 
+end
+
+// initialization
+always_comb begin 
+    map_on_reset = 1'b0 << (REG_LEN*REG_ADDR_LEN-1); 
+    for (int i=0; i<REG_LEN; ++i) begin
+        // 00000 to 11111
+       map_on_reset[(i+1)*REG_ADDR_LEN-1 : i*REG_ADDR_LEN] = REG_ADDR_LEN'd i; 
+    end
+end
+
+assign phys_reg_src1 = map_curr[(arch_reg_src1+1)*REG_ADDR_LEN-1 : arch_reg_src1*REG_ADDR_LEN];
+assign phys_reg_src2 = map_curr[(arch_reg_src2+1)*reg_addr_len-1 : arch_reg_src2*reg_addr_len];
+assign old_phys_reg_dest = map_curr[(arch_reg_dest+1)*REG_ADDR_LEN-1 : arch_reg_dest*REG_ADDR_LEN];
+
+always_comb begin
+    map_next = map_curr;
+    map_next[(arch_reg_dest+1)*REG_ADDR_LEN-1 : arch_reg_dest*REG_ADDR_LEN]; = allocate_reg;
+end
+
 endmodule 
 
 
