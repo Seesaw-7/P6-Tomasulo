@@ -6,6 +6,7 @@
 
 // wakeup will be done the same time as the insn is output, namely we assume dst will be ready within one clock cycle
 // TODO: revise wakeup if necessary (after other components are done)
+// revise method: add a new entry to the entry_t so that it records how many clock cycles it will be ready 
 
 // load signal is set by dispatcher
 // when the issue queue is not full && load == 1, it will load in one packet of input and set loaded to 1
@@ -138,13 +139,22 @@ module issue_queue #(
 
                     // update Bday if it is younger than the output insn
                     for (int i = 0; i < NUM_ENTRIES; i++) begin
-                        if (entries[i].Bday > min_Bday) begin
+                        if (entries[i].valid && entries[i].Bday > min_Bday) begin
                             entries[i].Bday <= entries[i].Bday - 1; // Bday: the smallest, the oldes
                         end
                     end      
 
                     // TODO: wakeup other insn if their inp is equal to the dst of the output insn
-
+                    ready_table[entries[min_idx].dst] <= 1;
+                    for (int i = 0; i < NUM_ENTRIES; i++) begin
+                        if (entries[i].valid && entries[i].inp1 == entries[min_idx].dst) begin
+                            entries[i].ready1 <= 1; // Bday: the smallest, the oldes
+                        end else if (entries[i].valid && entries[i].inp2 == entries[min_idx].dst) begin
+                            entries[i].ready2 <= 1;
+                        end
+                        else
+                            ;
+                    end                    
 
                 end else begin
                     issue_ready <= 0;
@@ -154,6 +164,6 @@ module issue_queue #(
             end
         end
     end
-
+    
 
 endmodule
