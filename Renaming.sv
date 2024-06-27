@@ -4,11 +4,30 @@ module RegisterRenaming (
     input logic clk,
     input logic reset,
     input ARCH_REG arch_reg,
-    input logic commit, //from ROB 
+    input logic commit_flag, //from ROB
+    input logic assign_flag, // form decoder
     input logic [4:0] commit_phys_reg, 
     output PHYS_REG phys_reg
 );
 
+    logic [4:0] assign_dest_reg;
+    
+    RAT rat_inst(
+        .clk(clk),
+        .reset(reset),
+        .arch_reg(arch_reg),
+        .allocate_reg(assign_dest_reg),
+        .phys_reg(phys_reg)
+    );
+    
+    FreeList freelist_inst(
+        .clk(clk),
+        .reset(reset),
+        .assign_flag(assign_flag),
+        .return_flag(commit_flag),
+        .return_reg(commit_phys_reg),
+        .assign_reg(assign_dest_reg)
+    )
 
 endmodule
 
