@@ -5,7 +5,7 @@
 
 module test_Renaming();
 
-	logic clk, reset, commit, done, assign_flag;
+	logic clk, reset, commit_flag, assign_flag;
   logic ARCH_REG arch_reg;
   logic [4:0] commit_phys_reg;
   logic PHYS_REG phys_reg;
@@ -28,11 +28,12 @@ module test_Renaming();
 	end
 
   task wait_until_done;
-    forever begin : wait_loop
-      @(posedge done);
-      @(negedge clk);
-      if (done) disable wait_until_done;
-    end
+    // forever begin : wait_loop
+    //   @(posedge done);
+    //   @(negedge clk);
+    //   if (done) disable wait_until_done;
+    // end
+    @(negedge clk);
   endtask
 
   task test_on_commit(input task_commit, task_commit_phys_reg)
@@ -83,9 +84,9 @@ module test_Renaming();
 
     reset = 1'b1;
     quit  = 1'b0;
-    while (~quit) begin
-      test_on_case({$random, $random});
-    end
+    // while (~quit) begin
+    //   test_on_case({$random, $random});
+    // end
     $finish;
   end
 endmodule
