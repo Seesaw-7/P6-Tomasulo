@@ -12,7 +12,9 @@
 // thus, the load signal should be set (for one clock cycle) only if is_full signal is not equal to 1
 // otherwise, the input will be discarded
 // with this design, when the issue queue is full and one insn can be output, while another insn wants to be loaded in,
-// it will delay loading for one clock cycle
+// it will delay loading for one clock 
+
+// if immi is used, then inp2 should be 5'b0, which is always ready
 
 // TODO: import issue_queue.svh
 
@@ -49,7 +51,35 @@ module issue_queue #(
 
     assign is_full = num_entry_used == NUM_ENTRIES;
 
-    always_ff @(posedge clk or posedge reset) begin // TODO: check this async reset after other components are done
+    logic [NUM_ENTRIES-1:0] ready_flags; // if this insn is ready
+    // TODO: check syntax
+    generate
+        genvar i;
+        for (i = 0; i < NUM_ENTRIES; i++) begin : check_ready
+        assign ready_flags[i] = entries[i].valid && entries[i].ready1 && entries[i].ready2;
+        end
+    endgenerate
+
+    logic exist_ready_out;
+    // TODO: check syntax
+    assign exist_ready_out = |ready_flags; // reduction OR to check if any entry is ready  
+
+    logic [ENTRY_WIDTH-1:0] min_Bday, min_idx; // min Bday of ready entries and its corresponding index
+    
+    //TODO: check syntax
+    always_comb begin
+        min_Bday = {ENTRY_WIDTH{1'b1}}; // initialize to maximum value
+        min_idx = 0; // Initialize to 0
+        for (int i = 0; i < NUM_ENTRIES; i++) begin
+            if (ready_flags[i] && (entries[i].Bday <= min_Bday)) begin
+                min_Bday = Bday[i];
+                min_idx = i;
+            end // TODO: add else
+        end
+    end
+
+
+    always_ff @(posedge clk) begin
         if (reset) begin
             for (int i = 0; i < NUM_ENTRIES; i++) begin
                 entries[i].insn <= 0;
@@ -72,7 +102,7 @@ module issue_queue #(
         end else begin
             // Add new instruction to reservation station
             if (load && ~is_full) begin //TODO: add else
-                for (int i = 0; i < NUM_ENTRIES; i++) begin
+                for (int i = 0; i < NUM_ENTRIES; i++) begin // it's for sure that an empty entry exists
                     if (!entries[i].valid) begin
                         entries[i].insn <= insn;
                         entries[i].inp1 <= inp1;
@@ -85,25 +115,45 @@ module issue_queue #(
                         break;
                     end
                 end
-                ready_table[dst] <= 0;
+                if (dst == 0) // reg0 should always be 0, so always ready
+                    ready_table[dst] <= 1;
+                else 
+                    ready_table[dst] <= 0;
                 num_entry_used <= num_entry_used + 1;
+            end else begin
+                ;
             end
 
-            // Check for ready instructions and dispatch
-            // dispatch_ready <= 0;
-            // for (int i = 0; i < NUM_ENTRIES; i++) begin
-            //     if (entries[i].valid && entries[i].ready1 && entries[i].ready2) begin
-            //         instruction_out <= entries[i].instruction;
-            //         operand1_out <= entries[i].operand1;
-            //         operand2_out <= entries[i].operand2;
-            //         dispatch_ready <= 1;
-            //         entries[i].valid <= 0;  // Clear the entry after dispatch
-            //         break;
-            //     end
-            // end
+            // issue insn
+            if (issue) begin
+                if (exist_ready_out) begin
+
+                    //output insn
+                    insn_out <= entries[min_idx].insn;
+                    inp1_out <= entries[min_idx].inp1;
+                    inp2_out <= entries[min_idx].inp2;
+                    entries[min_idx].valid <= 0; 
+                    issue_ready <= 1;
+                    num_entry_used <= num_entry_used - 1;
+
+                    // update Bday if it is younger than the output insn
+                    for (int i = 0; i < NUM_ENTRIES; i++) begin
+                        if (entries[i].Bday > min_Bday) begin
+                            entries[i].Bday <= entries[i].Bday - 1; // Bday: the smallest, the oldes
+                        end
+                    end      
+
+                    // TODO: wakeup other insn if their inp is equal to the dst of the output insn
+
+
+                end else begin
+                    issue_ready <= 0;
+                end
+            end else begin
+                issue_ready <= 0;
+            end
         end
     end
 
-    // Additional logic to handle operand forwarding, etc., can be added here
 
 endmodule
