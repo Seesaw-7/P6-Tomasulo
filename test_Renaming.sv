@@ -5,7 +5,7 @@
 
 module test_Renaming();
 
-	logic clk, reset, commit, done;
+	logic clk, reset, commit, done, assign_flag;
   logic ARCH_REG arch_reg;
   logic [4:0] commit_phys_reg;
   logic PHYS_REG phys_reg;
@@ -37,6 +37,7 @@ module test_Renaming();
 
   task test_on_commit(input task_commit, task_commit_phys_reg)
     reset = 1'b1;
+    assign_flag = 1'b0;
     commit = is_commit;
     arch_reg = 0;
     commit_phys_reg = task_commit_phys_reg;
@@ -45,10 +46,22 @@ module test_Renaming();
     wait_until_done();
   endtask
 
-  task test_on_commit(input task_arch_reg)
+  task test_on_arch(input task_arch_reg)
     reset = 1'b1;
+    assign_flag = 1'b0;
     commit = 1'b0;
     arch_reg = task_arch_reg;
+    commit_phys_reg = 0;
+    @(negedge clk);
+    reset = 1'b0;
+    wait_until_done();
+  endtask
+
+  task test_on_assign(input test_assign)
+    reset = 1'b1;
+    assign_flag = test_assign;
+    commit = 1'b0;
+    arch_reg = 0;
     commit_phys_reg = 0;
     @(negedge clk);
     reset = 1'b0;
