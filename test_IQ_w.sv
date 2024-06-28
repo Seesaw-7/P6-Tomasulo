@@ -117,17 +117,42 @@ module test_issue_queue();
         assert(is_full) else $fatal("IQ should be full, but it is not.");
         $display("Load complete");
 
-        // Test case 2: Check whether the ready bit of output is cleared before writing new data into IQ slot
+        // Test case 2: Check output
         test_issue_instruction();
         test_issue_instruction();
         test_issue_instruction();
         test_issue_instruction();
+        assert(issue_ready) else $fatal("issue should be ready, but it is not.");
 
+        // Test case 3: Check issue_ready is down when issue queue is empty
         test_issue_instruction();
+        assert(!issue_ready) else $fatal("issue should not be ready, but it is.");
+
+
+        // Test case 4: Check out of order output
+        test_load_instruction(ALU_ADD, 5'b01110, 5'b01111, 5'b10000);
+        test_load_instruction(ALU_ADD, 5'b01011, 5'b01100, 5'b01101);
+        test_load_instruction(ALU_OR, 5'b00001, 5'b00010, 5'b00011);
+        test_load_instruction(ALU_SUB, 5'b00011, 5'b00100, 5'b00101);
+        test_issue_instruction();
+        test_issue_instruction();
+        test_load_instruction(ALU_AND, 5'b00101, 5'b00110, 5'b00111);
+        test_load_instruction(ALU_XOR, 5'b01000, 5'b01001, 5'b01010);
+        test_issue_instruction();
+        assert(insn_out == ALU_OR) else $fatal("wrong output");
+        test_issue_instruction();
+        assert(insn_out == ALU_SUB) else $fatal("wrong output");
+        test_issue_instruction();
+        assert(insn_out == ALU_AND) else $fatal("wrong output");
+        test_issue_instruction();
+        test_load_instruction(ALU_XOR, 5'b01000, 5'b01001, 5'b01010);
+
+        // Test case 2: Check whether the ready bit of output is cleared before writing new data into IQ slot
+        // test_issue_instruction();
         // test_load_instruction(4'b1100, 5'b11000, 5'b11001, 5'b11010);
         // todo: assert ready bits are cleared and then reloaded
         
-        // // Test case 3: Add instructions with ready and not ready physical regs
+        // Test case 3: Add instructions with ready and not ready physical regs
         // test_load_instruction(4'b0110, 5'b01001, 5'b01101, 5'b01110); // ready regs
         // // todo: Update ready table to make inp1 not ready
         // // ready_table[inp1] = 0;
