@@ -1,5 +1,5 @@
-`ifndef __SYS_DEFS_VH__
-`define __SYS_DEFS_VH__
+`ifndef __ISSUE_QUEUE_VH__
+`define __ISSUE_QUEUE_VH__
 
 // local header
 
@@ -9,12 +9,12 @@
 
 typedef struct packed {
     ALU1_FUNC insn;
-    logic [REG_ADDR_WIDTH-1:0] inp1;
-    logic [REG_ADDR_WIDTH-1:0] inp2;
+    logic [`REG_ADDR_WIDTH-1:0] inp1;
+    logic [`REG_ADDR_WIDTH-1:0] inp2;
     logic ready1;
     logic ready2;
-    logic [REG_ADDR_WIDTH-1:0] dst;
-    logic [ENTRY_WIDTH-1:0] Bday;
+    logic [`REG_ADDR_WIDTH-1:0] dst;
+    logic [`ENTRY_WIDTH-1:0] Bday;
     logic valid; // whether the data in this entry can be used
 } issue_queue_entry_t1; // entry type for the issue queue ahead of ALU1
 

@@ -19,6 +19,8 @@
 
 // TODO: import issue_queue.svh
 
+`timescale 1ns/1ps
+
 module issue_queue #(
     parameter NUM_ENTRIES = 4, // #entries in the reservation station
     parameter ENTRY_WIDTH = 2, // #entries = 2^{ENTRY_WIDTH}
@@ -83,10 +85,10 @@ module issue_queue #(
     //TODO: check syntax
     always_comb begin
         min_Bday = {ENTRY_WIDTH{1'b1}}; // initialize to maximum value
-        min_idx = 0; // Initialize to 0
+        min_idx = 0; // initialize to 0
         for (int i = 0; i < NUM_ENTRIES; i++) begin
             if (ready_flags[i] && (entries[i].Bday <= min_Bday)) begin
-                min_Bday = Bday[i];
+                min_Bday = entries[i].Bday;
                 min_idx = i;
             end else
                 ;
@@ -97,7 +99,7 @@ module issue_queue #(
     always_ff @(posedge clk) begin
         if (reset) begin
             for (int i = 0; i < NUM_ENTRIES; i++) begin
-                entries[i].insn <= 0;
+                entries[i].insn <= ALU_ADD;
                 entries[i].inp1 <= 0;
                 entries[i].inp2 <= 0;
                 entries[i].ready1 <= 0;
@@ -110,7 +112,6 @@ module issue_queue #(
                 ready_table[i] <= 1;
             end
             issue_ready <= 0;
-            num_entry_used <= 0;
             insn_out <= 0;
             inp1_out <= 0;
             inp2_out <= 0;

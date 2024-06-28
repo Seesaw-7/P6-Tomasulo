@@ -16,7 +16,7 @@ typedef enum logic [3:0] {
 	ALU_XOR     = 4'h6,
 	ALU_SLL     = 4'h7,
 	ALU_SRL     = 4'h8,
-	ALU_SRA     = 4'h9,
+	ALU_SRA     = 4'h9
 } ALU1_FUNC; // functions of ALU1
 
 
