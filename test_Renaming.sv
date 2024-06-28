@@ -33,12 +33,6 @@ module test_Renaming();
     clk = ~clk;
   end
 
-// timing test and tracking
-  logic [63:0] clock_cycles = 64'd0;
-  always_ff @(posedge clk) begin
-    clock_cycles <= clock_cycles + 64'b1;
-  end
-
   task wait_until_done;
     @(negedge clk);
   endtask
@@ -101,17 +95,6 @@ module test_Renaming();
   endtask
 
   initial begin
-    $monitor("=======================>\n 
-            Time, Clock: %4.0f, %d: \n 
-            assign_flag: %b, commit_flag: %b\n
-            arch_reg_src1 = %d,  arch_reg_src1 = %d, arch_reg_dest = %d,\n
-            phys_reg_src1 = %d, phys_reg_src2 = %d, phys_reg_dest = %d, phys_reg_dest_old = %d,\n
-            "
-            , $time, clock_cycles
-            , assign_flag, commit_flag
-            , arch_reg.src1, arch_reg.src2, arch_reg.dest
-            , phys_reg.src1, phys_reg.src2, phys_reg.dest, phys_reg.dest_old
-    )
     reset = 1'b1;
     clk = 0;
 
@@ -145,4 +128,3 @@ module test_Renaming();
     $finish;
   end
 endmodule
-
