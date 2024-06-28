@@ -11,19 +11,21 @@ module RegisterRenaming (
     // output done
 );
 
+//LOGIC assig_flag 
+
     logic [4:0] assign_dest_reg;
     //    logic freelist_inst_done;
     PHYS_REG rat_phys_reg;
-    
+
     logic assign_flag_reg, commit_flag_reg;
     always_ff @(posedge clk) begin
         assign_flag_reg <= assign_flag;
         commit_flag_reg <= commit_flag;
     end
-    
+
 //    assign phys_reg = (arch_reg.dest == 5'd0) ? 5'd0 : rat_phys_reg;
     assign phys_reg = rat_phys_reg;
-    
+
     RAT rat_inst(
         .clk(clk),
         .reset(reset),
@@ -34,7 +36,7 @@ module RegisterRenaming (
         .phys_reg(rat_phys_reg)
         // .done(rat_done)
     );
-    
+
     FreeList freelist_inst(
         .clk(clk),
         .reset(reset),
@@ -64,13 +66,13 @@ module RAT (
 
     // logic [(`REG_LEN*`REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
     Addr [(`REG_LEN-1):0] map_curr, map_next, map_on_reset;
-    
+
     // ARCH_REG arch_reg_reg;
     logic [4:0] assign_reg_curr;
      always_ff @(posedge clk) begin
          assign_reg_curr <= assign_reg;
      end
-    
+
     always_ff @(posedge clk) begin
         unique if (reset) begin
             map_curr <= map_on_reset;
@@ -81,7 +83,7 @@ module RAT (
             // done <= 1'b1;
         end 
     end
-    
+
     // initialization
     assign map_on_reset = '{default:0}; 
 
@@ -89,7 +91,7 @@ module RAT (
         phys_reg.src1 = map_curr[arch_reg.src1];
         phys_reg.src2 = map_curr[arch_reg.src2];
 //        phys_reg.dest = assign_reg_curr;
-        phys_reg.dest = (arch_reg.dest == 5'd0) ? 5'd0 : assign_reg_curr;
+        phys_reg.dest = (arch_reg.dest == 5'd0) ? 5'd0 : assign_reg;
         phys_reg.dest_old = map_curr[arch_reg.dest];
         map_next = map_curr;
         // if (assign_flag) map_next = map_next | (assign_reg_curr << arch_reg.dest*`REG_ADDR_LEN);
@@ -113,7 +115,7 @@ module FreeList (
     logic [4:0] free_list [30:0];
     logic [4:0] free_list_front; //assign
     logic [4:0] free_list_end; //return
-    
+
     logic [4:0] free_list_front_curr;
 
     //assign phys_reg for new instruction and return phys_reg from ROB
@@ -133,14 +135,14 @@ module FreeList (
             //assign_reg = free_list[free_list_front];
             end
             if (return_flag) begin
-            free_list[(free_list_end + 1) % 31] <= return_reg;
+            //free_list[(free_list_end + 1) % 31] <= return_reg;
             free_list_end <= (free_list_end + 1) % 31;
             end
             // done <= 1'b1;
         end
     end
-    
+
 //assign assign_reg = assign_flag ? free_list[free_list_front_curr] : 5'b00000;
 assign assign_reg = assign_flag ? free_list[free_list_front] : 5'd0;
-        
+
 endmodule
