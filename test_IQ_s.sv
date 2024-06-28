@@ -46,7 +46,7 @@ module test_issue_queue_v2();
         .insn_out(insn_out),
         .inp1_out(inp1_out),
         .inp2_out(inp2_out),
-        .dst_out(dst_out
+        .dst_out(dst_out)
     );
 
     // Clock generation
