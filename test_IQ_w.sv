@@ -145,6 +145,25 @@ module test_issue_queue();
         test_issue_instruction();
         assert(insn_out == ALU_AND) else $fatal("wrong output");
         test_issue_instruction();
+        // test_load_instruction(ALU_XOR, 5'b01000, 5'b01001, 5'b01010);
+
+
+        // Test case 5: Check when two entries are ready, the older one should be issued first
+        test_load_instruction(ALU_ADD, 5'b01110, 5'b01111, 5'b10000);
+        test_load_instruction(ALU_ADD, 5'b01011, 5'b01100, 5'b01101);
+        test_load_instruction(ALU_OR, 5'b00001, 5'b00010, 5'b00011);
+        test_load_instruction(ALU_SUB, 5'b00011, 5'b00100, 5'b00101);
+        test_issue_instruction();
+        test_issue_instruction();
+        test_load_instruction(ALU_AND, 5'b00110, 5'b00111, 5'b01000);
+        test_load_instruction(ALU_XOR, 5'b01001, 5'b01010, 5'b01011);
+        test_issue_instruction();
+        assert(insn_out == ALU_OR) else $fatal("wrong output");
+        test_issue_instruction();
+        assert(insn_out == ALU_SUB) else $fatal("wrong output");
+        test_issue_instruction();
+        assert(insn_out == ALU_AND) else $fatal("wrong output");
+        test_issue_instruction();
         test_load_instruction(ALU_XOR, 5'b01000, 5'b01001, 5'b01010);
 
         // Test case 2: Check whether the ready bit of output is cleared before writing new data into IQ slot
