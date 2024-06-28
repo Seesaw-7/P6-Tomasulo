@@ -24,7 +24,7 @@ module test_issue_queue();
     
     // Output data
     logic [NUM_ENTRIES-1:0] insn_out;
-    logic [REG_ADDR_WIDTH-1:0] inp1_out, inp2_out;
+    logic [REG_ADDR_WIDTH-1:0] inp1_out, inp2_out, dst_out;
 
     // Instantiate the issue_queue
     issue_queue #(
@@ -45,7 +45,8 @@ module test_issue_queue();
         .is_full(is_full),
         .insn_out(insn_out),
         .inp1_out(inp1_out),
-        .inp2_out(inp2_out)
+        .inp2_out(inp2_out),
+        .dst_out(dst_out)
     );
 
     // Clock generation
@@ -61,7 +62,7 @@ module test_issue_queue();
 
     // Test task for loading instruction
     task test_load_instruction(input ALU1_FUNC test_insn, input logic [REG_ADDR_WIDTH-1:0] test_inp1, test_inp2, test_dst);
-        reset = 1'b1;
+        reset = 1'b0;
         load = 1'b0;
         issue = 1'b0;
         insn = test_insn;
@@ -117,6 +118,11 @@ module test_issue_queue();
         $display("Load complete");
 
         // Test case 2: Check whether the ready bit of output is cleared before writing new data into IQ slot
+        test_issue_instruction();
+        test_issue_instruction();
+        test_issue_instruction();
+        test_issue_instruction();
+
         test_issue_instruction();
         // test_load_instruction(4'b1100, 5'b11000, 5'b11001, 5'b11010);
         // todo: assert ready bits are cleared and then reloaded
