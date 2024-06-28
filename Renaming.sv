@@ -27,16 +27,21 @@ module RegisterRenaming (
         end
     end
 
+    // synchronize input
     logic assign_flag_reg, commit_flag_reg;
+    ARCH_REG arch_reg_curr;
+    logic [4:0] commit_phys_reg_curr;
     always_ff @(posedge clk) begin
         assign_flag_reg <= assign_flag_not_r0;
         commit_flag_reg <= commit_flag_not_r0;
+        arch_reg_curr <= arch_reg;
+        commit_phys_reg_curr <= commit_phys_reg;
     end
    
     RAT rat_inst(
         .clk(clk),
         .reset(reset),
-        .arch_reg(arch_reg),
+        .arch_reg(arch_reg_curr),
         .assign_reg(assign_dest_reg),
         .assign_flag(assign_flag_reg),
         .phys_reg(rat_phys_reg)
@@ -47,7 +52,7 @@ module RegisterRenaming (
         .reset(reset),
         .assign_flag(assign_flag_reg),
         .return_flag(commit_flag_reg),
-        .return_reg(commit_phys_reg),
+        .return_reg(commit_phys_reg_curr),
         .assign_reg(assign_dest_reg)
     );
 
