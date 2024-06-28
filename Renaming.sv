@@ -15,13 +15,20 @@ module RegisterRenaming (
     //    logic freelist_inst_done;
     PHYS_REG rat_phys_reg;
     
-    assign phys_reg = (arch_reg.dest == 5'd0) ? 5'd0 : rat_phys_reg;
-    //assign phys_reg = rat_phys_reg;
+    logic assign_flag_reg, commit_flag_reg;
+    always_ff @(posedge clk) begin
+        assign_flag_reg <= assign_flag;
+        commit_flag_reg <= commit_flag;
+    end
+    
+//    assign phys_reg = (arch_reg.dest == 5'd0) ? 5'd0 : rat_phys_reg;
+    assign phys_reg = rat_phys_reg;
     
     RAT rat_inst(
         .clk(clk),
         .reset(reset),
-        .assign_flag(assign_flag),
+        .assign_flag(assign_flag_reg),
+//        .assign_flag(assign_flag),
         .arch_reg(arch_reg),
         .assign_reg(assign_dest_reg),
         .phys_reg(rat_phys_reg)
@@ -31,9 +38,11 @@ module RegisterRenaming (
     FreeList freelist_inst(
         .clk(clk),
         .reset(reset),
-        .assign_flag(assign_flag),
-        .return_flag(commit_flag),
+        .assign_flag(assign_flag_reg),
+//        .assign_flag(assign_flag),
+        .return_flag(commit_flag_reg),
         .return_reg(commit_phys_reg),
+//        .return_reg(commit_phys),
         .assign_reg(assign_dest_reg)
         // .done(freelist_done)
     );
@@ -51,9 +60,10 @@ module RAT (
     output PHYS_REG phys_reg
     // output done
 );
+    typedef logic [(`REG_ADDR_LEN-1):0] Addr;
 
-    logic [(`REG_LEN*`REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
-//    logic [4:0] old_phys_reg_dest;
+    // logic [(`REG_LEN*`REG_ADDR_LEN-1):0] map_curr, map_next, map_on_reset;
+    Addr [(`REG_LEN-1):0] map_curr, map_next, map_on_reset;
     
     // ARCH_REG arch_reg_reg;
     logic [4:0] assign_reg_curr;
@@ -73,18 +83,19 @@ module RAT (
     end
     
     // initialization
-    assign map_on_reset = 1'b0 << `REG_LEN*`REG_ADDR_LEN; 
+    assign map_on_reset = '{default:0}; 
 
     always_comb begin
+        phys_reg.src1 = map_curr[arch_reg.src1];
+        phys_reg.src2 = map_curr[arch_reg.src2];
+//        phys_reg.dest = assign_reg_curr;
+        phys_reg.dest = (arch_reg.dest == 5'd0) ? 5'd0 : assign_reg_curr;
+        phys_reg.dest_old = map_curr[arch_reg.dest];
         map_next = map_curr;
-        if (assign_flag) map_next = map_next | (assign_reg_curr << arch_reg.dest*`REG_ADDR_LEN);
+        // if (assign_flag) map_next = map_next | (assign_reg_curr << arch_reg.dest*`REG_ADDR_LEN);
+//        if (assign_flag) map_next[arch_reg.dest] = assign_reg_curr;
+        if (assign_flag) map_next[arch_reg.dest] = assign_reg;
     end
-    
-    assign phys_reg.src1 = map_curr >> (arch_reg.src1*`REG_ADDR_LEN);
-    assign phys_reg.src2 = map_curr >> (arch_reg.src2*`REG_ADDR_LEN);
-//    assign phys_reg.dest = (assign_reg == 5'd0) ? 5'd0 : assign_reg;
-    assign phys_reg.dest = assign_reg_curr;
-    assign phys_reg.dest_old = map_curr >> (arch_reg.dest*`REG_ADDR_LEN);
 
 endmodule 
 
@@ -129,6 +140,7 @@ module FreeList (
         end
     end
     
-assign assign_reg = assign_flag ? free_list[free_list_front_curr] : 5'b00000;
+//assign assign_reg = assign_flag ? free_list[free_list_front_curr] : 5'b00000;
+assign assign_reg = assign_flag ? free_list[free_list_front] : 5'd0;
         
 endmodule
