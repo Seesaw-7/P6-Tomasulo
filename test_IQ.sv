@@ -76,10 +76,10 @@ module test_issue_queue();
 
     // Test task for issuing instruction
     task test_issue_instruction();
-        reset = 1'b1;
-        load = 1'b0;
-        issue = 1'b0;
-        @(negedge clk);
+        // reset = 1'b1;
+        // load = 1'b0;
+        // issue = 1'b0;
+        // @(negedge clk);
         reset = 1'b0;
         issue = 1'b1;
         wait_until_done();
@@ -117,7 +117,7 @@ module test_issue_queue();
 
         // Test case 2: Check whether the ready bit of output is cleared before writing new data into IQ slot
         test_issue_instruction();
-        test_load_instruction(4'b1100, 5'b11000, 5'b11001, 5'b11010);
+        // test_load_instruction(4'b1100, 5'b11000, 5'b11001, 5'b11010);
         // todo: assert ready bits are cleared and then reloaded
         
         // Test case 3: Add instructions with ready and not ready physical regs

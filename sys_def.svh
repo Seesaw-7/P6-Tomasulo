@@ -6,7 +6,7 @@
 `define REG_ADDR_WIDTH           5 // regFile has 2^5 entries
 `define REG_NUM 32
 
-typedef enum logic [4:0] {
+typedef enum logic [3:0] {
 	ALU_ADD     = 4'h0,
 	ALU_SUB     = 4'h1,
 	ALU_SLT     = 4'h2,

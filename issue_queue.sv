@@ -42,13 +42,15 @@ module issue_queue #(
 
     // output data
     output logic [NUM_ENTRIES-1:0] insn_out,
-    output logic [REG_ADDR_WIDTH-1:0] inp1_out, inp2_out
+    output logic [REG_ADDR_WIDTH-1:0] inp1_out, inp2_out, dst_out
 );
 
     issue_queue_entry_t1 entries [NUM_ENTRIES]; // TODO: check syntax
     // ready_bits_t ready_table [REG_NUM];
     logic [REG_NUM-1:0] ready_table;
-    logic [ENTRY_WIDTH-1:0] num_entry_used; // internal reg for is_full signal
+    logic [ENTRY_WIDTH:0] num_entry_used; // internal reg for is_full signal, can be 0,1,2,3,4
+
+    //TODO: assign num_entry = #valid entry
 
     assign is_full = num_entry_used == NUM_ENTRIES;
 
@@ -100,8 +102,9 @@ module issue_queue #(
             insn_out <= 0;
             inp1_out <= 0;
             inp2_out <= 0;
+            dst_out <= 0;
         end else begin
-            // Add new instruction to reservation station
+            // add new instruction to reservation station
             if (load && ~is_full) begin //TODO: add else
                 for (int i = 0; i < NUM_ENTRIES; i++) begin // it's for sure that an empty entry exists
                     if (!entries[i].valid) begin
@@ -111,16 +114,26 @@ module issue_queue #(
                         entries[i].ready1 <= ready_table[inp1];
                         entries[i].ready2 <= ready_table[inp2];
                         entries[i].dst <= dst;
-                        entries[i].Bday <= num_entry_used;
+                        if (issue && exist_ready_out)
+                            entries[i].Bday <= num_entry_used - 1;
+                        else 
+                            entries[i].Bday <= num_entry_used;
                         entries[i].valid <= 1;
                         break;
                     end
                 end
+
+                // update ready table
                 if (dst == 0) // reg0 should always be 0, so always ready
                     ready_table[dst] <= 1;
                 else 
                     ready_table[dst] <= 0;
-                num_entry_used <= num_entry_used + 1;
+                // num_entry_used <= num_entry_used + 1;
+
+                // we do not need to update exsiting valid entries whose inp1 == dst or inp2 ==dst
+                // namely ready1 and ready2 for existing entries do not need to be updated
+                // because earlier insns must not depend on later insns
+
             end else begin
                 ;
             end
@@ -133,9 +146,10 @@ module issue_queue #(
                     insn_out <= entries[min_idx].insn;
                     inp1_out <= entries[min_idx].inp1;
                     inp2_out <= entries[min_idx].inp2;
+                    dst_out <= entries[min_idx].dst;
                     entries[min_idx].valid <= 0; 
                     issue_ready <= 1;
-                    num_entry_used <= num_entry_used - 1;
+                    // num_entry_used <= num_entry_used - 1;
 
                     // update Bday if it is younger than the output insn
                     for (int i = 0; i < NUM_ENTRIES; i++) begin
@@ -145,17 +159,16 @@ module issue_queue #(
                     end      
 
                     // TODO: wakeup other insn if their inp is equal to the dst of the output insn
-                    ready_table[entries[min_idx].dst] <= 1;
+                    ready_table[entries[min_idx].dst] <= 1; //TODO: RS 里会不会有两个entry dst是一样的
                     for (int i = 0; i < NUM_ENTRIES; i++) begin
                         if (entries[i].valid && entries[i].inp1 == entries[min_idx].dst) begin
-                            entries[i].ready1 <= 1; // Bday: the smallest, the oldes
+                            entries[i].ready1 <= 1; // Bday: the smallest, the oldest
                         end else if (entries[i].valid && entries[i].inp2 == entries[min_idx].dst) begin
                             entries[i].ready2 <= 1;
                         end
                         else
                             ;
                     end                    
-
                 end else begin
                     issue_ready <= 0;
                 end
@@ -164,6 +177,6 @@ module issue_queue #(
             end
         end
     end
-    
+
 
 endmodule
