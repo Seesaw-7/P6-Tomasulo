@@ -45,12 +45,24 @@ module issue_queue #(
     output logic [REG_ADDR_WIDTH-1:0] inp1_out, inp2_out, dst_out
 );
 
-    issue_queue_entry_t1 entries [NUM_ENTRIES]; // TODO: check syntax
-    // ready_bits_t ready_table [REG_NUM];
-    logic [REG_NUM-1:0] ready_table;
-    logic [ENTRY_WIDTH:0] num_entry_used; // internal reg for is_full signal, can be 0,1,2,3,4
 
-    //TODO: assign num_entry = #valid entry
+    // the only two internal storages that need to be updated with sequential logic
+    issue_queue_entry_t1 entries [NUM_ENTRIES]; // TODO: check syntax
+    logic [REG_NUM-1:0] ready_table;
+
+
+    // internal signals below are all updated with combinational logic
+    logic [ENTRY_WIDTH:0] num_entry_used; // can be 0,1,2,3,4, so ENTRY_WIDTH do not need to be decremented by 1
+    // TODO: check syntax
+    always_comb begin
+        num_entry_used = 0;
+        for (int i = 0; i < NUM_ENTRIES; i++) begin
+            if (entries[i].valid) begin
+                num_entry_used++;
+            end else
+                ;
+        end
+    end
 
     assign is_full = num_entry_used == NUM_ENTRIES;
 
@@ -67,8 +79,7 @@ module issue_queue #(
     // TODO: check syntax
     assign exist_ready_out = |ready_flags; // reduction OR to check if any entry is ready  
 
-    logic [ENTRY_WIDTH-1:0] min_Bday, min_idx; // min Bday of ready entries and its corresponding index
-    
+    logic [ENTRY_WIDTH-1:0] min_Bday, min_idx; // min Bday of ready entries and its corresponding index  
     //TODO: check syntax
     always_comb begin
         min_Bday = {ENTRY_WIDTH{1'b1}}; // initialize to maximum value
@@ -77,7 +88,8 @@ module issue_queue #(
             if (ready_flags[i] && (entries[i].Bday <= min_Bday)) begin
                 min_Bday = Bday[i];
                 min_idx = i;
-            end // TODO: add else
+            end else
+                ;
         end
     end
 
@@ -120,7 +132,8 @@ module issue_queue #(
                             entries[i].Bday <= num_entry_used;
                         entries[i].valid <= 1;
                         break;
-                    end
+                    end else
+                        ;
                 end
 
                 // update ready table
@@ -128,7 +141,6 @@ module issue_queue #(
                     ready_table[dst] <= 1;
                 else 
                     ready_table[dst] <= 0;
-                // num_entry_used <= num_entry_used + 1;
 
                 // we do not need to update exsiting valid entries whose inp1 == dst or inp2 ==dst
                 // namely ready1 and ready2 for existing entries do not need to be updated
@@ -149,7 +161,6 @@ module issue_queue #(
                     dst_out <= entries[min_idx].dst;
                     entries[min_idx].valid <= 0; 
                     issue_ready <= 1;
-                    // num_entry_used <= num_entry_used - 1;
 
                     // update Bday if it is younger than the output insn
                     for (int i = 0; i < NUM_ENTRIES; i++) begin
@@ -158,8 +169,8 @@ module issue_queue #(
                         end
                     end      
 
-                    // TODO: wakeup other insn if their inp is equal to the dst of the output insn
-                    ready_table[entries[min_idx].dst] <= 1; //TODO: RS 里会不会有两个entry dst是一样的
+                    // wakeup other insns if their inp is equal to the dst of the output insn
+                    ready_table[entries[min_idx].dst] <= 1; // No two entries with the same dst would exist in issue queue
                     for (int i = 0; i < NUM_ENTRIES; i++) begin
                         if (entries[i].valid && entries[i].inp1 == entries[min_idx].dst) begin
                             entries[i].ready1 <= 1; // Bday: the smallest, the oldest
