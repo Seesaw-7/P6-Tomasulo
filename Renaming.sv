@@ -4,8 +4,8 @@ module RegisterRenaming (
     input logic clk,
     input logic reset,
     input ARCH_REG arch_reg,
-    input logic commit_flag, //from ROB
-    input logic assign_flag, // form decoder
+    input logic return_flag, //from ROB (if instruction graduating from ROB have a destination reg)
+    input logic assign_flag, // from decoder (if instruction decoding from decoder have a destination reg)
     input logic [4:0] commit_phys_reg,
     output PHYS_REG phys_reg //output logic PHYS_REG phys_reg
 );
@@ -13,19 +13,26 @@ module RegisterRenaming (
     logic [4:0] assign_dest_reg;
     PHYS_REG rat_phys_reg;
 
-    //special case if arch_reg.dest == 0 
+    //special case: if arch_reg.dest == 0 
     logic assign_flag_not_r0, commit_flag_not_r0;
     assign assign_flag_not_r0 = assign_flag && (arch_reg.dest != 5'd0);
-    assign commit_flag_not_r0 = commit_flag && (commit_flag_reg != 5'd0);
+    assign commit_flag_not_r0 = return_flag && (commit_flag_reg != 5'd0);
+    
+    always_comb begin
+        if (assign_flag && (arch_reg.dest == 5'd0)) begin
+            phys_reg = 5'd0;
+        end
+        else begin
+            phys_reg = rat_phys_reg;
+        end
+    end
 
     logic assign_flag_reg, commit_flag_reg;
     always_ff @(posedge clk) begin
         assign_flag_reg <= assign_flag_not_r0;
         commit_flag_reg <= commit_flag_not_r0;
     end
-    
-    assign phys_reg = rat_phys_reg;
-
+   
     RAT rat_inst(
         .clk(clk),
         .reset(reset),
@@ -47,6 +54,7 @@ module RegisterRenaming (
 endmodule
 
 
+//map table: for source regs, search in the map table; for dest reg, update the map table
 module RAT (
     input logic clk,
     input logic reset,
@@ -88,6 +96,7 @@ module RAT (
 endmodule 
 
 
+//manage the available physical registers in the free list
 module FreeList (
     input logic clk,
     input logic reset,
