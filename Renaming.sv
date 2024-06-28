@@ -16,7 +16,7 @@ module RegisterRenaming (
     //special case: if arch_reg.dest == 0 
     logic assign_flag_not_r0, commit_flag_not_r0;
     assign assign_flag_not_r0 = assign_flag && (arch_reg.dest != 5'd0);
-    assign commit_flag_not_r0 = return_flag && (commit_flag_reg != 5'd0);
+    assign commit_flag_not_r0 = return_flag && (commit_phys_reg != 5'd0);
     
     always_comb begin
         if (assign_flag && (arch_reg.dest == 5'd0)) begin

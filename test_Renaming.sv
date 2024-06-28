@@ -15,7 +15,7 @@ module test_Renaming();
     .clk(clk),
     .reset(reset),
     .arch_reg(arch_reg),
-    .commit_flag(commit_flag),
+    .return_flag(commit_flag),
     .assign_flag(assign_flag),
     .commit_phys_reg(commit_phys_reg),
     .phys_reg(phys_reg)
