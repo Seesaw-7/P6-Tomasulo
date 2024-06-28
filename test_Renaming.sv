@@ -120,6 +120,8 @@ module test_Renaming();
    test_add_commit(5'd0);
 
    test_add_inst_commit('{src1: 5'd6, src2: 5'd7, dest: 5'd0}, 5'd0);
+   
+   test_add_inst('{src1: 5'd6, src2: 5'd7, dest: 5'd7});
 
    reset = 1'b1;
 
