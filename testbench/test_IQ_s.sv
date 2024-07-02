@@ -2,7 +2,6 @@
 `define HALF_CYCLE 25
 
 `include "issue_queue.svh"
-`include "sys_def.svh"
 
 module test_issue_queue_v2();
 

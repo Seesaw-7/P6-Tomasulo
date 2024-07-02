@@ -1,4 +1,3 @@
-
 # P6-Tomasulo
 
 Course project for ECE4700J, Computer Architecture
@@ -7,4 +6,4 @@ Implementation of a Scalar Intel P6 Style (using Tomasulo Algorithm + ROB) Out-o
 
 ## Run
 
-Include/sys_def.svh should be configured as a global header.
+include/sys_def.svh should be configured as a global header.
