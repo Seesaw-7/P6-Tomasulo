@@ -3,8 +3,10 @@
 
 // Global header
 
-`define REG_ADDR_WIDTH           5 // regFile has 2^5 entries
+`define REG_ADDR_LEN           5 // regFile has 2^5 entries
 `define REG_NUM 32
+
+`define XLEN 32 // ISA bit length
 
 typedef enum logic [3:0] {
 	ALU_ADD     = 4'h0,

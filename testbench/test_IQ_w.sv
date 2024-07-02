@@ -9,29 +9,25 @@ module test_issue_queue();
     // Parameters
     parameter NUM_ENTRIES = 4;
     parameter ENTRY_WIDTH = 2;
-    parameter REG_ADDR_WIDTH = 5;
-    parameter REG_NUM = 32;
 
     // Control signals
     logic clk, reset, load, issue;
     
     // Input data
     ALU1_FUNC insn;
-    logic [REG_ADDR_WIDTH-1:0] inp1, inp2, dst;
+    logic [REG_ADDR_LEN-1:0] inp1, inp2, dst;
     
     // Output signals
     logic issue_ready, is_full;
     
     // Output data
     logic [NUM_ENTRIES-1:0] insn_out;
-    logic [REG_ADDR_WIDTH-1:0] inp1_out, inp2_out, dst_out;
+    logic [REG_ADDR_LEN-1:0] inp1_out, inp2_out, dst_out;
 
     // Instantiate the issue_queue
     issue_queue #(
         .NUM_ENTRIES(NUM_ENTRIES),
-        .ENTRY_WIDTH(ENTRY_WIDTH),
-        .REG_ADDR_WIDTH(REG_ADDR_WIDTH),
-        .REG_NUM(REG_NUM)
+        .ENTRY_WIDTH(ENTRY_WIDTH)
     ) uut (
         .clk(clk),
         .reset(reset),
@@ -61,7 +57,7 @@ module test_issue_queue();
     endtask
 
     // Test task for loading instruction
-    task test_load_instruction(input ALU1_FUNC test_insn, input logic [REG_ADDR_WIDTH-1:0] test_inp1, test_inp2, test_dst);
+    task test_load_instruction(input ALU1_FUNC test_insn, input logic [REG_ADDR_LEN-1:0] test_inp1, test_inp2, test_dst);
         reset = 1'b0;
         load = 1'b0;
         issue = 1'b0;
@@ -191,9 +187,9 @@ module test_issue_queue();
         // // Randomized testing
         // for (int i = 0; i < 10; i++) begin
         //     ALU1_FUNC rand_insn = $urandom_range(0, 15);
-        //     logic [REG_ADDR_WIDTH-1:0] rand_inp1 = $urandom_range(0, 31);
-        //     logic [REG_ADDR_WIDTH-1:0] rand_inp2 = $urandom_range(0, 31);
-        //     logic [REG_ADDR_WIDTH-1:0] rand_dst = $urandom_range(0, 31);
+        //     logic [REG_ADDR_LEN-1:0] rand_inp1 = $urandom_range(0, 31);
+        //     logic [REG_ADDR_LEN-1:0] rand_inp2 = $urandom_range(0, 31);
+        //     logic [REG_ADDR_LEN-1:0] rand_dst = $urandom_range(0, 31);
         //     test_load_instruction(rand_insn, rand_inp1, rand_inp2, rand_dst);
         // end
 

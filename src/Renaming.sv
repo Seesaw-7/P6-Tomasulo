@@ -70,7 +70,7 @@ module RAT (
 );
     typedef logic [(`REG_ADDR_LEN-1):0] Addr;
 
-    Addr [(`REG_LEN-1):0] map_curr, map_next, map_on_reset;
+    Addr [(`REG_NUM-1):0] map_curr, map_next, map_on_reset;
 
     logic [4:0] assign_reg_curr;
     always_ff @(posedge clk) begin

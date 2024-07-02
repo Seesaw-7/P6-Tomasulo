@@ -17,15 +17,13 @@
 
 // if immi is used, then inp2 should be 5'b0, which is always ready
 
-// TODO: import issue_queue.svh
+`include "issue_queue.svh"
 
 `timescale 1ns/1ps
 
 module issue_queue #(
     parameter NUM_ENTRIES = 4, // #entries in the reservation station
-    parameter ENTRY_WIDTH = 2, // #entries = 2^{ENTRY_WIDTH}
-    parameter REG_ADDR_WIDTH = 5,
-    parameter REG_NUM = 32
+    parameter ENTRY_WIDTH = 2  // #entries = 2^{ENTRY_WIDTH}
 )(
     // control signals
     input logic clk,
@@ -36,7 +34,7 @@ module issue_queue #(
 
     // input data
     input ALU1_FUNC insn, 
-    input logic [REG_ADDR_WIDTH-1:0] inp1, inp2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
+    input logic [REG_ADDR_LEN-1:0] inp1, inp2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
 
     // output signals
     output logic issue_ready, // indicates if an instruction is ready to be executed
@@ -44,18 +42,17 @@ module issue_queue #(
 
     // output data
     output logic [NUM_ENTRIES-1:0] insn_out,
-    output logic [REG_ADDR_WIDTH-1:0] inp1_out, inp2_out, dst_out
+    output logic [REG_ADDR_LEN-1:0] inp1_out, inp2_out, dst_out
 );
 
 
     // the only two internal storages that need to be updated with sequential logic
-    issue_queue_entry_t1 entries [NUM_ENTRIES]; // TODO: check syntax
+    issue_queue_entry_t1 entries [NUM_ENTRIES];
     logic [REG_NUM-1:0] ready_table;
 
 
     // internal signals below are all updated with combinational logic
     logic [ENTRY_WIDTH:0] num_entry_used; // can be 0,1,2,3,4, so ENTRY_WIDTH do not need to be decremented by 1
-    // TODO: check syntax
     always_comb begin
         num_entry_used = 0;
         for (int i = 0; i < NUM_ENTRIES; i++) begin
@@ -69,7 +66,6 @@ module issue_queue #(
     assign is_full = num_entry_used == NUM_ENTRIES;
 
     logic [NUM_ENTRIES-1:0] ready_flags; // if this insn is ready
-    // TODO: check syntax
     generate
         genvar i;
         for (i = 0; i < NUM_ENTRIES; i++) begin : check_ready
@@ -78,11 +74,9 @@ module issue_queue #(
     endgenerate
 
     logic exist_ready_out;
-    // TODO: check syntax
     assign exist_ready_out = |ready_flags; // reduction OR to check if any entry is ready  
 
     logic [ENTRY_WIDTH-1:0] min_Bday, min_idx; // min Bday of ready entries and its corresponding index  
-    //TODO: check syntax
     always_comb begin
         min_Bday = {ENTRY_WIDTH{1'b1}}; // initialize to maximum value
         min_idx = 0; // initialize to 0
@@ -118,7 +112,7 @@ module issue_queue #(
             dst_out <= 0;
         end else begin
             // add new instruction to reservation station
-            if (load && ~is_full) begin //TODO: add else
+            if (load && ~is_full) begin
                 for (int i = 0; i < NUM_ENTRIES; i++) begin // it's for sure that an empty entry exists
                     if (!entries[i].valid) begin
                         entries[i].insn <= insn;

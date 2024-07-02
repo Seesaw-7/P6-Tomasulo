@@ -21,7 +21,7 @@ module regfile(
           
       );
   
-  logic    [31:0] [`XLEN-1:0] registers;   // 32, 64-bit Registers
+  logic    [REG_NUM-1:0] [`XLEN-1:0] registers;   // 32, 64-bit Registers
 
   wire   [`XLEN-1:0] rda_reg = registers[rda_idx];
   wire   [`XLEN-1:0] rdb_reg = registers[rdb_idx];
