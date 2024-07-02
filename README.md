@@ -6,4 +6,11 @@ Implementation of a Scalar Intel P6 Style (using Tomasulo Algorithm + ROB) Out-o
 
 ## Run
 
-include/sys_def.svh should be configured as a global header.
+include/sys_defs.svh should be configured as a global header.
+
+## Components
+
+- Renaming Unit
+- Reservation Station
+- Register File
+  
