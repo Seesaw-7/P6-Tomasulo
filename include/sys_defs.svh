@@ -67,11 +67,5 @@ typedef enum logic [4:0] {
 `define RS_LS_ENTRY_NUM 8 // #entries in RS, ahead of load/store unit
 `define RS_LS_ENTRY_WIDTH 3
 
-typedef struct packed {
-	ARCH_REG arch_reg;
-	PHYS_REG phys_reg;
-	INST inst;
-} DECODED_INST;
-
 
 `endif // __SYS_DEFS_VH__
