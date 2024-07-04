@@ -16,6 +16,18 @@
 `define REG_ADDR_LEN         5 // regFile has 2^5 entries
 `define REG_NUM 			32
 
+typedef struct packed {
+	logic [`XLEN-1:0] alu_result; // alu_result
+	logic [`XLEN-1:0] NPC; //pc + 4
+	logic             take_branch; // is this a taken branch?
+	//pass throughs from decode stage
+	logic [`XLEN-1:0] rs2_value;
+	logic             rd_mem, wr_mem;
+	logic [4:0]       dest_reg_idx;
+	logic             halt, illegal, csr_op, valid;
+	logic [2:0]       mem_size; // byte, half-word or word
+} EX_MEM_PACKET;
+
 //
 // ALU function code input
 // probably want to leave these alone
@@ -55,5 +67,8 @@ typedef enum logic [4:0] {
 `define RS_LS_ENTRY_NUM 8 // #entries in RS, ahead of load/store unit
 `define RS_LS_ENTRY_WIDTH 3
 
+typedef struct packed {
+
+} DECODED_INST;
 
 `endif // __SYS_DEFS_VH__
