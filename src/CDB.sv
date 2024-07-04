@@ -20,7 +20,7 @@
 
 module CDB (
     input logic [4:0] ROB_tag,           // ROB tag input
-    input INST_DECODED inst,             // Decoded instruction input
+    // input INST_DECODED inst,             // Decoded instruction input
 
     // Results from functional units
     input RESULT [4:0] in_results,       // Array of 5 results from functional units
@@ -34,7 +34,7 @@ module CDB (
 
     // Output to ROB
     output logic [4:0] out_ROB_tag,      // ROB tag output
-    output INST_DECODED out_inst,        // Decoded instruction output
+    // output INST_DECODED out_inst,        // Decoded instruction output
     output RESULT out_result,            // Result output
 
     // Output to reg file
