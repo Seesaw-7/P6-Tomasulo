@@ -111,7 +111,7 @@ module FreeList (
     output logic [4:0] assign_reg //phys_reg_dest
 );
 
-    logic [4:0] free_list [30:0];
+    logic [4:0] free_list [(`PHY_REG_NUM - 1):0];
     logic [4:0] free_list_front; 
     logic [4:0] free_list_end; 
 
@@ -120,7 +120,7 @@ module FreeList (
     //assign phys_reg for new instruction and return phys_reg from ROB
     always_ff @(posedge clk) begin
         if (reset) begin
-            for (int i=0; i<31; i++) begin
+            for (int i=0; i < (`PHY_REG_NUM - 1); i++) begin
             free_list[i] <= i+1;
             end
             free_list_front <= 5'b00000;
@@ -128,12 +128,12 @@ module FreeList (
         end
         else begin
             if (assign_flag) begin
-            free_list_front <= (free_list_front + 1) % 31;
+            free_list_front <= (free_list_front + 1) % (`PHY_REG_NUM - 1);
             free_list_front_curr <= free_list_front;
             end
             if (return_flag) begin
             //free_list[(free_list_end + 1) % 31] <= return_reg;
-            free_list_end <= (free_list_end + 1) % 31;
+            free_list_end <= (free_list_end + 1) % (`PHY_REG_NUM - 1);
             end
         end
     end
