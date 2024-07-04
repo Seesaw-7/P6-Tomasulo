@@ -1,5 +1,23 @@
 `timescale 1ns/1ps
 
+// Description: 
+// The CDB (Common Data Bus) module selects and broadcasts results from functional units (FUs) to 
+// the reorder buffer (ROB) and register file. It takes inputs from functional units and the issue unit, 
+// selects the appropriate result based on a select signal, and outputs the result to the register file and ROB.
+
+// Inputs:
+// - ROB_tag (logic [4:0]): ROB tag input for identifying the instruction.
+// - in_results (RESULT [4:0]): Array of 5 results from functional units.
+// - select_flag (logic): Indicates if selection is valid.
+// - select (logic [2:0]): Selects which result to output.
+
+// Outputs:
+// - out_select_flag (logic): Passes through the input select flag.
+// - out_ROB_tag (logic [4:0]): Passes through the input ROB tag.
+// - out_result (RESULT): Selected result output from functional units.
+// - out_addr (logic [4:0]): Address output to the register file.
+// - out_value (logic [`XLEN-1:0]): Value output to the register file.
+
 module CDB (
     input logic [4:0] ROB_tag,           // ROB tag input
     input INST_DECODED inst,             // Decoded instruction input
