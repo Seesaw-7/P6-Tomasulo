@@ -13,20 +13,11 @@
 `define __SYS_DEFS_VH__
 
 
-`define REG_ADDR_LEN         5 // regFile has 2^5 entries
-`define REG_NUM 			32
+`define ARCH_REG_ADDR_LEN         5 // architectural regFile has 2^5 entries
+`define ARCH_REG_NUM 			32
 
-typedef struct packed {
-	logic [`XLEN-1:0] alu_result; // alu_result
-	logic [`XLEN-1:0] NPC; //pc + 4
-	logic             take_branch; // is this a taken branch?
-	//pass throughs from decode stage
-	logic [`XLEN-1:0] rs2_value;
-	logic             rd_mem, wr_mem;
-	logic [4:0]       dest_reg_idx;
-	logic             halt, illegal, csr_op, valid;
-	logic [2:0]       mem_size; // byte, half-word or word
-} EX_MEM_PACKET;
+`define PHY_REG_ADDR_LEN         6 // physical regFile has 2^5 entries
+`define PHY_REG_NUM 			64
 
 //
 // ALU function code input
@@ -66,6 +57,23 @@ typedef enum logic [4:0] {
 
 `define RS_LS_ENTRY_NUM 8 // #entries in RS, ahead of load/store unit
 `define RS_LS_ENTRY_WIDTH 3
+
+typedef struct packed {
+    logic unsigned [`REG_ADDR_LEN-1:0] src1;
+    logic unsigned [`REG_ADDR_LEN-1:0] src2;
+    logic unsigned [`REG_ADDR_LEN-1:0] dest;
+} ARCH_REG;
+
+typedef struct packed {
+    logic unsigned [`REG_ADDR_LEN-1:0] src1;
+    logic unsigned [`REG_ADDR_LEN-1:0] src2;
+    logic unsigned [`REG_ADDR_LEN-1:0] dest;
+    logic unsigned [`REG_ADDR_LEN-1:0] dest_old;
+} PHYS_REG;
+
+typedef struct packed {
+
+} DECODED_INST;
 
 
 `endif // __SYS_DEFS_VH__
