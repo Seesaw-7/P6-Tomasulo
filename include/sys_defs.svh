@@ -35,42 +35,25 @@ typedef enum logic [4:0] {
 	ALU_MULH    = 5'h0b,
 	ALU_MULHSU  = 5'h0c,
 	ALU_MULHU   = 5'h0d,
-	ALU_DIV     = 5'h0e,
-	ALU_DIVU    = 5'h0f,
-	ALU_REM     = 5'h10,
-	ALU_REMU    = 5'h11
+	// ALU_DIV     = 5'h0e,
+	// ALU_DIVU    = 5'h0f,
+	// ALU_REM     = 5'h10,
+	// ALU_REMU    = 5'h11
 } ALU_FUNC;
 
 `define XLEN 				32 // ISA bit length
 
-// typedef enum logic [3:0] {
-// 	ALU_ADD     = 4'h0,
-// 	ALU_SUB     = 4'h1,
-// 	ALU_SLT     = 4'h2,
-// 	ALU_SLTU    = 4'h3,
-// 	ALU_AND     = 4'h4,
-// 	ALU_OR      = 4'h5,
-// 	ALU_XOR     = 4'h6,
-// 	ALU_SLL     = 4'h7,
-// 	ALU_SRL     = 4'h8,
-// 	ALU_SRA     = 4'h9
-// } ALU1_FUNC; // functions of ALU1
+`define RS_INT_ENTRY_NUM 8 // #entries in RS, ahead of integer unit
+`define RS_INT_ENTRY_WIDTH 3 // #entries = 2^{ENTRY_WIDTH}
 
-typedef enum logic [4:0] {
-	ALU_ADD     = 5'h00,
-	ALU_SUB     = 5'h01,
-	ALU_SLT     = 5'h02,
-	ALU_SLTU    = 5'h03,
-	ALU_AND     = 5'h04,
-	ALU_OR      = 5'h05,
-	ALU_XOR     = 5'h06,
-	ALU_SLL     = 5'h07,
-	ALU_SRL     = 5'h08,
-	ALU_SRA     = 5'h09,
-	ALU_MUL     = 5'h0a,
-	ALU_MULH    = 5'h0b,
-	ALU_MULHSU  = 5'h0c,
-	ALU_MULHU   = 5'h0d,
-} AL_FUNC;
+`define RS_MULT_ENTRY_NUM 4 // #entries in RS, ahead of multiplier
+`define RS_MULT_ENTRY_WIDTH 2
+
+`define RS_BRANCH_ENTRY_NUM 4 // #entries in RS, ahead of branch unit
+`define RS_BRANCH_ENTRY_WIDTH 2
+
+`define RS_LS_ENTRY_NUM 8 // #entries in RS, ahead of load/store unit
+`define RS_LS_ENTRY_WIDTH 3
+
 
 `endif // __SYS_DEFS_VH__

@@ -10,9 +10,11 @@ include/sys_defs.svh should be configured as a global header.
 
 ## Components Implemented
 
+- Register File (Physical Register File & Architectural Register File)
 - Renaming Unit
 - Reservation Station
-- Register File
+- Multiplier
+- Common Data Bus
 
 ## Design Principals
 
@@ -20,6 +22,6 @@ include/sys_defs.svh should be configured as a global header.
   - most instructions are simple arithmetics
   - in case no instructions in a smaller RS is ready
 
-- Two 
-  
+- Two Multipliers
+  - one multiplier has 8-cycle latency
   

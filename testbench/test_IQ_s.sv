@@ -13,7 +13,7 @@ module test_issue_queue_v2();
     logic clk, reset, load, issue;
     
     // Input data
-    AL_FUNC insn;
+    ALU_FUNC insn;
     logic [REG_ADDR_LEN-1:0] inp1, inp2, dst;
     
     // Output signals
@@ -56,7 +56,7 @@ module test_issue_queue_v2();
     endtask
 
     // Test task for loading instruction
-    task test_load_instruction(input AL_FUNC test_insn, input logic [REG_ADDR_LEN-1:0] test_inp1, test_inp2, test_dst);
+    task test_load_instruction(input ALU_FUNC test_insn, input logic [REG_ADDR_LEN-1:0] test_inp1, test_inp2, test_dst);
         reset = 1'b0;
         load = 1'b0;
         issue = 1'b0;
