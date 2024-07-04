@@ -68,7 +68,20 @@ typedef enum logic [4:0] {
 `define RS_LS_ENTRY_WIDTH 3
 
 typedef struct packed {
-
+	ARCH_REG arch_reg;
 } DECODED_INST;
+
+typedef struct packed {
+    logic unsigned [`REG_ADDR_LEN-1:0] src1;
+    logic unsigned [`REG_ADDR_LEN-1:0] src2;
+    logic unsigned [`REG_ADDR_LEN-1:0] dest;
+} ARCH_REG;
+
+typedef struct packed {
+    logic unsigned [`REG_ADDR_LEN-1:0] src1;
+    logic unsigned [`REG_ADDR_LEN-1:0] src2;
+    logic unsigned [`REG_ADDR_LEN-1:0] dest;
+    logic unsigned [`REG_ADDR_LEN-1:0] dest_old;
+} PHYS_REG;
 
 `endif // __SYS_DEFS_VH__
