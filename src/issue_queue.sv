@@ -33,7 +33,7 @@ module issue_queue #(
     // input logic wakeup, // set by outside logic, indicating whether to set the ready bit of previously issued dst reg to Yes
 
     // input data
-    input ALU1_FUNC insn, 
+    input AL_FUNC insn, 
     input logic [REG_ADDR_LEN-1:0] inp1, inp2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
 
     // output signals
