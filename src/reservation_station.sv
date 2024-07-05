@@ -2,7 +2,7 @@
 
 `timescale 1ns/1ps
 
-module issue_queue #(
+module reservation_station #(
     parameter NUM_ENTRIES = 4, // #entries in the reservation station
     parameter ENTRY_WIDTH = 2  // #entries = 2^{ENTRY_WIDTH}
 )(
@@ -11,25 +11,29 @@ module issue_queue #(
     input logic reset,
     input logic load, // whether we load in the instruction (assigned by dispatcher)
     input logic issue, // whether the issue queue should output one instruction (assigned by issue unit)
-    // input logic wakeup, // set by outside logic, indicating whether to set the ready bit of previously issued dst reg to Yes
+    input logic wakeup, // set by outside logic, indicating whether to set the ready bit of previously issued dst reg to Yes
 
     // input data
-    input AL_FUNC insn, 
-    input logic [REG_ADDR_LEN-1:0] inp1, inp2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
+    // input AL_FUNC insn, 
+    input DECODED_INST insn,
+    input logic [PHY_REG_ADDR_LEN-1:0] inp1, inp2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
+    input logic wakeup_reg_addr, 
 
     // output signals
-    output logic issue_ready, // indicates if an instruction is ready to be executed
+    // output logic issue_ready, // indicates if an instruction is ready to be executed
+    output logic insn_ready, // indicates if there exists an instruction that is ready to be issued
     output logic is_full, // all entries of the reservation station is occupied, cannot load in more inputs
 
     // output data
-    output logic [NUM_ENTRIES-1:0] insn_out,
-    output logic [REG_ADDR_LEN-1:0] inp1_out, inp2_out, dst_out
+    // output logic [NUM_ENTRIES-1:0] insn_out,
+    input DECODED_INST insn_out,
+    output logic [PHY_REG_ADDR_LEN-1:0] inp1_out, inp2_out, dst_out
 );
 
 
-    // the only two internal storages that need to be updated with sequential logic
-    issue_queue_entry_t1 entries [NUM_ENTRIES];
-    logic [REG_NUM-1:0] ready_table;
+    // the only two internal storages that need to be updated synchronously
+    issue_queue_entry_t entries [NUM_ENTRIES];
+    logic [PHY_REG_NUM-1:0] ready_table;
 
 
     // internal signals below are all updated with combinational logic
@@ -56,6 +60,7 @@ module issue_queue #(
 
     logic exist_ready_out;
     assign exist_ready_out = |ready_flags; // reduction OR to check if any entry is ready  
+    assign insn_ready = exist_ready_out;
 
     logic [ENTRY_WIDTH-1:0] min_Bday, min_idx; // min Bday of ready entries and its corresponding index  
     always_comb begin
@@ -71,22 +76,25 @@ module issue_queue #(
     end
 
 
+    // update issue
+    // logic issue_internal;
+
+
     always_ff @(posedge clk) begin
         if (reset) begin
             for (int i = 0; i < NUM_ENTRIES; i++) begin
-                entries[i].insn <= ALU_ADD;
-                entries[i].inp1 <= 0;
-                entries[i].inp2 <= 0;
-                entries[i].ready1 <= 0;
-                entries[i].ready2 <= 0;
-                entries[i].dst <= 0;
-                entries[i].Bday <= 0;
-                entries[i].valid <= 0;
+                entries[i] <= '{insn: ALU_ADD, 
+                                inp1: '0, 
+                                inp2: '0, 
+                                ready1: 1'b0, 
+                                ready2: 1'b0, 
+                                dst: '0, 
+                                Bday: '0, 
+                                valid: 1'b0};
             end
-            for (int i = 0; i < REG_NUM; i++) begin
+            for (int i = 0; i < PHY_REG_NUM; i++) begin
                 ready_table[i] <= 1;
             end
-            issue_ready <= 0;
             insn_out <= 0;
             inp1_out <= 0;
             inp2_out <= 0;
@@ -96,72 +104,58 @@ module issue_queue #(
             if (load && ~is_full) begin
                 for (int i = 0; i < NUM_ENTRIES; i++) begin // it's for sure that an empty entry exists
                     if (!entries[i].valid) begin
-                        entries[i].insn <= insn;
-                        entries[i].inp1 <= inp1;
-                        entries[i].inp2 <= inp2;
-                        entries[i].ready1 <= ready_table[inp1];
-                        entries[i].ready2 <= ready_table[inp2];
-                        entries[i].dst <= dst;
-                        if (issue && exist_ready_out)
-                            entries[i].Bday <= num_entry_used - 1;
-                        else 
-                            entries[i].Bday <= num_entry_used;
-                        entries[i].valid <= 1;
+                        entries[i] <= '{insn: insn, 
+                                    inp1: inp1, 
+                                    inp2: inp2, 
+                                    ready1: ready_table[inp1], 
+                                    ready2: ready_table[inp2], 
+                                    dst: dst, 
+                                    Bday: (issue && exist_ready_out) ? num_entry_used - 1 : num_entry_used, 
+                                    valid: 1};
                         break;
                     end else
                         ;
                 end
 
                 // update ready table
-                if (dst == 0) // reg0 should always be 0, so always ready
-                    ready_table[dst] <= 1;
-                else 
-                    ready_table[dst] <= 0;
+                ready_table[dst] <= dst == 0; // reg0 should always be 0, so always ready
 
                 // we do not need to update exsiting valid entries whose inp1 == dst or inp2 ==dst
                 // namely ready1 and ready2 for existing entries do not need to be updated
                 // because earlier insns must not depend on later insns
 
-            end else begin
+            end else
                 ;
-            end
 
             // issue insn
-            if (issue) begin
-                if (exist_ready_out) begin
+            if (issue) begin // it's for sure that exist_ready_out == 1, guaranteed by external issue unit
 
-                    //output insn
-                    insn_out <= entries[min_idx].insn;
-                    inp1_out <= entries[min_idx].inp1;
-                    inp2_out <= entries[min_idx].inp2;
-                    dst_out <= entries[min_idx].dst;
-                    entries[min_idx].valid <= 0; 
-                    issue_ready <= 1;
+                //output insn
+                insn_out <= entries[min_idx].insn;
+                inp1_out <= entries[min_idx].inp1;
+                inp2_out <= entries[min_idx].inp2;
+                dst_out <= entries[min_idx].dst;
+                entries[min_idx].valid <= 0; 
 
-                    // update Bday if it is younger than the output insn
-                    for (int i = 0; i < NUM_ENTRIES; i++) begin
-                        if (entries[i].valid && entries[i].Bday > min_Bday) begin
-                            entries[i].Bday <= entries[i].Bday - 1; // Bday: the smallest, the oldes
-                        end
-                    end      
+                // update Bday if it is younger than the output insn
+                for (int i = 0; i < NUM_ENTRIES; i++) begin
+                    if (entries[i].valid && entries[i].Bday > min_Bday) begin // Bday: the smallest, the oldest
+                        entries[i].Bday <= entries[i].Bday - 1; // Bday: the smallest, the oldes
+                    end
+                end      
 
-                    // wakeup other insns if their inp is equal to the dst of the output insn
-                    ready_table[entries[min_idx].dst] <= 1; // No two entries with the same dst would exist in issue queue
-                    for (int i = 0; i < NUM_ENTRIES; i++) begin
-                        if (entries[i].valid && entries[i].inp1 == entries[min_idx].dst) begin
-                            entries[i].ready1 <= 1; // Bday: the smallest, the oldest
-                        end else if (entries[i].valid && entries[i].inp2 == entries[min_idx].dst) begin
-                            entries[i].ready2 <= 1;
-                        end
-                        else
-                            ;
-                    end                    
-                end else begin
-                    issue_ready <= 0;
-                end
-            end else begin
-                issue_ready <= 0;
-            end
+            end else
+                ;
+
+            // wakeup other insns if their inp is equal to the dst of the output insn
+            if (wakeup) begin
+                ready_table[wakeup_reg_addr] <= 1;
+                for (int i = 0; i < NUM_ENTRIES; i++) begin
+                    entries[i].ready1 <= (entries[i].valid && entries[i].inp1 == wakeup_reg_addr) ? 1:entries[i].ready1;
+                    entries[i].ready2 <= (entries[i].valid && entries[i].inp2 == wakeup_reg_addr) ? 1:entries[i].ready2;
+                end  
+            end else
+                ;              
         end
     end
 
