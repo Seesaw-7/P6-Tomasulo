@@ -35,7 +35,9 @@ module ROB(
         if (inst_from_dispatcher.valid) begin
             rob[next_tail].valid = 1;
             rob[next_tail].ready = 0;
-            rob[next_tail].instruction = inst_from_dispatcher;
+            rob[next_tail].inst_rob = inst_from_dispatcher;
+            rob[next_tail].arch_reg = arch_reg;
+            rob[next_tail].phys_reg = phys_reg;
             next_tail = (tail + 1) % ROB_SIZE;
         end
     end
@@ -48,10 +50,10 @@ module ROB(
     end
     
     always_ff @(posedge clk) begin
-        if (reset) begin
+        if (reset || flush) begin
             head <= 0;
             tail <= 0;
-            for (int i=0; i < ROB_SIZE; i++) begin
+            for (int i=0; i<ROB_SIZE; i++) begin
                 rob[i].valid <= 0;
                 rob[i].ready <= 0; 
             end
@@ -66,9 +68,11 @@ module ROB(
                 commit <= 1;
                 rob[head].valid <= 0;
                 head <= (head + 1) % ROB_SIZE;
+            end    
             else begin
                 commit <= 0;
             end
+            
         end
 endmodule
 
