@@ -13,48 +13,31 @@
 `timescale 1ns/100ps
 
 module regfile(
-        input   [4:0] rda_idx, rdb_idx, wr_idx,    // read/write index
+        input   [4:0] wr_idx,    // read/write index
         input  [`XLEN-1:0] wr_data,            // write data
-        input         wr_en, wr_clk,
+        input         wr_en, clk, reset
 
-        output logic [`XLEN-1:0] rda_out, rdb_out    // read data, async out
+        output [`REG_NUM-1:0] [`XLEN-1:0] registers
           
       );
   
-  logic    [REG_NUM-1:0] [`XLEN-1:0] registers;   // 32, 64-bit Registers
+  logic    [`REG_NUM-1:0] [`XLEN-1:0] registers;   // 32, 64-bit Registers
+  logic    [`REG_NUM-1:0] [`XLEN-1:0] registers_next;   // 32, 64-bit Registers
 
-  wire   [`XLEN-1:0] rda_reg = registers[rda_idx];
-  wire   [`XLEN-1:0] rdb_reg = registers[rdb_idx];
-
-  //
-  // Read port A
-  //
-  always_comb
-    if (rda_idx == `ZERO_REG)
-      rda_out = 0;
-    else if (wr_en && (wr_idx == rda_idx))
-      rda_out = wr_data;  // internal forwarding
-    else
-      rda_out = rda_reg;
-
-  //
-  // Read port B
-  //
-  always_comb
-    if (rdb_idx == `ZERO_REG)
-      rdb_out = 0;
-    else if (wr_en && (wr_idx == rdb_idx))
-      rdb_out = wr_data;  // internal forwarding
-    else
-      rdb_out = rdb_reg;
-
-  //
-  // Write port
-  //
-  always_ff @(posedge wr_clk)
-    if (wr_en) begin
-      registers[wr_idx] <= `SD wr_data;
+  always_ff @(posedge clk) begin
+    if (reset) begin
+      registers <= 0;
+    end else begin
+      registers <= registers_next;
     end
+  end
+
+  always_comb begin
+    registers_next = registers;
+    if (wr_en) begin
+      registers_next[wr_idx] = wr_data;
+    end
+  end
 
 endmodule // regfile
 `endif //__REGFILE_V__
