@@ -1,79 +1,93 @@
 `include "ROB.svh"
-`include "sys_defs.svh"
-
-`timescale 1ns / 1ps
 
 module ROB(
     input logic clk,
     input logic reset,
-    input DECODED_INST inst_from_dispatcher,
-    input ARCH_REG arch_reg,
-    input PHYS_REG phys_reg, 
+    
+    input logic dispatch,
+    input [1:0] fun_code,
+    input [`REG_ADDR_LEN-1:0] reg_addr_from_dispatcher,
+     
     input logic cdb_to_rob,
-    input logic [`ROB_ADDR_LEN-1:0] rob_tag_from_cdb,
-    input logic [`XLEN-1:0] cdb_result,
-    //input logic [`XLEN-1:0] cdb_result,
-    input logic flush,
-    output logic commit, //wb_to_reg
-    output logic [`ARCH_REG_ADDR_LEN-1:0] wb_arch_reg_addr, 
-    output logic [`XLEN-1:0] wb_data,
-    output logic [`ROB_ADDR_LEN-1:0] rob_tag_inst_from_dispatcher
-    );
+    input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
+    input [`XLEN-1:0] cdb_result,
     
-    ROB_ENTRY rob [`ROB_SIZE-1:0];
-    logic [`ROB_ADDR_LEN-1:0] head;
-    logic [`ROB_ADDR_LEN-1:0] tail;
+    output logic wb_en, //wb to reg
+    output [`REG_ADDR_LEN-1:0] wb_reg, 
+    output [`XLEN-1:0] wb_data,
     
-    logic commit_ready;
+    output logic flush,
+    
+    output [`ROB_TAG_LEN-1:0] assign_rob_tag_to_dispatcher,
+    output logic rob_full_adv
+);
+    
+    ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
+    ROB_ENTRY rob_next [`ROB_SIZE-1:0];
+
+    logic [`ROB_TAG_LEN-1:0] head_curr;
+    logic [`ROB_TAG_LEN-1:0] head_next;
+    logic [`ROB_TAG_LEN-1:0] tail_curr;
+    logic [`ROB_TAG_LEN-1:0] tail_next;
+    
     always_comb begin
-        commit_ready = rob[head].valid && rob[head].ready;
-    end
-    
-    logic [`ROB_ADDR_LEN-1:0] next_tail;
-    always_comb begin
-        next_tail = tail;
-        if (inst_from_dispatcher.valid) begin
-            rob[next_tail].valid = 1;
-            rob[next_tail].ready = 0;
-            rob[next_tail].inst_rob = inst_from_dispatcher;
-            rob[next_tail].arch_reg = arch_reg;
-            rob[next_tail].phys_reg = phys_reg;
-            next_tail = (tail + 1) % ROB_SIZE;
+        for (int i=0; i<`ROB_SIZE; i++) begin
+            rob_next[i] = rob_curr[i];
         end
-    end
-    
-    always_comb begin
-        if (cdb_to_rob && rob[rob_tag_from_cdb].valid) begin
-            rob[rob_tag_from_cdb].ready = 1;
-            rob[rob_tag_from_cdb].result = cdb_result;
+        head_next = head_curr;
+        tail_next = tail_curr;
+        
+        wb_en = 1'b0;
+        wb_reg = {`REG_ADDR_LEN{1'b0}};
+        wb_data = {`XLEN{1'b0}};
+        flush = 1'b0;
+        
+        if (dispatch) begin
+            rob_next[tail_curr].valid = 1;
+            rob_next[tail_curr].ready = 0;
+            rob_next[tail_curr].fun_code = fun_code;
+            rob_next[tail_curr].wb_reg = reg_addr_from_dispatcher;
+            rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
+            tail_next = (tail_curr + 1) % `ROB_SIZE;
         end
+        
+        if (cdb_to_rob) begin
+            rob_next[rob_tag_from_cdb].wb_data = cdb_result;
+            rob_next[rob_tag_from_cdb].ready = 1;
+        end
+        
+        if (rob_curr[head_curr].valid && rob_curr[head_curr].ready) begin
+            if (rob_curr[head_curr].fun_code == 2'b00) begin
+                wb_en = 1;
+                wb_reg = rob_curr[head_curr].wb_reg;
+                wb_data = rob_curr[head_curr].wb_data;
+            end
+            if (rob_curr[head_curr].fun_code == 2'b01) begin
+                flush = (rob_curr[head_curr].wb_data == {`XLEN{1'b0}});
+            end
+            rob_next[head_curr].valid = 0;
+            head_next = (head_curr + 1) % `ROB_SIZE;
+        end
+
     end
+
+    assign assign_rob_tag_to_dispatcher = tail_curr;
+    assign rob_full_adv = (head_curr == tail_next);
     
     always_ff @(posedge clk) begin
         if (reset || flush) begin
-            head <= 0;
-            tail <= 0;
-            for (int i=0; i<ROB_SIZE; i++) begin
-                rob[i].valid <= 0;
-                rob[i].ready <= 0; 
+            head_curr <= 0;
+            tail_curr <= 0;
+            for (int i=0; i<`ROB_SIZE; i++) begin
+                rob_curr[i].valid <= 0;
+                rob_curr[i].ready <= 0; 
             end
         end
         else begin
-            tail <= next_tail;
-            rob_tag_inst_from_dispatcher <= tail;
-            
-            if (commit_ready) begin
-                wb_arch_reg_addr <= rob[head].arch_reg.dest;
-                wb_data <= rob[head].result;
-                commit <= 1;
-                rob[head].valid <= 0;
-                head <= (head + 1) % ROB_SIZE;
-            end    
-            else begin
-                commit <= 0;
-            end
-            
+            rob_curr <= rob_next;
+            head_curr <= head_next;
+            tail_curr <= tail_next;
         end
+    end
+    
 endmodule
-
-
