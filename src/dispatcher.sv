@@ -113,18 +113,19 @@ module dispatcher (
     end
 
     // RS control
-    wand_sel ws (
-        .req(RS_is_full[2:1]),
-        .gnt(RS_load_buffer)
-        );
-    logic [1:0] RS_load_buffer;
+    logic RS_load_cnt;
+    always_ff @(posedge clk) begin
+        if (reset) RS_load_cnt <= 0;
+        else RS_load_cnt <= !RS_load_cnt
+    end
     always_comb begin
         RS_load = 4'b0;
         priority case (FU)
             3'd 0: RS_load[0] = RS_is_full[0] ? 1'b0 : 1'b1; // Int Unit
             3'd 1: begin // Mult Unit
                 priority if ((RS_is_full[1] == 1'b0) && (RS_is_full[2] == 1'b0)) begin
-                    RS_load[2:1] = RS_load_buffer;
+                    RS_load[1] = RS_load_cnt ? 1'b1 : 1'b0;
+                    RS_load[2] = RS_load_cnt ? 1'b0 : 1'b1;
                 end else if ((RS_is_full[1] == 1'b0) && (RS_is_full[2] == 1'b1)) begin
                     RS_load[1] = 1'b1;
                 end else if ((RS_is_full[1] == 1'b1) && (RS_is_full[2] == 1'b0)) begin
