@@ -8,7 +8,7 @@
 //
 // This module is purely combinational
 //
-module alu(
+module arithmetic_logic_unit(
 	input [`XLEN-1:0] opa,
 	input [`XLEN-1:0] opb,
 	input ALU_FUNC     func, //TODO: input here?
