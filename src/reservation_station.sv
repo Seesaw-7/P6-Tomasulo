@@ -74,6 +74,7 @@ module reservation_station #(
     logic exist_ready_out;
     assign exist_ready_out = |ready_flags; // reduction OR to check if any entry is ready  
     assign insn_ready = exist_ready_out;
+    assign dst_tag = exist_ready_out ? entries[min_idx].dst : '0;
 
     logic [ENTRY_WIDTH-1:0] min_Bday, min_idx; // min Bday of ready entries and its corresponding index  
     always_comb begin
@@ -102,10 +103,6 @@ module reservation_station #(
                                 Bday: '0, 
                                 valid: 1'b0};
 
-    always_comb begin
-
-    end
-
 
     always_ff @(posedge clk) begin
         if (reset) begin
@@ -118,7 +115,7 @@ module reservation_station #(
             func_out <= 0;
             v1_out <= 0;
             v2_out <= 0;
-            dst_tag <= 0;
+            // dst_tag <= 0;
         end else begin
             // add new instruction to reservation station
             if (load && ~is_full) begin
@@ -153,7 +150,7 @@ module reservation_station #(
                 func_out <= entries[min_idx].func; // output at clock edge just to make sure that RS output one single and stable value per clock cycle
                 v1_out <= (wakeup && wakeup_tag_reg == t1) ? wakeup_value_reg : entries[min_idx].v1;
                 v2_out <= (wakeup && wakeup_tag_reg == t2) ? entries[min_idx].v2;
-                dst_tag <= entries[min_idx].dst;
+                // dst_tag <= entries[min_idx].dst;
                 entries[min_idx].valid <= 0; 
 
                 // update Bday if it is younger than the output insn
