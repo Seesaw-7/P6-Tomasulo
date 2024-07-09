@@ -6,46 +6,44 @@
 // selects the appropriate result based on a select signal, and outputs the result to the reservation station and ROB.
 
 // Inputs:
-// - in_results (RESULT [FU_NUM-1:0]): Array of results from functional units.
-// - select_flag (logic): Indicates if selection is valid.
+// - in_values ([`XLEN-1:0] [FU_NUM-1:0]): Array of results from functional units.
+// - ROB_tag：bypass to ROB, forward to RS
+// - select_flag (logic): Indicates if selection is valid, bypass to ROB
 // - select_signal (logic [FU_NUM-1:0]): One-hot encoded signal selecting which result to output.
 
 // Outputs:
 // - out_select_flag (logic): Passes through the input select flag.
-// - out_ROB_tag (logic [4:0]): Passes through the input ROB tag.
-// - out_result (RESULT): Selected result output from functional units.
-// - out_value (logic [`XLEN-1:0]): Value output to the RS.
+// - out_ROB_tag (logic [4:0]): Passes through the input ROB tag, bypass to ROB, forward to RS
+// - out_value (logic [`XLEN-1:0]): Value output to the ROB, forward to RS.
 
 module common_data_bus #(
     parameter int FU_NUM = 4  // Number of functional units
 ) (
-    // input logic [FU_NUM:0] ROB_tag,           // ROB tag input
 
     // Results from functional units
-    input RESULT [FU_NUM-1:0] in_results, // Array of results from functional units
+    input logic [`XLEN-1:0] [FU_NUM-1:0] in_values, // Array of results from functional units
 
     // Signals from issue unit
     input logic select_flag,              // Flag to indicate if selection is valid
     input logic [FU_NUM-1:0] select_signal, // One-hot encoded signal to choose the result
 
+    // Data from issue unit
+    input logic [`ROB_TAG_LEN-1:0] ROB_tag,           // ROB tag input
+
     // Output signals
     output logic out_select_flag,         // Select flag output
 
-    // Output to ROB
-    output logic [FU_NUM:0] out_ROB_tag,       // ROB tag output, to ROB and RS
-    output RESULT out_result,             // Result output
-
-    // Output to reservation station
-    output logic [`XLEN-1:0] out_value    // Value output to register file
+    // Output to ROB and Forward to RS
+    output logic [`ROB_TAG_LEN-1:0] out_ROB_tag,       // ROB tag output, to ROB and RS
+    output logic [`XLEN-1:0] out_value,             // Result output
 );
 
     always_comb begin
         // Pass through the ROB tag and select flag
         // out_ROB_tag = ROB_tag;
-        assign out_select_flag = select_flag;
+        out_select_flag = select_flag;
         
         // Default values when select_flag is not set
-        out_result = '0;
         out_value = '0;
         out_ROB_tag = '0;
 
@@ -53,9 +51,8 @@ module common_data_bus #(
             // Select the appropriate result based on the select signal
             for (int i = 0; i < FU_NUM; i++) begin
                 if (select_signal[i]) begin
-                    out_result = in_results[i];
-                    out_value = in_results[i].value;  // Assuming RESULT type has a value field
-                    out_ROB_tag = in_results[i].ROB_tag; // Assuming RESULT type has a ROB_tag field
+                    out_value = in_values[i];
+                    out_ROB_tag = ROB_tag; 
                 end
             end
         end

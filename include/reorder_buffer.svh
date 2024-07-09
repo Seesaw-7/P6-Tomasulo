@@ -6,8 +6,8 @@
 `define REG_LEN 32
 `define REG_ADDR_LEN 5
 
-`define ROB_SIZE 64
-`define ROB_TAG_LEN 6
+// `define ROB_SIZE 64
+// `define ROB_TAG_LEN 6
 
 typedef struct packed {
     logic valid;
