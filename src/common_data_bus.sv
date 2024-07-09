@@ -9,7 +9,7 @@
 // - in_values ([`XLEN-1:0] [FU_NUM-1:0]): Array of results from functional units.
 // - ROB_tag：bypass to ROB, forward to RS
 // - select_flag (logic): Indicates if selection is valid, bypass to ROB
-// - select_signal (logic [FU_NUM-1:0]): One-hot encoded signal selecting which result to output.
+// - select_signal (logic [$clog2(FU_NUM)-1:0]): signal selecting which result to output.
 
 // Outputs:
 // - out_select_flag (logic): Passes through the input select flag.
@@ -25,7 +25,7 @@ module common_data_bus #(
 
     // Signals from issue unit
     input logic select_flag,              // Flag to indicate if selection is valid
-    input logic [FU_NUM-1:0] select_signal, // One-hot encoded signal to choose the result
+    input logic [$clog2(FU_NUM)-1:0] select_signal, // signal to choose the result
 
     // Data from issue unit
     input logic [`ROB_TAG_LEN-1:0] ROB_tag,           // ROB tag input
@@ -50,7 +50,7 @@ module common_data_bus #(
         if (select_flag) begin
             // Select the appropriate result based on the select signal
             for (int i = 0; i < FU_NUM; i++) begin
-                if (select_signal[i]) begin
+                if (select_signal == i) begin
                     out_value = in_values[i];
                     out_ROB_tag = ROB_tag; 
                 end
