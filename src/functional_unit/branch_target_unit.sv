@@ -13,6 +13,8 @@ module brcond(// Inputs
 	input [`XLEN-1:0] rs1,    // Value to check against condition
 	input [`XLEN-1:0] rs2,
 	input  [2:0] func,  // Specifies which condition to check
+	input [`XLEN-1:0] offset,
+	input [`XLEN-1:0] PC,
 
 	output logic cond,    // 0/1 condition result (False/True)
 	output [`XLEN-1:0] target_addr
@@ -22,7 +24,7 @@ module brcond(// Inputs
 	assign signed_rs1 = rs1;
 	assign signed_rs2 = rs2;
 	always_comb begin
-		// cond = 0;
+		cond = 0;
 		unique case (func)
 			3'b000: cond = signed_rs1 == signed_rs2;  // BEQ
 			3'b001: cond = signed_rs1 != signed_rs2;  // BNE
@@ -32,6 +34,10 @@ module brcond(// Inputs
 			3'b111: cond = rs1 >= rs2;                // BGEU
 			default: cond = 1'b0;
 		endcase
+	end
+
+	always_comb begin
+		target_addr = PC + offset;
 	end
 	
 endmodule // brcond
