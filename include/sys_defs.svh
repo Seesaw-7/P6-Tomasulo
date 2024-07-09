@@ -58,6 +58,9 @@ typedef enum logic [4:0] {
 `define RS_LS_ENTRY_NUM 8 // #entries in RS, ahead of load/store unit
 `define RS_LS_ENTRY_WIDTH 3
 
+`define ROB_SIZE 64
+`define ROB_TAG_LEN 6
+
 typedef struct packed {
     logic unsigned [`REG_ADDR_LEN-1:0] src1;
     logic unsigned [`REG_ADDR_LEN-1:0] src2;
@@ -81,6 +84,7 @@ typedef struct packed {
 	logic [`XLEN-1:0] NPC; // PC + 4
 	logic [`XLEN-1:0] PC;  // PC 
 } PREFETCH_PACKET;
+
 
 
 `endif // __SYS_DEFS_SVH__

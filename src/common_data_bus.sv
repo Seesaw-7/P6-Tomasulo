@@ -17,7 +17,7 @@
 // - out_value (logic [`XLEN-1:0]): Value output to the RS.
 
 module common_data_bus #(
-    parameter int FU_NUM = 5  // Number of functional units
+    parameter int FU_NUM = 4  // Number of functional units
 ) (
     // input logic [FU_NUM:0] ROB_tag,           // ROB tag input
 
@@ -42,7 +42,7 @@ module common_data_bus #(
     always_comb begin
         // Pass through the ROB tag and select flag
         // out_ROB_tag = ROB_tag;
-        out_select_flag = select_flag;
+        assign out_select_flag = select_flag;
         
         // Default values when select_flag is not set
         out_result = '0;
