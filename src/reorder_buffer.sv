@@ -4,13 +4,13 @@ module reorder_buffer(
     input logic clk,
     input logic reset,
     
-    input logic dispatch,
-    input [1:0] fun_code,
+    input logic dispatch,,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_dispatcher,
      
     input logic cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
     input [`XLEN-1:0] cdb_result,
+    input logic mispredict_from_cdb,
     
     output logic wb_en, //wb to reg
     output [`REG_ADDR_LEN-1:0] wb_reg, 
@@ -45,7 +45,7 @@ module reorder_buffer(
         if (dispatch) begin
             rob_next[tail_curr].valid = 1;
             rob_next[tail_curr].ready = 0;
-            rob_next[tail_curr].fun_code = fun_code;
+            rob_next[tail_curr].mispredict = 0;
             rob_next[tail_curr].wb_reg = reg_addr_from_dispatcher;
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
             tail_next = (tail_curr + 1) % `ROB_SIZE;
@@ -53,17 +53,17 @@ module reorder_buffer(
         
         if (cdb_to_rob) begin
             rob_next[rob_tag_from_cdb].wb_data = cdb_result;
+            rob_next[rob_tag_from_cdb].mispredict = mispredict_from_cdb;
             rob_next[rob_tag_from_cdb].ready = 1;
         end
         
         if (rob_curr[head_curr].valid && rob_curr[head_curr].ready) begin
-            if (rob_curr[head_curr].fun_code == 2'b00) begin
-                wb_en = 1;
-                wb_reg = rob_curr[head_curr].wb_reg;
-                wb_data = rob_curr[head_curr].wb_data;
+            wb_en = 1;
+            wb_reg = rob_curr[head_curr].wb_reg;
+            wb_data = rob_curr[head_curr].wb_data;
             end
-            if (rob_curr[head_curr].fun_code == 2'b01) begin
-                flush = (rob_curr[head_curr].wb_data == {`XLEN{1'b0}});
+            if (rob_curr[head_curr].mispredict == 1) begin
+                flush = 1;
             end
             rob_next[head_curr].valid = 0;
             head_next = (head_curr + 1) % `ROB_SIZE;
@@ -81,6 +81,9 @@ module reorder_buffer(
             for (int i=0; i<`ROB_SIZE; i++) begin
                 rob_curr[i].valid <= 0;
                 rob_curr[i].ready <= 0; 
+                rob_curr[i].mispredict <= 0;
+                rob_curr[i].wb_reg <= 0;
+                rob_curr[i].wb_data <= 0;
             end
         end
         else begin
