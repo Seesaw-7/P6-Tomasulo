@@ -14,7 +14,8 @@ module brcond(// Inputs
 	input [`XLEN-1:0] rs2,
 	input  [2:0] func,  // Specifies which condition to check
 
-	output logic cond    // 0/1 condition result (False/True)
+	output logic cond,    // 0/1 condition result (False/True)
+	output [`XLEN-1:0] target_addr
 );
 
 	logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
