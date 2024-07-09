@@ -1,16 +1,17 @@
 `include "reorder_buffer.svh"
+`include "sys_defs.svh"
 
 module reorder_buffer(
     input logic clk,
     input logic reset,
     
-    input logic dispatch,
-    input [1:0] fun_code,
+    input logic dispatch,,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_dispatcher,
      
     input logic cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
     input [`XLEN-1:0] cdb_result,
+    input logic mispredict_from_cdb,
     
     output logic wb_en, //wb to reg
     output [`REG_ADDR_LEN-1:0] wb_reg, 
@@ -41,46 +42,51 @@ module reorder_buffer(
         wb_reg = {`REG_ADDR_LEN{1'b0}};
         wb_data = {`XLEN{1'b0}};
         flush = 1'b0;
+        assign_rob_tag_to_dispatcher = {`ROB_TAG_LEN{1'b0}};
         
         if (dispatch) begin
-            rob_next[tail_curr].valid = 1;
-            rob_next[tail_curr].ready = 0;
-            rob_next[tail_curr].fun_code = fun_code;
+            rob_next[tail_curr].valid = 1'b1;
+            rob_next[tail_curr].ready = 1'b0;
+            rob_next[tail_curr].mispredict = 1'b0;
             rob_next[tail_curr].wb_reg = reg_addr_from_dispatcher;
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
             tail_next = (tail_curr + 1) % `ROB_SIZE;
+            
+            assign_rob_tag_to_dispatcher = tail_curr;
         end
         
         if (cdb_to_rob) begin
             rob_next[rob_tag_from_cdb].wb_data = cdb_result;
-            rob_next[rob_tag_from_cdb].ready = 1;
+            rob_next[rob_tag_from_cdb].mispredict = mispredict_from_cdb;
+            rob_next[rob_tag_from_cdb].ready = 1'b1;
         end
         
         if (rob_curr[head_curr].valid && rob_curr[head_curr].ready) begin
-            if (rob_curr[head_curr].fun_code == 2'b00) begin
-                wb_en = 1;
-                wb_reg = rob_curr[head_curr].wb_reg;
-                wb_data = rob_curr[head_curr].wb_data;
+            wb_en = 1'b1;
+            wb_reg = rob_curr[head_curr].wb_reg;
+            wb_data = rob_curr[head_curr].wb_data;
             end
-            if (rob_curr[head_curr].fun_code == 2'b01) begin
-                flush = (rob_curr[head_curr].wb_data == {`XLEN{1'b0}});
+            if (rob_curr[head_curr].mispredict == 1'b1) begin
+                flush = 1'b1;
             end
-            rob_next[head_curr].valid = 0;
+            rob_next[head_curr].valid = 1'b0;
             head_next = (head_curr + 1) % `ROB_SIZE;
         end
 
     end
 
-    assign assign_rob_tag_to_dispatcher = tail_curr;
     assign rob_full_adv = (head_curr == tail_next);
     
     always_ff @(posedge clk) begin
         if (reset || flush) begin
-            head_curr <= 0;
-            tail_curr <= 0;
+            head_curr <= {`REG_ADDR_LEN{1'b0}};
+            tail_curr <= {`REG_ADDR_LEN{1'b0}};
             for (int i=0; i<`ROB_SIZE; i++) begin
-                rob_curr[i].valid <= 0;
-                rob_curr[i].ready <= 0; 
+                rob_curr[i].valid <= 1'b0;
+                rob_curr[i].ready <= 1'b0; 
+                rob_curr[i].mispredict <= 1'b0;
+                rob_curr[i].wb_reg <= {`REG_ADDR_LEN{1'b0}};
+                rob_curr[i].wb_data <= {`XLEN{1'b0}};
             end
         end
         else begin

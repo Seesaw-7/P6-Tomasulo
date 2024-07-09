@@ -23,7 +23,7 @@ module map_table(
             for (int i=0; i<`REG_LEN; i++) begin
                 // if a map table entry doesn't have ROB tag stored, its rob_tag = {ROB_TAG_LEN{1'b1}}
                 map_table_curr[i].rob_tag <= {`ROB_TAG_LEN{1'b1}};
-                map_table_curr[i].ready_in_rob <= 0;
+                map_table_curr[i].ready_in_rob <= 1'b0;
             end
         end 
         else begin
@@ -39,19 +39,19 @@ module map_table(
 
         if (assign_flag) begin
             map_table_next[arch_reg.dest].rob_tag = assign_rob_tag;
-            map_table_next[arch_reg.dest].ready_in_rob = 0;
+            map_table_next[arch_reg.dest].ready_in_rob = 1'b0;
         end
 
         if (return_flag) begin
             if (map_table_curr[reg_addr_from_rob].rob_tag == rob_tag_from_rob) begin
                 map_table_next[reg_addr_from_rob].rob_tag = {`ROB_TAG_LEN{1'b1}};
-                map_table_next[reg_addr_from_rob].ready_in_rob = 0;
+                map_table_next[reg_addr_from_rob].ready_in_rob = 1'b0;
             end
         end
         
         if (ready_flag) begin
             if (map_table_curr[reg_addr_from_cdb].rob_tag == rob_tag_from_cdb) begin
-                map_table_next[reg_addr_from_cdb].ready_in_rob = 1;
+                map_table_next[reg_addr_from_cdb].ready_in_rob = 1'b1;
             end
         end
     end
