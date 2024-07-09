@@ -25,7 +25,7 @@ module issue_unit #(
 
     // 内部信号和逻辑
     logic [10:0] [3:0] fu_cycles;    // 功能单元的剩余计算周期(可以改成0)
-    logic [10:0] ready_fu;     // 当前准备好的功能单元
+    // logic [10:0] ready_fu;     // 当前准备好的功能单元
     logic [3:0] rand_select;  // 随机选择的功能单元
     logic [3:0] temp_cycle;   // 随机选择的功能单元的剩余计算周期
     logic [3:0][`ROB_TAG_LEN-1:0] ROB_tag;
@@ -35,7 +35,7 @@ module issue_unit #(
     function automatic void initialize_signals();
         begin
             fu_cycles = 10'b0;  // 0表示未运行
-            ready_fu = 10'b0;
+            // ready_fu = 10'b0;
             select_flag = 0;
             select_signal = 4'b0000;
             issue_flag = 0;
@@ -107,15 +107,14 @@ module issue_unit #(
                     2'b10: temp_cycle = 4;  // Load/Store unit (assuming 4 cycle latency)
                     2'b11: temp_cycle = 8;  // multiplier unit
                 endcase
-                ready_fu[rand_select] = 1;
+                issue_flag = 1;
                 for (int j = 0; j < 11; j++) begin
                     if (fu_cycles[j] == temp_cycle) begin
-                        ready_fu[rand_select] = 0;
+                        issue_flag = 0;
                     end
                 end
-                if (ready_fu[rand_select] == 1) begin
+                if (issue_flag == 1) begin
                     fu_cycles[rand_select] = temp_cycle;
-                    issue_flag = 1;
                     issue_signal = rand_fu;
                     ROB_tag[rand_select] = in_ROB_tag[rand_fu];
                     break;
