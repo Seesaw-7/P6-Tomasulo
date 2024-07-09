@@ -1,6 +1,6 @@
-`include "ROB.svh"
+`include "reorder_buffer.svh"
 
-module ROB(
+module reorder_buffer(
     input logic clk,
     input logic reset,
     

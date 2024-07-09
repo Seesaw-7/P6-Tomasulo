@@ -16,7 +16,7 @@
 // - out_result (RESULT): Selected result output from functional units.
 // - out_value (logic [`XLEN-1:0]): Value output to the RS.
 
-module CDB #(
+module common_data_bus #(
     parameter int FU_NUM = 5  // Number of functional units
 ) (
     // input logic [FU_NUM:0] ROB_tag,           // ROB tag input

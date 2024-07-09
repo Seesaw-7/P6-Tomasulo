@@ -1,9 +1,9 @@
-`ifndef __RESERVATION_STATION_VH__
-`define __RESERVATION_STATION_VH__
+`ifndef __RESERVATION_STATION_SVH__
+`define __RESERVATION_STATION_SVH__
 
 // local header
 
-`include "map.svh"
+`include "map_table.svh"
 
 typedef struct packed {
     ALU_FUNC                       func;    //TODO: revise later, decided by decoder and FU

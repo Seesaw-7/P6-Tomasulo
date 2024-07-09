@@ -1,5 +1,5 @@
-`ifndef _MAP_
-`define _MAP_
+`ifndef __MAP_TABLE_SVH__
+`define __MAP_TABLE_SVH__
 
 `define REG_LEN 32
 `define REG_ADDR_LEN 5
@@ -31,4 +31,4 @@ typedef struct packed {
     logic ready_in_rob;
 } MAP_ENTRY;
 
-`endif // _MAP_
+`endif

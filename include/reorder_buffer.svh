@@ -1,5 +1,5 @@
-`ifndef _ROB_
-`define _ROB_
+`ifndef __REORDER_BUFFER_VH__
+`define __REORDER_BUFFER_VH__
 
 `define XLEN 32
 
@@ -17,4 +17,4 @@ typedef struct packed {
     logic [`XLEN-1:0] wb_data;
 } ROB_ENTRY;
 
-`endif // _ROB_
+`endif

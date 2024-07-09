@@ -1,4 +1,4 @@
-`include "map.svh"
+`include "map_table.svh"
 
 module map_table(
     input logic clk,

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
-//   Modulename :  sys_defs.vh                                         //
+//   Modulename :  sys_defs.svh                                        //
 //                                                                     //
 //  Description :  This file has the macro-defines for macros used in  //
 //                 the OoO      design.                                //
@@ -9,8 +9,8 @@
 
 // Global header
 
-`ifndef __SYS_DEFS_VH__
-`define __SYS_DEFS_VH__
+`ifndef __SYS_DEFS_SVH__
+`define __SYS_DEFS_SVH__
 
 
 `define ARCH_REG_ADDR_LEN         5 // architectural regFile has 2^5 entries
@@ -83,4 +83,4 @@ typedef struct packed {
 } PREFETCH_PACKET;
 
 
-`endif // __SYS_DEFS_VH__
+`endif // __SYS_DEFS_SVH__

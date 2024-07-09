@@ -1,4 +1,4 @@
-`include "map.sch"
+`include "map_table.svh"
 
 typedef struct packed {
 //    logic [2:0] FU; // 4 kinds of FU

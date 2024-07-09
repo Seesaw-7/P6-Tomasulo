@@ -7,7 +7,7 @@
 // of the result.  This is not an ideal multiplier but is sufficient to 
 // allow a faster clock period than straight *
 // This module instantiates 8 pipeline stages as an array of submodules.
-module mult #(
+module multiplier #(
 	parameter N = `NUM_STAGE
 ) (
 				input clock, reset,

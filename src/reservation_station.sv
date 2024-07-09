@@ -5,6 +5,9 @@
 //TODO: use CAM instead of loop to improve gate number
 //TODO: async accept wakeup value but sync update RS entries, so async judge insn_ready based on wakeup tag as well
 
+// Note: this module assumes that wakeup is stable at posedge, and wakeup is one clock behind issue
+// Besides, it assumes that wakeup_tag and wakeup_value are stable at clock edge, which is kind of weird
+
 module reservation_station #(
     parameter NUM_ENTRIES = 4, // #entries in the reservation station
     parameter ENTRY_WIDTH = 2  // #entries = 2^{ENTRY_WIDTH}

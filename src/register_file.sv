@@ -1,18 +1,15 @@
 /////////////////////////////////////////////////////////////////////////
 //                                                                     //
-//   Modulename :  regfile.v                                           //
+//   Modulename :  register_file.v                                     //
 //                                                                     //
 //  Description :  This module creates the Regfile read before FU calculation and  // 
 //                 written at ROB （WB） .                          //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
-`ifndef __REGFILE_V__
-`define __REGFILE_V__
-
 `timescale 1ns/100ps
 
-module regfile(
+module register_file(
         input   [4:0] wr_idx,    // read/write index
         input  [`XLEN-1:0] wr_data,            // write data
         input         wr_en, clk, reset
@@ -39,5 +36,4 @@ module regfile(
     end
   end
 
-endmodule // regfile
-`endif //__REGFILE_V__
+endmodule
