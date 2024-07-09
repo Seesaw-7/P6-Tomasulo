@@ -34,11 +34,12 @@ module dispatcher (
     input [`REG_NUM-1:0] [`XLEN-1:0] registers, // wires from regfile
     // from ROB
     input ROB_ENTRY rob [`ROB_SIZE-1:0],
-    input [`ROB_ADDR_LEN-1:0] rob_tail,
+    input [`ROB_ADDR_LEN-1:0] assign_rob_tag,
     // entry to RS
     output INST_RS inst_rs,
     // entry to ROB
     output INST_ROB inst_rob,
+    output assign_rob,
 
     // forward to map table
     input assign_flag,
@@ -66,10 +67,8 @@ module dispatcher (
 
     // map table
     RENAMED_PACK renamed_pack;
-    logic [`ROB_TAG_LEN-1:0] assign_rob_tag;
     ARCH_REG arch_reg;
     assign arch_reg = insn_reg.arch_reg; 
-    assign assign_rob_tag = rob_tail + `ROB_TAG_LEN'd1;
     logic assign_flag;
     assign assign_flag = (insn_reg.arch_reg.dest == 0) ? 1'b0 : 1'b1; // remove r0
     map_table mt (.*); 
@@ -123,23 +122,16 @@ module dispatcher (
         priority case (FU)
             3'd 0: RS_load[0] = RS_is_full[0] ? 1'b0 : 1'b1; // Int Unit
             3'd 1: begin // Mult Unit
-                priority if ((RS_is_full[1] == 1'b0) && (RS_is_full[2] == 1'b0)) begin
-                    RS_load[1] = RS_load_cnt ? 1'b1 : 1'b0;
-                    RS_load[2] = RS_load_cnt ? 1'b0 : 1'b1;
-                end else if ((RS_is_full[1] == 1'b0) && (RS_is_full[2] == 1'b1)) begin
-                    RS_load[1] = 1'b1;
-                end else if ((RS_is_full[1] == 1'b1) && (RS_is_full[2] == 1'b0)) begin
-                    RS_load[2] = 1'b1;
-                end
+                RS_load[1] = RS_is_full[1] ? 1'b0 : 1'b1; // Branch Unit
             end
-            3'd 2: RS_load[3] = RS_is_full[3] ? 1'b0 : 1'b1; // Branch Unit
-            3'd 3: RS_load[4] = RS_is_full[4] ? 1'b0 : 1'b1; // lw/sw Unit
+            3'd 2: RS_load[2] = RS_is_full[2] ? 1'b0 : 1'b1; // Branch Unit
+            3'd 3: RS_load[3] = RS_is_full[3] ? 1'b0 : 1'b1; // lw/sw Unit
         endcase
-        
     end
 
     // assign inst_rob
     assign inst_rob.ROB_tag = assign_rob_tag;
     assign inst_rob.reg = renamed_pack.dest;
+    assign assign_rob = |(RS_Load);
 
 endmodule
