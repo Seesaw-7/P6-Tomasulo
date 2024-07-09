@@ -3,88 +3,87 @@
 module issue_unit (
     input logic clk,
     input logic reset,
-
-    // Inputs from reservation stations
-    input logic [4:0] instr_ready,          // 每个功能单元的指令准备状态 
-
-
-    // Select signal and flag
+ 
+    input logic [3:0] instr_ready,    
+    input logic [3:0][`ROB_TAG_LEN-1:0] ROB_tag, 
+ 
+    output logic [3:0] issue_signal,  
+ 
+    output logic [`ROB_TAG_LEN-1:0] ROB_tag_out,       
     output logic select_flag,
-    output logic [2:0] select_signal
+    output logic [1:0] select_signal
 );
+ 
+    logic [10:0] [3:0] fu_cycles;    
+    logic [3:0] ready_fu;     
+    logic [10:0][`ROB_TAG_LEN-1:0] ROB_tag_reg, 
 
-    // 内部信号和逻辑
-    logic [4:0] fu_busy;      // 功能单元的忙碌状态
-    logic [4:0] [3:0] fu_cycles;    // 功能单元的剩余计算周期 (-1表示未运行)
-    logic [4:0] ready_fu;     // 当前准备好的功能单元
-    logic [2:0] rand_select;  // 随机选择的功能单元
-
-    // 初始化
-    initial begin
-        fu_busy = 5'b00000;
-        fu_cycles = {5{4'b1111}};  // -1表示未运行
-        select_flag = 0;
-        select_signal = 3'b000;
+    initial begin 
+        fu_cycles <= {11{4'b1111}}; 
+        ready_fu <= 4'b1111;
+        select_flag <= 0;
+        select_signal <= 2'b00;
+        issue_signal <= 4'b0000;
     end
 
-    // 随机数生成器
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) begin
-            rand_select <= 3'b000;
-        end else begin
-            rand_select <= $random % 5;
-        end
-    end
-
-    // 功能单元的状态更新
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) begin
-            fu_busy <= 5'b00000;
-            fu_cycles <= {5{4'b1111}};  // -1表示未运行
-        end else begin
-            for (int i = 0; i < 5; i++) begin
-                if (fu_busy[i] && fu_cycles[i] > 0) begin
-                    fu_cycles[i] <= fu_cycles[i] - 1;
-                    if (fu_cycles[i] == 1) begin
-                        fu_busy[i] <= 0;
-                        fu_cycles[i] <= 4'b1111;  // 重置为-1
+    always_comb begin
+        issue_signal = 4'b0000;
+        for (int i = 0; i < 4; i++) begin
+            if (instr_ready[i] && ready_fu[i]) begin
+                logic [3:0] temp_cycle = 0; 
+                logic issue_flag = 1;
+                case (i)
+                    0: temp_cycle = 1;  // Integer unit
+                    1: temp_cycle = 1;  // Branching unit
+                    2: temp_cycle = 4;  // load/store 
+                    3: temp_cycle = 8;  // Mutiple
+                endcase
+                for (int j = 0 ;j < 11; j++)begin
+                    if (temp_cycle == fu_cycles[j]) begin
+                        issue_flag = 0;
+                        break;
                     end
+                end
+                if (issue_flag) begin
+                    issue_signal[i] = 1; 
+                    if (i<3) begin 
+                        ready_fu[i] = 0;
+                        fu_cycles[i] = temp_cycle;
+                        ROB_tag_reg[i] = ROB_tag[i];
+                    end
+                    else begin
+                        for (j = 3;j<11;j++)
+                            if (fu_cycles[j]== -1) begin 
+                                fu_cycles[j] = temp_cycle;
+                                ROB_tag_reg[j] = ROB_tag[3];
+                                break;
+                            end
+                    end
+                    break;
                 end
             end
         end
     end
-
-    // 指令发射逻辑
-    always_comb begin
-        ready_fu = 5'b00000;
-        for (int i = 0; i < 5; i++) begin
-            if (instr_ready[i] && !fu_busy[i]) begin
-                ready_fu[i] = 1;
-            end
-        end
-    end
-
-    // 随机选择准备好的功能单元
+ 
     always_ff @(posedge clk or posedge reset) begin
-        if (reset) begin
+        if (reset) begin 
+            fu_cycles <= {11{4'b1111}};  
+            ready_fu <= 4'b1111; 
             select_flag <= 0;
-            select_signal <= 3'b000;
+            select_signal <= 2'b00;
         end else begin
-            if (ready_fu != 5'b00000) begin
-                select_signal <= rand_select;
-                select_flag <= 1; 
-
-                // 更新功能单元的忙碌状态和计算周期
-                case (rand_select)
-                    3'b000: fu_cycles[rand_select] <= 1;  // Integer unit
-                    3'b001: fu_cycles[rand_select] <= 8;  // Mult unit 1
-                    3'b010: fu_cycles[rand_select] <= 8;  // Mult unit 2
-                    3'b011: fu_cycles[rand_select] <= 1;  // Branching unit
-                    3'b100: fu_cycles[rand_select] <= 4;  // Load/Store unit (假设4周期延迟)
-                endcase
-                fu_busy[rand_select] <= 1;
-            end else begin
-                select_flag <= 0;
+            for (int i = 0; i < 11; i++) begin
+                if (fu_cycles[i] > 0) begin
+                    if (fu_cycles[i] == 1) begin
+                        ROB_tag_out = ROB_tag_reg[i];
+                        if (i>2) i = 3;
+                        ready_fu[i] <= 1;
+                        fu_cycles[i] <= 4'b1111;  
+                        select_flag <= 1;
+                        select_signal <= i;
+                    end else
+                    fu_cycles[i] <= fu_cycles[i] - 1;
+                end
             end
         end
     end
