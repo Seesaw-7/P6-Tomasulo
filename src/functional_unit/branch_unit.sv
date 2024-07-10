@@ -7,10 +7,10 @@ module branch_unit(
 
     // for branch condition check
     input [`XLEN-1:0] rs1, // also for jalr
-	input [`XLEN-1:0] rs2,
+    input [`XLEN-1:0] rs2,
 
-	output logic cond, // 1 for misprediction/flush
-	output [`XLEN-1:0] target_pc
+    output logic cond, // 1 for misprediction/flush
+    output [`XLEN-1:0] target_pc
 );
     
     // branch condition check
