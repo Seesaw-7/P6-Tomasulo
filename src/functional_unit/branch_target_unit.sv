@@ -1,26 +1,19 @@
 `include "sys_defs.svh"
 
-//
-// BrCond module
-//
-// Given the instruction code, compute the proper condition for the
-// instruction; for branches this condition will indicate whether the
-// target is taken.
-//
-// This module is purely combinational
-//
-module brcond(// Inputs
-	input [`XLEN-1:0] rs1,    // Value to check against condition
+module branch_unit(
+    input [`XLEN-1:0] rs1, // value to check against branch condition
 	input [`XLEN-1:0] rs2,
-	input  [2:0] func,  // Specifies which condition to check
-	input [`XLEN-1:0] offset,
-	input [`XLEN-1:0] PC,
+	input  [2:0] func, // specifies which condition to check
+	
+	input [`XLEN-1:0] pc, //target addr cal
+	input [`XLEN-1:0] imm, 
 
-	output logic cond,    // 0/1 condition result (False/True)
-	output [`XLEN-1:0] target_addr
+	output logic cond, // 0/1 condition result
+	output [`XLEN-1:0] target_pc
 );
-
-	logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
+    
+    // check branch condition 
+    logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
 	assign signed_rs1 = rs1;
 	assign signed_rs2 = rs2;
 	always_comb begin
@@ -35,9 +28,21 @@ module brcond(// Inputs
 			default: cond = 1'b0;
 		endcase
 	end
-
+	
+	// brnach traget address calculation 
+	assign addr_src1 = pc;
+	assign addr_src2 = imm;
+	
 	always_comb begin
-		target_addr = PC + offset;
+		target_pc = addr_src1 + addr_src2;
 	end
 	
-endmodule // brcond
+	/*
+	opa_select  = OPA_IS_PC;
+	opb_select  = OPB_IS_B_IMM;
+	
+	OPA_IS_PC:   opa_mux_out = id_ex_packet_in.PC;
+	OPB_IS_B_IMM: opb_mux_out = `RV32_signext_Bimm(id_ex_packet_in.inst);
+	*/
+	
+endmodule
