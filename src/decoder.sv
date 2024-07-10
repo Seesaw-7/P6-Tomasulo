@@ -47,15 +47,15 @@ module decoder(
 		// * see sys_defs.vh for the constants used here
 		
 		// todo: do we really need to initialize here?
-		decoded_pack = 0;
+		decoded_pack.valid = 0;
 		decoded_pack.fu = 2'b11; //by default arithmetic and logic unit
 		decoded_pack.arch_reg.src1 = 5'b00000;
 		decoded_pack.arch_reg.scr2 = 5'b00000;
 		decoded_pack.arch_reg.dest = 5'b00000;
 		decoded_pack.imm = {`XLEN{1'b0}};
-		decoded_pack.alu_func = 5'h00;
-		decoded_pack.cond_branch = 0;
-		decoded_pack.uncond_branch = 0;
+		decoded_pack.alu_func = 6'h00;
+		//decoded_pack.cond_branch = 0;
+		//decoded_pack.uncond_branch = 0;
 
 		csr_op = 0;
 		halt = 0;
@@ -65,7 +65,7 @@ module decoder(
 			casez (inst) 
 				`RV32_LUI: begin
 					decoded_pack.arch_reg.dest = if_id_packet_in.inst.r.rd;
-					
+					decoded_pack.imm = {if_id_packet_in.inst[31:12], 12'b0};
 					// dest_reg   = DEST_RD;
 					// opa_select = OPA_IS_ZERO;
 					// opb_select = OPB_IS_U_IMM;
@@ -74,18 +74,22 @@ module decoder(
 					dest_reg   = DEST_RD;
 					opa_select = OPA_IS_PC;
 					opb_select = OPB_IS_U_IMM;
+					decoded_pack.imm = {if_id_packet_in.inst[31:12], 12'b0};
 				end
 				`RV32_JAL: begin
 					dest_reg      = DEST_RD;
 					opa_select    = OPA_IS_PC;
 					opb_select    = OPB_IS_J_IMM;
 					uncond_branch = `TRUE;
+					decoded_pack.imm = $signed({if_id_packet_in.inst[31], if_id_packet_in.inst[19:12],
+					if_id_packet_in.inst[20], if_id_packet_in.inst[30:21]});
 				end
 				`RV32_JALR: begin
 					dest_reg      = DEST_RD;
 					opa_select    = OPA_IS_RS1;
 					opb_select    = OPB_IS_I_IMM;
 					uncond_branch = `TRUE;
+					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
 				end
 				`RV32_BEQ, `RV32_BNE, `RV32_BLT, `RV32_BGE,
 				`RV32_BLTU, `RV32_BGEU: begin
@@ -106,46 +110,55 @@ module decoder(
 				`RV32_ADDI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
+					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
 				end
 				`RV32_SLTI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SLT;
+					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
 				end
 				`RV32_SLTIU: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SLTU;
+					decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
 				end
 				`RV32_ANDI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_AND;
+					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
 				end
 				`RV32_ORI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_OR;
+					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
 				end
 				`RV32_XORI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_XOR;
+					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
 				end
 				`RV32_SLLI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SLL;
+					decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
 				end
 				`RV32_SRLI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SRL;
+					decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
 				end
 				`RV32_SRAI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SRA;
+					decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
 				end
 				`RV32_ADD: begin
 					dest_reg   = DEST_RD;
