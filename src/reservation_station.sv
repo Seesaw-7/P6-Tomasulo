@@ -3,7 +3,6 @@
 `timescale 1ns/1ps
 
 //TODO: use CAM instead of loop to improve gate number
-//TODO: async accept wakeup value but sync update RS entries, so async judge insn_ready based on wakeup tag as well
 
 // Note: this module assumes that wakeup is stable at posedge, and wakeup is one clock behind issue
 // Besides, it assumes that wakeup_tag and wakeup_value are stable at clock edge, which is kind of weird
@@ -22,24 +21,25 @@ module reservation_station #(
 
     // input data
     input ALU_FUNC func,
-    input logic [ROB_TAG_LEN-1:0] t1, t2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
-    input ready1, ready2,
-    input logic [XLEN-1:0] v1, v2, 
-    input logic [ROB_TAG_LEN-1:0] wakeup_tag,
-    input logic [XLEN-1:0] wakeup_value, 
+    input logic [`ROB_TAG_LEN-1:0] t1, t2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
+    input logic ready1, ready2,
+    input logic [`XLEN-1:0] v1, v2, 
+    input logic [`ROB_TAG_LEN-1:0] wakeup_tag,
+    input logic [`XLEN-1:0] wakeup_value, 
 
     // output signals
-    output logic insn_ready, // indicates if there exists an instruction that is ready to be issued
-    output logic is_full, // all entries of the reservation station is occupied, cannot load in more inputs
+    output logic insn_ready, // to issue unit, indicating if there exists an instruction that is ready to be issued
+    output logic is_full, // to dispatcher, indicating that all entries of the reservation station is occupied, cannot load in more inputs
+    output logic start, // output to FU
 
     // output data
-    output ALU_FUNC func_out,
-    output logic [XLEN-1:0] v1_out, v2_out,
-    output [`ROB_TAG_LEN-1:0] dst_tag
+    output ALU_FUNC func_out, // to FU
+    output logic [`XLEN-1:0] v1_out, v2_out, // to FU
+    output logic [`ROB_TAG_LEN-1:0] dst_tag // to issue unit, TODO: to FU in m3
 );
 
-    logic [ROB_TAG_LEN-1:0] wakeup_tag_reg;
-    logic [XLEN-1:0] wakeup_value_reg;
+    logic [`ROB_TAG_LEN-1:0] wakeup_tag_reg;
+    logic [`XLEN-1:0] wakeup_value_reg;
 
     assign wakeup_tag_reg = wakeup? wakeup_tag : wakeup_tag_reg; // in case values are not stable at clock edge
     assign wakeup_value_reg = wakeup? wakeup_value : wakeup_value_reg; 
@@ -115,6 +115,7 @@ module reservation_station #(
             func_out <= 0;
             v1_out <= 0;
             v2_out <= 0;
+            start <= 1;
             // dst_tag <= 0;
         end else begin
             // add new instruction to reservation station
@@ -151,6 +152,7 @@ module reservation_station #(
                 v1_out <= (wakeup && wakeup_tag_reg == t1) ? wakeup_value_reg : entries[min_idx].v1;
                 v2_out <= (wakeup && wakeup_tag_reg == t2) ? entries[min_idx].v2;
                 // dst_tag <= entries[min_idx].dst;
+                start <= 1;
                 entries[min_idx].valid <= 0; 
 
                 // update Bday if it is younger than the output insn
@@ -161,7 +163,7 @@ module reservation_station #(
                 end      
 
             end else
-                ;
+                start <= 0;
 
             // wakeup other insns if their inp is equal to the dst of the output insn
             if (wakeup) begin
