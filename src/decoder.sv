@@ -22,11 +22,11 @@ module decoder(
 	                        //a cheap way to get the return code out
 	output logic halt,      // non-zero on a halt
 	output logic illegal,    // non-zero on an illegal instruction
-	output logic valid_inst,  // for counting valid instructions executed
-	                        // and for making the fetch stage die on halts/
-	                        // keeping track of when to allow the next
-	                        // instruction out of fetch
-	                        // 0 for HALT and illegal instructions (die on halt)
+	// output logic valid_inst,  // for counting valid instructions executed
+	//                         // and for making the fetch stage die on halts/
+	//                         // keeping track of when to allow the next
+	//                         // instruction out of fetch
+	//                         // 0 for HALT and illegal instructions (die on halt)
 	output DECODED_PACK decoded_pack;
 
 );
