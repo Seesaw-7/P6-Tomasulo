@@ -24,6 +24,7 @@ module reservation_station #(
     input logic [`ROB_TAG_LEN-1:0] t1, t2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
     input logic ready1, ready2,
     input logic [`XLEN-1:0] v1, v2, 
+    input logic [`XLEN-1:0] pc, imm,
     input logic [`ROB_TAG_LEN-1:0] wakeup_tag,
     input logic [`XLEN-1:0] wakeup_value, 
 
@@ -34,7 +35,8 @@ module reservation_station #(
 
     // output data
     output ALU_FUNC func_out, // to FU
-    output logic [`XLEN-1:0] v1_out, v2_out, // to FU
+    output logic [`XLEN-1:0] v1_out, v2_out, 
+    output logic [`XLEN-1:0] pc_out, imm_out// to FU
     output logic [`ROB_TAG_LEN-1:0] dst_tag // to issue unit, TODO: to FU in m3
 );
 
@@ -97,8 +99,9 @@ module reservation_station #(
     assign empty_entry = '{func: ALU_ADD, 
                                 t1: '0, 
                                 t2: '0, 
-                                v1: 1'b0, 
-                                v2: 1'b0, 
+                                v1: '0, 
+                                v2: '0, 
+                                pc: '0,
                                 dst: '0, 
                                 Bday: '0, 
                                 valid: 1'b0};
@@ -115,7 +118,9 @@ module reservation_station #(
             func_out <= 0;
             v1_out <= 0;
             v2_out <= 0;
-            start <= 1;
+            pc_out <= 0;
+            imm_out <= 0;
+            start <=0;
             // dst_tag <= 0;
         end else begin
             // add new instruction to reservation station
@@ -130,6 +135,8 @@ module reservation_station #(
                                     ready2: ready2 || (wakeup && wakeup_tag_reg == t2), 
                                     v1: (wakeup && wakeup_tag_reg == t1) ? wakeup_value_reg : v1,
                                     v2: (wakeup && wakeup_tag_reg == t2) ? wakeup_value_reg : v2,
+                                    pc: pc,
+                                    imm: imm,
                                     Bday: (issue && exist_ready_out) ? num_entry_used - 1 : num_entry_used, 
                                     valid: 1};
                         break;
@@ -151,6 +158,8 @@ module reservation_station #(
                 func_out <= entries[min_idx].func; // output at clock edge just to make sure that RS output one single and stable value per clock cycle
                 v1_out <= (wakeup && wakeup_tag_reg == t1) ? wakeup_value_reg : entries[min_idx].v1;
                 v2_out <= (wakeup && wakeup_tag_reg == t2) ? entries[min_idx].v2;
+                pc_out <= entries[min_idx].pc;
+                imm_out <= entries[min_idx].imm;
                 // dst_tag <= entries[min_idx].dst;
                 start <= 1;
                 entries[min_idx].valid <= 0; 

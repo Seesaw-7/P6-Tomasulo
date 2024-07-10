@@ -97,8 +97,8 @@ module reservation_station #(
     assign empty_entry = '{func: ALU_ADD, 
                                 t1: '0, 
                                 t2: '0, 
-                                v1: 1'b0, 
-                                v2: 1'b0, 
+                                v1: '0, 
+                                v2: '0, 
                                 dst: '0, 
                                 Bday: '0, 
                                 valid: 1'b0};
@@ -115,7 +115,7 @@ module reservation_station #(
             func_out <= 0;
             v1_out <= 0;
             v2_out <= 0;
-            start <= 1;
+            start <= 0;
             // dst_tag <= 0;
         end else begin
             // add new instruction to reservation station
