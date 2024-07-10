@@ -21,7 +21,7 @@ module common_data_bus #(
 ) (
 
     // Results from functional units
-    input logic [`XLEN-1:0] [FU_NUM-1:0] in_values, // Array of results from functional units
+    input logic  [FU_NUM-1:0] [`XLEN-1:0] in_values, // Array of results from functional units
 
     // Signals from issue unit
     input logic select_flag,              // Flag to indicate if selection is valid
