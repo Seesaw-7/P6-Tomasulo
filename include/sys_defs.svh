@@ -97,6 +97,79 @@ typedef struct packed {
 	logic [`XLEN-1:0] PC;  // PC 
 } PREFETCH_PACKET;
 
+// // RISCV ISA SPEC
+// `define XLEN 32
+typedef union packed {
+	logic [31:0] inst;
+	struct packed {
+		logic [6:0] funct7;
+		logic [4:0] rs2;
+		logic [4:0] rs1;
+		logic [2:0] funct3;
+		logic [4:0] rd;
+		logic [6:0] opcode;
+	} r; //register to register instructions
+	struct packed {
+		logic [11:0] imm;
+		logic [4:0]  rs1; //base
+		logic [2:0]  funct3;
+		logic [4:0]  rd;  //dest
+		logic [6:0]  opcode;
+	} i; //immediate or load instructions
+	struct packed {
+		logic [6:0] off; //offset[11:5] for calculating address
+		logic [4:0] rs2; //source
+		logic [4:0] rs1; //base
+		logic [2:0] funct3;
+		logic [4:0] set; //offset[4:0] for calculating address
+		logic [6:0] opcode;
+	} s; //store instructions
+	struct packed {
+		logic       of; //offset[12]
+		logic [5:0] s;   //offset[10:5]
+		logic [4:0] rs2;//source 2
+		logic [4:0] rs1;//source 1
+		logic [2:0] funct3;
+		logic [3:0] et; //offset[4:1]
+		logic       f;  //offset[11]
+		logic [6:0] opcode;
+	} b; //branch instructions
+	struct packed {
+		logic [19:0] imm;
+		logic [4:0]  rd;
+		logic [6:0]  opcode;
+	} u; //upper immediate instructions
+	struct packed {
+		logic       of; //offset[20]
+		logic [9:0] et; //offset[10:1]
+		logic       s;  //offset[11]
+		logic [7:0] f;	//offset[19:12]
+		logic [4:0] rd; //dest
+		logic [6:0] opcode;
+	} j;  //jump instructions
+`ifdef ATOMIC_EXT
+	struct packed {
+		logic [4:0] funct5;
+		logic       aq;
+		logic       rl;
+		logic [4:0] rs2;
+		logic [4:0] rs1;
+		logic [2:0] funct3;
+		logic [4:0] rd;
+		logic [6:0] opcode;
+	} a; //atomic instructions
+`endif
+`ifdef SYSTEM_EXT
+	struct packed {
+		logic [11:0] csr;
+		logic [4:0]  rs1;
+		logic [2:0]  funct3;
+		logic [4:0]  rd;
+		logic [6:0]  opcode;
+	} sys; //system call instructions
+`endif
+
+} INST; //instruction typedef, this should cover all types of instructions
 
 
 `endif // __SYS_DEFS_SVH__
