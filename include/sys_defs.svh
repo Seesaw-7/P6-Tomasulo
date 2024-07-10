@@ -34,6 +34,9 @@
 `define RS_LS_ENTRY_NUM 8 // #entries in RS, ahead of load/store unit
 `define RS_LS_ENTRY_WIDTH 3
 
+`define REG_LEN 32
+`define REG_ADDR_LEN 5
+
 `define ROB_SIZE 64
 `define ROB_TAG_LEN 6
 
