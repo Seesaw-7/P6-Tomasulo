@@ -106,5 +106,4 @@ typedef struct packed {
 } PREFETCH_PACKET;
 
 
-
 `endif // __SYS_DEFS_SVH__
