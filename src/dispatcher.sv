@@ -1,4 +1,5 @@
 `include "map_table.svh"
+`include "decoder.svh"
 
 typedef struct packed {
 //    logic [2:0] FU; // 4 kinds of FU
@@ -10,6 +11,7 @@ typedef struct packed {
    logic unsigned [`XLEN-1] value_src1;
    logic unsigned ready_src2;
    logic unsigned [`XLEN-1] value_src2;
+   // todo: add immediate
 } INST_RS;
 
 typedef struct packed {
@@ -19,18 +21,19 @@ typedef struct packed {
 } INST_ROB;
 
 
-typedef struct packed {
-   logic unsigned valid;
-   logic [2:0] FU; // 4 kinds of FU
-   logic unsigned [6:0] op;
-   ARCH_REG arch_reg;
-} INST;
+// typedef struct packed {
+//    logic unsigned valid;
+//    FUNC_UNIT FU; // 4 kinds of FU
+//    logic unsigned [6:0] op;
+//    ARCH_REG arch_reg;
+// } INST;
 
 
 module dispatcher (
     input clk,
     input reset,
-    input INST insn,
+    // input INST insn,
+    input DECODED_PACK decoded_pack; //todo: update the code after changing input
     input [`REG_NUM-1:0] [`XLEN-1:0] registers, // wires from regfile
     // from ROB
     input ROB_ENTRY rob [`ROB_SIZE-1:0],
