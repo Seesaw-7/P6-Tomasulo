@@ -10,11 +10,29 @@ include/sys_defs.svh should be configured as a global header.
 
 ## Components Implemented
 
-- Register File (Physical Register File & Architectural Register File)
-- Renaming Unit
+- Pre-Fetch Queue
+- Map Table
+- Dispatcher
+- Reoder Buffer
+- Register File
 - Reservation Station
-- Multiplier
+- Functional Units
+  - Arithmetic and Logic Unit
+  - Multiplier
+  - Branch Target Unit
 - Common Data Bus
+
+## Components To Be Implemented
+
+- Decoder
+- Cache
+- Load/Store Unit
+
+## To Be Refactored
+
+- sync ALU & BTU
+- FUs carry ROB
+- Early issue FUs && CDB Broadcast 4 values to 4 RSs
 
 ## Design Principals
 
@@ -22,6 +40,8 @@ include/sys_defs.svh should be configured as a global header.
   - most instructions are simple arithmetics
   - in case no instructions in a smaller RS is ready
 
-- Two Multipliers
+- One Multipliers
   - one multiplier has 8-cycle latency
+  - but it is pipelined
+  - and the bandwidth of CDB is single-value
   

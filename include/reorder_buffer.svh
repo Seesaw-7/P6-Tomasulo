@@ -1,7 +1,7 @@
-`ifndef __REORDER_BUFFER_VH__
-`define __REORDER_BUFFER_VH__
+`ifndef __REORDER_BUFFER_SVH__
+`define __REORDER_BUFFER_SVH__
 
-`define XLEN 32
+// `define XLEN 32
 
 `define REG_LEN 32
 `define REG_ADDR_LEN 5
