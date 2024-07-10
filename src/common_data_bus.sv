@@ -22,10 +22,11 @@ module common_data_bus #(
 
     // Results from functional units
     input logic  [FU_NUM-1:0] [`XLEN-1:0] in_values, // Array of results from functional units
+    input logic mispredict,
 
     // Signals from issue unit
     input logic select_flag,              // Flag to indicate if selection is valid
-    input logic [$clog2(FU_NUM)-1:0] select_signal, // signal to choose the result
+    input FUNC_UNIT select_signal, // signal to choose the result
 
     // Data from issue unit
     input logic [`ROB_TAG_LEN-1:0] ROB_tag,           // ROB tag input
@@ -36,6 +37,7 @@ module common_data_bus #(
     // Output to ROB and Forward to RS
     output logic [`ROB_TAG_LEN-1:0] out_ROB_tag,       // ROB tag output, to ROB and RS
     output logic [`XLEN-1:0] out_value,             // Result output
+    output logic out_mispredict
 );
 
     always_comb begin
@@ -43,18 +45,14 @@ module common_data_bus #(
         // out_ROB_tag = ROB_tag;
         out_select_flag = select_flag;
         
-        // Default values when select_flag is not set
+        // default values when select_flag is not set
         out_value = '0;
         out_ROB_tag = '0;
 
         if (select_flag) begin
-            // Select the appropriate result based on the select signal
-            for (int i = 0; i < FU_NUM; i++) begin
-                if (select_signal == i) begin
-                    out_value = in_values[i];
-                    out_ROB_tag = ROB_tag; 
-                end
-            end
+            out_value = in_values[select_flag];
+            out_ROB_tag = ROB_tag; 
+            out_mispredict = select_signal == FU_BTU ? mispredict : 0;
         end
     end
 
