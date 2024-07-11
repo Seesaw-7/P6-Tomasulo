@@ -211,7 +211,7 @@ module decoder(
 					decoded_pack.arch_reg.src2 = inst.r.rs2;
 					decoded_pack.arch_reg.dest = inst.r.rd;
 					// alu_func   = ALU_AND;
-					decoded_pack.alu_func = ALU_ADD;
+					decoded_pack.alu_func = ALU_AND;
 				end
 				`RV32_OR: begin
 					// dest_reg   = DEST_RD;
@@ -243,7 +243,7 @@ module decoder(
 					decoded_pack.arch_reg.src2 = inst.r.rs2;
 					decoded_pack.arch_reg.dest = inst.r.rd;
 					// alu_func   = ALU_SRL;
-					decoded_pack.arch_func = ALU_SRA;
+					decoded_pack.arch_func = ALU_SRL;
 				end
 				`RV32_SRA: begin
 					// dest_reg   = DEST_RD;
