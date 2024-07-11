@@ -45,7 +45,6 @@ module decoder(
 		// - These defaults are equivalent to a noop
 		// * see sys_defs.vh for the constants used here
 		
-		// todo: do we really need to initialize here?
 		decoded_pack.valid = 0;
 		decoded_pack.fu = FU_ALU; //by default arithmetic and logic unit
 		decoded_pack.arch_reg.src1 = 5'b00000;
