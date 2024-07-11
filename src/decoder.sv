@@ -52,8 +52,10 @@ module decoder(
 		decoded_pack.arch_reg.dest = 5'b00000;
 		decoded_pack.imm = {`XLEN{1'b0}};
 		decoded_pack.alu_func = `ALU_ADD;
-		//decoded_pack.cond_branch = 0;
-		//decoded_pack.uncond_branch = 0;
+		decoded_pack.rs1_valid = 1'b0;
+		decoded_pack.rs2_valid = 1'b0;
+		decoded_pack.imm_valid = 1'b0;
+		decoded_pack.pc_valid = 1'b0;
 
 		csr_op = 0;
 		halt = 0;
