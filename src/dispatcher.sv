@@ -3,7 +3,7 @@
 `include "dispatcher.svh"
 
 //TODO: figure out whether to add imm & rs1 or rs1 & rs2
-
+//TODO: check the timing with map table
 
 module dispatcher (
     // control signals
@@ -26,7 +26,7 @@ module dispatcher (
     output assign_rob,
 
     // stall prefetch and decoder
-    output stall_pre,
+    output stall_pre, // TODO: output stall signal
 
     // forward to map table
     input return_flag, //？
@@ -53,14 +53,14 @@ module dispatcher (
     // end
 
     // map table
-    RENAMED_PACK renamed_pack; //？
-    ARCH_REG arch_reg;// ？
+    RENAMED_PACK renamed_pack; // TODO: update renamed_pack 
+    ARCH_REG arch_reg; // ？
     assign arch_reg = decoded_pack.arch_reg; 
     map_table mt (.*); 
 
     // assign inst_rs
     always_comb begin
-        inst_rs.op = insn_reg.op;
+        inst_rs.func = decoded_pack.alu_func;
         inst_rs.tag_dest = renamed_pack.rob_tag; 
         inst_rs.tag_src1 = renamed_pack.src1.rob_tag;
         inst_rs.tag_src2 = renamed_pack.src2.rob_tag;
