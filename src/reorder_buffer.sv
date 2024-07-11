@@ -19,7 +19,7 @@ module reorder_buffer(
     output [`XLEN-1:0] wb_data,
     
     output [`XLEN-1:0] target_pc,
-    output logic flush,
+    output logic flush, //also indicate write to pc
     
     output [`ROB_TAG_LEN-1:0] assign_rob_tag_to_dispatcher,
     output logic rob_full_adv 
@@ -45,6 +45,7 @@ module reorder_buffer(
         wb_en = 1'b0;
         wb_reg = {`REG_ADDR_LEN{1'b0}};
         wb_data = {`XLEN{1'b0}};
+        target_pc = {`XLEN{1'b0}};
         flush = 1'b0;
         assign_rob_tag_to_dispatcher = {`ROB_TAG_LEN{1'b0}};
         
@@ -60,7 +61,8 @@ module reorder_buffer(
         end
         
         if (cdb_to_rob) begin
-            rob_next[rob_tag_from_cdb].wb_data = cdb_result;
+            rob_next[rob_tag_from_cdb].wb_data = wb_data_from_cdb;
+            rob_next[rob_tag_from_cdb].target_pc = target_pc_from_cdb;
             rob_next[rob_tag_from_cdb].mispredict = mispredict_from_cdb;
             rob_next[rob_tag_from_cdb].ready = 1'b1;
         end
@@ -69,6 +71,7 @@ module reorder_buffer(
             wb_en = 1'b1;
             wb_reg = rob_curr[head_curr].wb_reg;
             wb_data = rob_curr[head_curr].wb_data;
+            target_pc = rob_curr[head_curr].target_pc;
             if (rob_curr[head_curr].mispredict == 1'b1) begin
                 flush = 1'b1;
             end
@@ -90,6 +93,7 @@ module reorder_buffer(
                 rob_curr[i].mispredict <= 1'b0;
                 rob_curr[i].wb_reg <= {`REG_ADDR_LEN{1'b0}};
                 rob_curr[i].wb_data <= {`XLEN{1'b0}};
+                rob_curr[i].target_pc <= {`XLEN{1'b0}};
             end
         end
         else begin
