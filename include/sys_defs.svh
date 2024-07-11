@@ -68,7 +68,6 @@ typedef enum logic [5:0] {
 	BTU_BGEU	= 6'h13,
 	BTU_JAL		= 6'h14,
 	BTU_JALR	= 6'h15,
-	BTU_AUIPC       = 6'h16,
 /*
 	ALU_LUI         = 6'h17,
 	ALU_ADDI        = 6'h18,
