@@ -3,7 +3,8 @@
 `include "dispatcher.svh"
 
 //TODO: figure out whether to add imm & rs1 or rs1 & rs2
-//TODO: check the timing with map table
+// ?
+
 
 module dispatcher (
     // control signals
@@ -11,7 +12,7 @@ module dispatcher (
     // input reset, // since combinatinal, no need to reset // TODO: update in m3
 
     // input from decoder,
-    input DECODED_PACK decoded_pack; //TODO: update the code after changing input
+    input DECODED_PACK decoded_pack; // update the code after changing input
     input [`REG_NUM-1:0] [`XLEN-1:0] registers, // wires from regfile
 
     // input from ROB
@@ -42,15 +43,15 @@ module dispatcher (
     output unsigned [3:0] RS_load
 );
 
-    // // syncronize input
-    // logic INST insn_reg;
-    // always_ff @(posedge clk) begin
-    //     if (reset) begin
-    //         insn_reg <= 0;
-    //     end else begin
-    //         insn_reg <= insn;
-    //     end
-    // end
+    // syncronize input
+    logic DECODED_PACK insn_reg;
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            insn_reg <= 0;
+        end else begin
+            insn_reg <= decoded_pack;
+        end
+    end
 
     // map table
     RENAMED_PACK renamed_pack; // TODO: update renamed_pack 
@@ -59,8 +60,11 @@ module dispatcher (
     map_table mt (.*); 
 
     // assign inst_rs
+    assign inst_rs.fu = insn_reg.fu;
+    assign inst_rs.func = insn_reg.func;
+    assign inst_rs.imm = insn_reg.imm;
+    assign inst_rs.pc = insn_reg.pc;
     always_comb begin
-        inst_rs.func = decoded_pack.alu_func;
         inst_rs.tag_dest = renamed_pack.rob_tag; 
         inst_rs.tag_src1 = renamed_pack.src1.rob_tag;
         inst_rs.tag_src2 = renamed_pack.src2.rob_tag;
