@@ -5,7 +5,7 @@ module reorder_buffer(
     input logic clk,
     input logic reset,
     
-    input logic dispatch,,
+    input logic dispatch,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_dispatcher,
      
     input logic cdb_to_rob,
@@ -20,7 +20,9 @@ module reorder_buffer(
     output logic flush,
     
     output [`ROB_TAG_LEN-1:0] assign_rob_tag_to_dispatcher,
-    output logic rob_full_adv
+    output logic rob_full_adv 
+    
+    //rob_curr output
 );
     
     ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
@@ -65,7 +67,6 @@ module reorder_buffer(
             wb_en = 1'b1;
             wb_reg = rob_curr[head_curr].wb_reg;
             wb_data = rob_curr[head_curr].wb_data;
-            end
             if (rob_curr[head_curr].mispredict == 1'b1) begin
                 flush = 1'b1;
             end
