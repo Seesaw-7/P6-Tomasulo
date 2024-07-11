@@ -36,7 +36,7 @@ module reservation_station #(
     // output data
     output ALU_FUNC func_out, // to FU
     output logic [`XLEN-1:0] v1_out, v2_out, 
-    output logic [`XLEN-1:0] pc_out, imm_out// to FU
+    output logic [`XLEN-1:0] pc_out, imm_out,// to FU
     output logic [`ROB_TAG_LEN-1:0] dst_tag // to issue unit, TODO: to FU in m3
 );
 
