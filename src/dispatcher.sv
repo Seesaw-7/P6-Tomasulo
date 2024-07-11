@@ -9,7 +9,7 @@
 module dispatcher (
     // control signals
     input clk,
-    // input reset, // since combinatinal, no need to reset // TODO: update in m3
+    input reset, // TODO: update in m3
 
     // input from decoder,
     input DECODED_PACK decoded_pack; // update the code after changing input
@@ -24,14 +24,14 @@ module dispatcher (
 
     // entry to ROB
     output INST_ROB inst_rob,
-    output assign_rob,
 
-    // stall prefetch and decoder
-    output stall_pre, // TODO: output stall signal
+    // stall prefetch, decoder and rob
+    output stall,
+
 
     // forward to map table
-    input return_flag, //？
-    input ready_flag,   //？
+    input return_flag,
+    input ready_flag,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
     input [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_cdb,
@@ -54,8 +54,8 @@ module dispatcher (
     end
 
     // map table
-    RENAMED_PACK renamed_pack; // TODO: update renamed_pack 
-    ARCH_REG arch_reg; // ？
+    RENAMED_PACK renamed_pack; 
+    ARCH_REG arch_reg;
     assign arch_reg = decoded_pack.arch_reg; 
     map_table mt (.*); 
 
@@ -76,7 +76,7 @@ module dispatcher (
             end
             2'b11: begin 
                 inst_rs.ready_src1 = 1'b1;
-                inst_rs.value_src1 = rob[renamed_pack.src1.rob_tag].result; //TODO:
+                inst_rs.value_src1 = rob[renamed_pack.src1.rob_tag].result; 
             end
             default: begin
                 inst_rs.ready_src1 = 1'b0;
@@ -91,7 +91,7 @@ module dispatcher (
             end
             2'b11: begin 
                 inst_rs.ready_src2 = 1'b1;
-                inst_rs.value_src2 = rob[renamed_pack.src2.rob_tag].result; //TODO:
+                inst_rs.value_src2 = rob[renamed_pack.src2.rob_tag].result; 
             end
             default: begin
                 inst_rs.ready_src2 = 1'b0;
@@ -121,6 +121,7 @@ module dispatcher (
     // assign inst_rob
     assign inst_rob.ROB_tag = assign_rob_tag;
     assign inst_rob.reg = renamed_pack.dest;
-    assign assign_rob = |(RS_Load);
+
+    assign stall = |(RS_Load);
 
 endmodule
