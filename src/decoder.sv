@@ -176,59 +176,114 @@ module decoder(
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 				end
 				`RV32_ADD: begin
-					dest_reg   = DEST_RD;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
 				end
 				`RV32_SUB: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_SUB;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_SUB;
+					decoded_pack.alu_func = ALU_SUB;
 				end
 				`RV32_SLT: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_SLT;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_SLT;
+					decoded_pack.alu_func = ALU_SLT;
 				end
 				`RV32_SLTU: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_SLTU;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_SLTU;
+					decoded_pack.alu_func = ALU_SLTU;
 				end
 				`RV32_AND: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_AND;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_AND;
+					decoded_pack.alu_func = ALU_ADD;
 				end
 				`RV32_OR: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_OR;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_OR;
+					decoded_pack.arch_func = ALU_OR;
 				end
 				`RV32_XOR: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_XOR;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_XOR;
+					decoded_pack.arch_func = ALU_XOR;
 				end
 				`RV32_SLL: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_SLL;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_SLL;
+					decoded_pack.arch_func = ALU_SLL;
 				end
 				`RV32_SRL: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_SRL;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_SRL;
+					decoded_pack.arch_func = ALU_SRA;
 				end
 				`RV32_SRA: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_SRA;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_SRA;
+					decoded_pack.arch_func = ALU_SRA;
 				end
 				`RV32_MUL: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_MUL;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_MUL;
+					decoded_pack.alu_func = MULT_MUL;
 				end
 				`RV32_MULH: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_MULH;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_MULH;
+					decoded_pack.alu_func = MULT_MULH;
 				end
 				`RV32_MULHSU: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_MULHSU;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_MULHSU;
+					decoded_pack.alu_func = MULT_MULHSU;
 				end
 				`RV32_MULHU: begin
-					dest_reg   = DEST_RD;
-					alu_func   = ALU_MULHU;
+					// dest_reg   = DEST_RD;
+					decoded_pack.arch_reg.src1 = inst.r.rs1;
+					decoded_pack.arch_reg.src2 = inst.r.rs2;
+					decoded_pack.arch_reg.dest = inst.r.rd;
+					// alu_func   = ALU_MULHU;
+					decoded_pack.alu_func = MULT_MULHU;
 				end
 				`RV32_CSRRW, `RV32_CSRRS, `RV32_CSRRC: begin
 					csr_op = `TRUE;
