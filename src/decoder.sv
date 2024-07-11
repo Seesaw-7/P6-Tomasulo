@@ -254,7 +254,7 @@ module decoder(
 					decoded_pack.arch_func = ALU_SRA;
 				end
 				`RV32_MUL: begin
-					decoded_pack.fu = FU_MULt;
+					decoded_pack.fu = FU_MULT;
 					// dest_reg   = DEST_RD;
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
 					decoded_pack.arch_reg.src2 = inst.r.rs2;
@@ -263,7 +263,7 @@ module decoder(
 					decoded_pack.alu_func = MULT_MUL;
 				end
 				`RV32_MULH: begin
-					decoded_pack.fu = FU_MULt;
+					decoded_pack.fu = FU_MULT;
 					// dest_reg   = DEST_RD;
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
 					decoded_pack.arch_reg.src2 = inst.r.rs2;
@@ -272,7 +272,7 @@ module decoder(
 					decoded_pack.alu_func = MULT_MULH;
 				end
 				`RV32_MULHSU: begin
-					decoded_pack.fu = FU_MULt;
+					decoded_pack.fu = FU_MULT;
 					// dest_reg   = DEST_RD;
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
 					decoded_pack.arch_reg.src2 = inst.r.rs2;
@@ -281,7 +281,7 @@ module decoder(
 					decoded_pack.alu_func = MULT_MULHSU;
 				end
 				`RV32_MULHU: begin
-					decoded_pack.fu = FU_MULt;
+					decoded_pack.fu = FU_MULT;
 					// dest_reg   = DEST_RD;
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
 					decoded_pack.arch_reg.src2 = inst.r.rs2;
