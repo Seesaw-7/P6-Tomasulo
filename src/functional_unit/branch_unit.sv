@@ -13,8 +13,8 @@ module branch_unit(
     output [`XLEN-1:0] target_pc
 );
     
-	// branch condition check
-	logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
+    // branch condition check
+    logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
 	assign signed_rs1 = rs1;
 	assign signed_rs2 = rs2;
 	always_comb begin
@@ -29,7 +29,6 @@ module branch_unit(
             
             6'h14: cond = 1'b1;
             6'h15: cond = 1'b1;
-            6'h16: cond = 1'b1;
             
             default: cond = 1'b0;
         endcase
@@ -39,7 +38,7 @@ module branch_unit(
 	always_comb begin
 	   if ((func == 6'h0e) || (func == 6'h0f) || (func == 6'h10)
 	       || (func == 6'h11) || (func == 6'h12) || (func == 6'h13) 
-	       || (func == 6'h14) || (func == 6'h16)) begin
+	       || (func == 6'h14)) begin
 	       target_pc = pc + imm;
 	   end
 	   else if (func == 6'h15) begin
