@@ -1,40 +1,20 @@
 `include "map_table.svh"
 `include "decoder.svh"
+`include "dispatcher.svh"
 
 //TODO: figure out whether to add imm & rs1 or rs1 & rs2
-
-
-typedef struct packed {
-    FUNC_UNIT fu;
-    ALU_FUNC func;
-    logic unsigned [`ROB_TAG_LEN-1:0] tag_dest;
-    logic unsigned [`ROB_TAG_LEN-1:0] tag_src1;
-    logic unsigned [`ROB_TAG_LEN-1:0] tag_src2;
-    logic unsigned ready_src1;
-    logic unsigned [`XLEN-1] value_src1;
-    logic unsigned ready_src2;
-    logic unsigned [`XLEN-1] value_src2;
-    logic [`XLEN-1:0] imm;
-    logic [`XLEN-1:0] pc;
-} INST_RS;
-
-typedef struct packed {
-//    logic unsigned [`ROB_TAG_LEN-1:0] ROB_tag; // ROB tag for insn
-   logic unsigned [`REG_ADDR_LEN-1:0] reg; // architectural reg for dest
-//    logic [`XLEN-1] value; // value in reg
-} INST_ROB;
 
 
 module dispatcher (
     // control signals
     input clk,
-    input reset,
+    // input reset, // since combinatinal, no need to reset // TODO: update in m3
 
     // input from decoder,
     input DECODED_PACK decoded_pack; //TODO: update the code after changing input
     input [`REG_NUM-1:0] [`XLEN-1:0] registers, // wires from regfile
 
-    // from ROB
+    // input from ROB
     input ROB_ENTRY rob [`ROB_SIZE-1:0],
     input [`ROB_ADDR_LEN-1:0] assign_rob_tag,
 
@@ -45,8 +25,10 @@ module dispatcher (
     output INST_ROB inst_rob,
     output assign_rob,
 
+    // stall prefetch and decoder
+    output stall_pre,
+
     // forward to map table
-    // input assign_flag,
     input return_flag, //？
     input ready_flag,   //？
     input [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
@@ -60,22 +42,20 @@ module dispatcher (
     output unsigned [3:0] RS_load
 );
 
-    // syncronize input
-    logic INST insn_reg;
-    always_ff @(posedge clk) begin
-        if (reset) begin
-            insn_reg <= 0;
-        end else begin
-            insn_reg <= insn;
-        end
-    end
+    // // syncronize input
+    // logic INST insn_reg;
+    // always_ff @(posedge clk) begin
+    //     if (reset) begin
+    //         insn_reg <= 0;
+    //     end else begin
+    //         insn_reg <= insn;
+    //     end
+    // end
 
     // map table
-    RENAMED_PACK renamed_pack;
-    ARCH_REG arch_reg;
-    assign arch_reg = insn_reg.arch_reg; 
-    logic assign_flag;
-    assign assign_flag = (insn_reg.arch_reg.dest == 0) ? 1'b0 : 1'b1; // remove r0
+    RENAMED_PACK renamed_pack; //？
+    ARCH_REG arch_reg;// ？
+    assign arch_reg = decoded_pack.arch_reg; 
     map_table mt (.*); 
 
     // assign inst_rs

@@ -11,6 +11,10 @@ typedef struct packed {
 	// logic wr_mem;
 	//logic cond_branch;
 	//logic uncond_branch; 
+	logic rs1_valid;
+	logic rs2_valid;
+	logic imm_valid;
+	logic pc_valid;
 	logic [`XLEN-1:0] pc;
 } DECODED_PACK;
 
