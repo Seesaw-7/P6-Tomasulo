@@ -63,7 +63,7 @@ typedef enum logic [5:0] {
 	BTU_BEQ		= 6'h0e,
 	BTU_BNE 	= 6'h0f,
 	BTU_BLT		= 6'h10,
-	BTU_BGE		= 6'h11
+	BTU_BGE		= 6'h11,
 	BTU_BLTU	= 6'h12,
 	BTU_BGEU	= 6'h13,
 	BTU_JAL		= 6'h14,
