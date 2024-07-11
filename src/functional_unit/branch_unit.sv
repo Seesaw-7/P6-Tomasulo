@@ -14,8 +14,8 @@ module branch_unit(
     output [`XLEN-1:0] target_pc
 );
     
-    // branch condition check
-    logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
+	// branch condition check
+	logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
 	assign signed_rs1 = rs1;
 	assign signed_rs2 = rs2;
 	always_comb begin
