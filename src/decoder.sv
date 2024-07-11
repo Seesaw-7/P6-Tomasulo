@@ -26,7 +26,7 @@ module decoder(
 	//                         // keeping track of when to allow the next
 	//                         // instruction out of fetch
 	//                         // 0 for HALT and illegal instructions (die on halt)
-	output DECODED_PACK decoded_pack;
+	output DECODED_PACK decoded_pack
 
 );
 	// TODO: add queue in m3
