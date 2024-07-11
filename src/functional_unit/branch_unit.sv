@@ -21,32 +21,39 @@ module branch_unit(
 	always_comb begin
         cond = 0;
         unique case (func)
-            6'h0e: cond = signed_rs1 == signed_rs2;  // BEQ
-            6'h0f: cond = signed_rs1 != signed_rs2;  // BNE
-            6'h10: cond = signed_rs1 < signed_rs2;   // BLT
-            6'h11: cond = signed_rs1 >= signed_rs2;  // BGE
-            6'h12: cond = rs1 < rs2;                 // BLTU
-            6'h13: cond = rs1 >= rs2;                // BGEU
+            BTU_BEQ: cond = signed_rs1 == signed_rs2;  // BEQ
+            BTU_BNE: cond = signed_rs1 != signed_rs2;  // BNE
+            BTU_BLT: cond = signed_rs1 < signed_rs2;   // BLT
+            BTU_BGE: cond = signed_rs1 >= signed_rs2;  // BGE
+            BTU_BLTU: cond = rs1 < rs2;                 // BLTU
+            BTU_BGEU: cond = rs1 >= rs2;                // BGEU
             
-            6'h14: cond = 1'b1;
-            6'h15: cond = 1'b1;
-            
+            BTU_JAL: cond = 1'b1;
+            BTU_JALR: cond = 1'b1;            
             default: cond = 1'b0;
         endcase
 	end
 	
 	// target address calculation 
 	always_comb begin
-	   if ((func == 6'h0e) || (func == 6'h0f) || (func == 6'h10)
-	       || (func == 6'h11) || (func == 6'h12) || (func == 6'h13) 
-	       || (func == 6'h14)) begin
+	   wb_data = {`XLEN{1'b0}};
+	   target_pc = {`XLEN{1'b0}};
+	   
+	   if ((func == BTU_BEQ) || (func == BTU_BNE) || (func == BTU_BLT) || 
+                (func == BTU_BGE) || (func == BTU_BLTU) || (func == BTU_BGEU)) begin
+           target_pc = pc + imm;
+       end
+
+	   else if (func == BTU_JAL) begin
 	       target_pc = pc + imm;
+	       wb_data = pc + 4;
 	   end
-	   else if (func == 6'h15) begin
+	   else if (func == BTU_JALR) begin
 	       target_pc = rs1 + imm;
+	       wb_data = pc + 4;
 	   end
 	   else begin
-	       target_pc = pc + imm;
+	       target_pc = pc + 4;
 	   end
 	end
 
