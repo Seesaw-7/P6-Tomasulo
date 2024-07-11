@@ -18,6 +18,7 @@ module reorder_buffer(
     output [`REG_ADDR_LEN-1:0] wb_reg, 
     output [`XLEN-1:0] wb_data,
     
+    output [`XLEN-1:0] target_pc,
     output logic flush,
     
     output [`ROB_TAG_LEN-1:0] assign_rob_tag_to_dispatcher,
