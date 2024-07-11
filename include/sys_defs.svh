@@ -70,6 +70,7 @@ typedef enum logic [5:0] {
 	BTU_JALR	= 6'h15,
 	BTU_AUIPC       = 6'h16,
 	ALU_LUI         = 6'h17,
+/*
 	ALU_ADDI        = 6'h18,
 	ALU_SLTI        = 6'h19,
 	ALU_SLTIU       = 6'h1a,
@@ -79,6 +80,7 @@ typedef enum logic [5:0] {
 	ALU_SLLI        = 6'h1e,
 	ALU_SRLI        = 6'h1f,
 	ALU_SRAI        = 6'h20
+ */
 	// ALU_DIV     = 5'h0e,
 	// ALU_DIVU    = 5'h0f,
 	// ALU_REM     = 5'h10,
