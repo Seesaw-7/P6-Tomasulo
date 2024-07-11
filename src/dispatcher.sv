@@ -1,60 +1,62 @@
 `include "map_table.svh"
 `include "decoder.svh"
 
+//TODO: figure out whether to add imm & rs1 or rs1 & rs2
+
+
 typedef struct packed {
-//    logic [2:0] FU; // 4 kinds of FU
-   logic unsigned [6:0] op;
-   logic unsigned [`ROB_TAG_LEN-1:0] tag_dest;
-   logic unsigned [`ROB_TAG_LEN-1:0] tag_src1;
-   logic unsigned [`ROB_TAG_LEN-1:0] tag_src2;
-   logic unsigned ready_src1;
-   logic unsigned [`XLEN-1] value_src1;
-   logic unsigned ready_src2;
-   logic unsigned [`XLEN-1] value_src2;
-   // todo: add immediate
+    FUNC_UNIT fu;
+    ALU_FUNC func;
+    logic unsigned [`ROB_TAG_LEN-1:0] tag_dest;
+    logic unsigned [`ROB_TAG_LEN-1:0] tag_src1;
+    logic unsigned [`ROB_TAG_LEN-1:0] tag_src2;
+    logic unsigned ready_src1;
+    logic unsigned [`XLEN-1] value_src1;
+    logic unsigned ready_src2;
+    logic unsigned [`XLEN-1] value_src2;
+    logic [`XLEN-1:0] imm;
+    logic [`XLEN-1:0] pc;
 } INST_RS;
 
 typedef struct packed {
-   logic unsigned [`ROB_TAG_LEN-1:0] ROB_tag; // ROB tag for insn
+//    logic unsigned [`ROB_TAG_LEN-1:0] ROB_tag; // ROB tag for insn
    logic unsigned [`REG_ADDR_LEN-1:0] reg; // architectural reg for dest
 //    logic [`XLEN-1] value; // value in reg
 } INST_ROB;
 
 
-// typedef struct packed {
-//    logic unsigned valid;
-//    FUNC_UNIT FU; // 4 kinds of FU
-//    logic unsigned [6:0] op;
-//    ARCH_REG arch_reg;
-// } INST;
-
-
 module dispatcher (
+    // control signals
     input clk,
     input reset,
-    // input INST insn,
-    input DECODED_PACK decoded_pack; //todo: update the code after changing input
+
+    // input from decoder,
+    input DECODED_PACK decoded_pack; //TODO: update the code after changing input
     input [`REG_NUM-1:0] [`XLEN-1:0] registers, // wires from regfile
+
     // from ROB
     input ROB_ENTRY rob [`ROB_SIZE-1:0],
     input [`ROB_ADDR_LEN-1:0] assign_rob_tag,
+
     // entry to RS
     output INST_RS inst_rs,
+
     // entry to ROB
     output INST_ROB inst_rob,
     output assign_rob,
 
     // forward to map table
-    input assign_flag,
-    input return_flag, 
-    input ready_flag,
+    // input assign_flag,
+    input return_flag, //？
+    input ready_flag,   //？
     input [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
     input [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_cdb,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
+    input [`ROB_SIZE] [`XLEN-1:0] wb_data, //wires from rob values
 
     // RS control
-    input unsigned [3:0] RS_is_full, // 5 RS
+    input unsigned [3:0] RS_is_full, // 4 RS
     output unsigned [3:0] RS_load
 );
 

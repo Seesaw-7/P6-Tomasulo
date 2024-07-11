@@ -6,8 +6,7 @@
 `include "map_table.svh"
 
 typedef struct packed {
-    ALU_FUNC                       func;    //TODO: revise later, decided by decoder and FU
-    // logic    [6:0]                 opcode;  //TODO: revise later, decided by decoder and FU
+    ALU_FUNC                       func;
     logic    [`ROB_TAG_LEN-1:0]     t1;
     logic    [`ROB_TAG_LEN-1:0]     t2;
     logic    [`ROB_TAG_LEN-1:0]     dst;
@@ -20,8 +19,7 @@ typedef struct packed {
 } RS_ENTRY; // entry type for all RS
 
 typedef struct packed {
-    ALU_FUNC                       func;    //TODO: revise later, decided by decoder and FU
-    // logic    [6:0]                 opcode;  //TODO: revise later, decided by decoder and FU
+    ALU_FUNC                       func;
     logic    [`ROB_TAG_LEN-1:0]     t1;
     logic    [`ROB_TAG_LEN-1:0]     t2;
     logic    [`ROB_TAG_LEN-1:0]     dst;
@@ -33,6 +31,6 @@ typedef struct packed {
     logic    [`XLEN-1:0]            imm;
     logic    [`ENTRY_WIDTH-1:0]     Bday;
     logic                          valid;  // whether the data in this entry can be used
-} RS_BTU_ENTRY; // entry type for all RS
+} RS_ENTRY_M2; // temporary entry type for milestone 2
 
 `endif

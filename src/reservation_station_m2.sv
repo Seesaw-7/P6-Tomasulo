@@ -47,7 +47,7 @@ module reservation_station #(
     assign wakeup_value_reg = wakeup? wakeup_value : wakeup_value_reg; 
 
     // the only internal storage that need to be updated synchronously
-    RS_ENTRY entries [NUM_ENTRIES];
+    RS_ENTRY_M2 entries [NUM_ENTRIES];
 
     // internal signals below are all updated with combinational logic
     logic [ENTRY_WIDTH:0] num_entry_used; // can be 0,1,2,3,4, so ENTRY_WIDTH do not need to be decremented by 1
