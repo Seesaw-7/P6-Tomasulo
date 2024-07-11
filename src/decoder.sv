@@ -65,9 +65,8 @@ module decoder(
 			casez (inst) 
 				`RV32_LUI: begin
 					decoded_pack.arch_reg.dest = if_id_packet_in.inst.r.rd;
-					decoded_pack.imm = {if_id_packet_in.inst[31:12], 12'b0};
-					// decoded_pack.imm = `RV32_signext_Uimm(if_id_packet_in.inst);
-					
+					// decoded_pack.imm = {if_id_packet_in.inst[31:12], 12'b0};
+					decoded_pack.imm = `RV32_signext_Uimm(if_id_packet_in.inst);			
 					// dest_reg   = DEST_RD;
 					// opa_select = OPA_IS_ZERO;
 					// opb_select = OPB_IS_U_IMM;
@@ -76,32 +75,32 @@ module decoder(
 					dest_reg   = DEST_RD;
 					opa_select = OPA_IS_PC;
 					opb_select = OPB_IS_U_IMM;
-					decoded_pack.imm = {if_id_packet_in.inst[31:12], 12'b0};
-					// decoded_pack.imm = `RV32_signext_Uimm(if_id_packet_in.inst);
+					// decoded_pack.imm = {if_id_packet_in.inst[31:12], 12'b0};
+					decoded_pack.imm = `RV32_signext_Uimm(if_id_packet_in.inst);
 				end
 				`RV32_JAL: begin
 					dest_reg      = DEST_RD;
 					opa_select    = OPA_IS_PC;
 					opb_select    = OPB_IS_J_IMM;
 					uncond_branch = `TRUE;
-					decoded_pack.imm = $signed({if_id_packet_in.inst[31], if_id_packet_in.inst[19:12],
+					// decoded_pack.imm = $signed({if_id_packet_in.inst[31], if_id_packet_in.inst[19:12],
 					   if_id_packet_in.inst[20], if_id_packet_in.inst[30:21]});
-					// decoded_pack.imm = `RV32_signext_Jimm(if_id_packet_in.inst);
+					decoded_pack.imm = `RV32_signext_Jimm(if_id_packet_in.inst);
 				end
 				`RV32_JALR: begin
 					dest_reg      = DEST_RD;
 					opa_select    = OPA_IS_RS1;
 					opb_select    = OPB_IS_I_IMM;
 					uncond_branch = `TRUE;
-					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_BEQ, `RV32_BNE, `RV32_BLT, `RV32_BGE,
 				`RV32_BLTU, `RV32_BGEU: begin
 					opa_select  = OPA_IS_PC;
 					opb_select  = OPB_IS_B_IMM;
 					cond_branch = `TRUE;
-					//opa opb select are not PC and imm anymore
+					// opa opb select are not PC and imm anymore
 				end
 				`RV32_LB, `RV32_LH, `RV32_LW,
 				`RV32_LBU, `RV32_LHU: begin
@@ -116,64 +115,64 @@ module decoder(
 				`RV32_ADDI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
-					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_SLTI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SLT;
-					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_SLTIU: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SLTU;
-					decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_ANDI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_AND;
-					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_ORI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_OR;
-					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_XORI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_XOR;
-					decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = $signed(if_id_packet_in.inst[31:20]);
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_SLLI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SLL;
-					decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_SRLI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SRL;
-					decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
+					decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_SRAI: begin
 					dest_reg   = DEST_RD;
 					opb_select = OPB_IS_I_IMM;
 					alu_func   = ALU_SRA;
-					decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
-					// decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
+					// decoded_pack.imm = {20'b0, if_id_packet_in.inst[31:20]};
+				    decoded_pack.imm = `RV32_signext_Iimm(if_id_packet_in.inst);
 				end
 				`RV32_ADD: begin
 					dest_reg   = DEST_RD;
