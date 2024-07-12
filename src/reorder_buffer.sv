@@ -28,7 +28,8 @@ module reorder_buffer(
     output logic rob_full_adv,
     
     output [`XLEN-1:0] search_src1_data, // to dispatcher
-    output [`XLEN-1:0] search_src2_data
+    output [`XLEN-1:0] search_src2_data,
+    output ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
     
     //rob_curr output
 );
