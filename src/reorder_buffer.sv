@@ -14,6 +14,9 @@ module reorder_buffer(
     input [`XLEN-1:0] target_pc_from_cdb,
     input logic mispredict_from_cdb,
     
+    input [`ROB_TAG_LEN-1:0] search_src1_rob_tag, // from dispatcher
+    input [`ROB_TAG_LEN-1:0] search_src2_rob_tag,
+    
     output logic wb_en, //wb to reg
     output [`REG_ADDR_LEN-1:0] wb_reg, 
     output [`XLEN-1:0] wb_data,
@@ -22,7 +25,10 @@ module reorder_buffer(
     output logic flush, //also indicate write to pc
     
     output [`ROB_TAG_LEN-1:0] assign_rob_tag_to_dispatcher,
-    output logic rob_full_adv 
+    output logic rob_full_adv,
+    
+    output [`XLEN-1:0] search_src1_data, // to dispatcher
+    output [`XLEN-1:0] search_src2_data
     
     //rob_curr output
 );
@@ -80,6 +86,9 @@ module reorder_buffer(
         end
 
     end
+    
+    assign search_src1_data = rob_curr[search_src1_rob_tag].wb_data;
+    assign search_src2_data = rob_curr[search_src2_rob_tag].wb_data;
 
     assign rob_full_adv = (head_curr == tail_next);
     
