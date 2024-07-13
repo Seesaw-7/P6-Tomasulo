@@ -61,7 +61,7 @@ module dispatcher (
     // map table
     RENAMED_PACK renamed_pack; 
     ARCH_REG arch_reg;
-    assign arch_reg = decoded_pack.arch_reg; 
+    assign arch_reg = insn_reg.arch_reg; 
     logic assign_flag;
     assign assign_flag = 1;
     map_table mt (.*); 
