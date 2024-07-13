@@ -51,10 +51,12 @@ module common_data_bus #(
         out_value = '0;
         out_ROB_tag = '0;
 
-        out_value = in_values[select_signal];
-        out_ROB_tag = ROB_tag; 
-        out_mispredict = select_signal == FU_BTU ? mispredict : 0;
-        out_pc = select_signal == FU_BTU ? pc : '0;
+        if (select_flag) begin
+            out_value = in_values[select_signal];
+            out_ROB_tag = ROB_tag; 
+            out_mispredict = select_signal == FU_BTU ? mispredict : 0;
+            out_pc = select_signal == FU_BTU ? pc : '0;
+        end
     end
 
 endmodule
