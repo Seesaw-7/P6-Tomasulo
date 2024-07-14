@@ -93,11 +93,11 @@ module testbench;
 		.proc2mem_size    (proc2mem_size),
 
 		.pipeline_completed_insts (pipeline_completed_insts),
-		.pipeline_error_status    (pipeline_error_status),
+		// .pipeline_error_status    (pipeline_error_status),
 		.pipeline_commit_wr_data  (pipeline_commit_wr_data),
 		.pipeline_commit_wr_idx   (pipeline_commit_wr_idx),
 		.pipeline_commit_wr_en    (pipeline_commit_wr_en),
-		.pipeline_commit_NPC      (pipeline_commit_NPC),
+		.pipeline_commit_NPC      (pipeline_commit_NPC)
 
 		// .if_NPC_out        (if_NPC_out),
 		// .if_IR_out         (if_IR_out),
