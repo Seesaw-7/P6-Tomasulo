@@ -14,7 +14,7 @@ module multiplier #(
 	parameter N = `NUM_STAGE
 ) (
 				input clock, reset,
-				input [63:0] mcand, mplier,
+				input unsigned [63:0] mcand, mplier,
 				input start,
 				
 				output [63:0] product,

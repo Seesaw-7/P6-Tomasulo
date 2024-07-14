@@ -49,7 +49,7 @@ XELAB_SYNTH = $(XELAB) -maxdelay -transport_int_delays -pulse_r 0 -pulse_int_r 0
 XSIM = xsim --nolog --tempDir $(OUTPUT_DIR)
 
 HEADERS = $(wildcard include/*.svh)
-SOURCES = $(wildcard src/*.sv)
+SOURCES = $(wildcard src/*.sv) $(wildcard src/*/*.sv)
 TESTBENCH = mem.sv testbench.sv pipe_print.c
 
 $(OUTPUT_DIR)/simulate: $(HEADERS) $(SOURCES) $(TESTBENCH) | $(OUTPUT_DIR)

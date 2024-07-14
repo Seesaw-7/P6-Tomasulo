@@ -21,8 +21,8 @@ module issue_unit (
     output FUNC_UNIT select_signal // to CDB as select, to RS as wakeup 
 );
 
-    logic [10:0][3:0] fu_cycles_curr;
-    logic [10:0][3:0] fu_cycles_next;
+    logic [10:0][4:0] fu_cycles_curr;
+    logic [10:0][4:0] fu_cycles_next;
     logic [10:0][`ROB_TAG_LEN-1:0] ROB_tag_reg_curr;
     logic [10:0][`ROB_TAG_LEN-1:0] ROB_tag_next;
 

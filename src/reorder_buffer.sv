@@ -71,7 +71,8 @@ module reorder_buffer(
             rob_next[tail_curr].wb_reg = reg_addr_from_dispatcher;
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
             rob_next[tail_curr].npc = npc_from_dispatcher;
-            tail_next = (tail_curr + 1) % `ROB_SIZE;
+            // tail_next = (tail_curr + `ROB_TAG_LEN'd1) % `ROB_SIZE;
+            tail_next = tail_curr + 1;
             
             assign_rob_tag_to_dispatcher = tail_curr;
         end
@@ -98,7 +99,8 @@ module reorder_buffer(
                 flush = 1'b1;
             end
             rob_next[head_curr].valid = 1'b0;
-            head_next = (head_curr + 1) % `ROB_SIZE;
+            // head_next = (head_curr + 1) % `ROB_SIZE;
+            head_next = head_curr + 1;
         end
 
     end
@@ -110,8 +112,8 @@ module reorder_buffer(
     
     always_ff @(posedge clk) begin
         if (reset || flush) begin
-            head_curr <= {`REG_ADDR_LEN{1'b0}};
-            tail_curr <= {`REG_ADDR_LEN{1'b0}};
+            head_curr <= {(`ROB_TAG_LEN){1'b0}};
+            tail_curr <= {`ROB_TAG_LEN{1'b0}};
             for (int i=0; i<`ROB_SIZE; i++) begin
                 rob_curr[i].valid <= 1'b0;
                 rob_curr[i].ready <= 1'b0; 

@@ -103,7 +103,7 @@ module mem (
 				cycles_left[i] = cycles_left[i]-16'd1;
 
 			end else if(acquire_tag && !waiting_for_bus[i]) begin
-				next_mem2proc_response = i;
+				next_mem2proc_response = 4'(i);
 				acquire_tag            = 1'b0;
 				cycles_left[i]         = `MEM_LATENCY_IN_CYCLES;
 				                          // must add support for random lantencies
@@ -160,7 +160,7 @@ module mem (
 
 			if((cycles_left[i]==16'd0) && waiting_for_bus[i] && !bus_filled) begin
 					bus_filled         = 1'b1;
-					next_mem2proc_tag  = i;
+					next_mem2proc_tag  = 4'(i);
 					next_mem2proc_data = loaded_data[i];
 					waiting_for_bus[i] = 1'b0;
 			end
