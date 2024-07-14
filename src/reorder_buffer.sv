@@ -33,6 +33,8 @@ module reorder_buffer(
     output [`XLEN-1:0] search_src2_data,
     output ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
     
+    output [`ROB_TAG_LEN-1:0] retire_rob_tag;
+    
     //rob_curr output
 );
     
@@ -57,6 +59,7 @@ module reorder_buffer(
         target_pc = {`XLEN{1'b0}};
         flush = 1'b0;
         assign_rob_tag_to_dispatcher = {`ROB_TAG_LEN{1'b0}};
+        retire_rob_tag = {`ROB_TAG_LEN{1'b0}};
         
         if (dispatch) begin
             rob_next[tail_curr].valid = 1'b1;
@@ -81,6 +84,7 @@ module reorder_buffer(
             wb_reg = rob_curr[head_curr].wb_reg;
             wb_data = rob_curr[head_curr].wb_data;
             target_pc = rob_curr[head_curr].target_pc;
+            retire_rob_tag = head_curr;
             if (rob_curr[head_curr].mispredict == 1'b1) begin
                 flush = 1'b1;
             end
