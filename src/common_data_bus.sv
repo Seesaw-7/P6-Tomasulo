@@ -41,7 +41,7 @@ module common_data_bus #(
     output logic [`ROB_TAG_LEN-1:0] out_ROB_tag,       // ROB tag output, to ROB and RS
     output logic [`XLEN-1:0] out_value,             // Result output
     output logic out_mispredict,
-    output logic out_pc
+    output logic [`XLEN-1:0] out_pc
 );
 
     always_comb begin
