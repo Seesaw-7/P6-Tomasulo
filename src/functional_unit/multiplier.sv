@@ -40,28 +40,6 @@ module multiplier #(
 
 endmodule
 
-module mult_2(
-				input clock, reset,
-				input [63:0] mcand, mplier,
-				input start,
-				
-				output [63:0] product,
-				output done
-			);
-	mult #(2) m (.*);
-endmodule
-
-module mult_4(
-				input clock, reset,
-				input [63:0] mcand, mplier,
-				input start,
-				
-				output [63:0] product,
-				output done
-			);
-	mult #(4) m (.*);
-endmodule
-
 // This is one stage of an 8 stage (9 depending on how you look at it)
 // pipelined multiplier that multiplies 2 64-bit integers and returns
 // the low 64 bits of the result.  This is not an ideal multiplier but
