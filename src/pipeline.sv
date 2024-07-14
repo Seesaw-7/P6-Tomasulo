@@ -107,6 +107,11 @@ logic stall;
 logic [3:0] RS_load;
 INST_RS inst_dispatch_to_rs;
 INST_ROB inst_dispatch_to_rob;
+logic [3:0] dispatcher_RS_is_full;
+assign dispatcher_RS_is_full[FU_ALU] = rs_alu_full;
+assign dispatcher_RS_is_full[FU_MULT] = rs_mult_full;
+assign dispatcher_RS_is_full[FU_BTU] = rs_btu_full;
+assign dispatcher_RS_is_full[FU_LSU] = 1'b0;
 dispatcher dispatch_stage (
     .clk(clock),
     .reset(reset),
@@ -123,7 +128,7 @@ dispatcher dispatch_stage (
     .rob_tag_from_rob(retire_rob_tag),
     .rob_tag_from_cdb(rob_tag_from_cdb),
     .wb_data(0), //TODO: redundant for m2
-    .RS_is_full('{rs_alu_full}), //TODO: four rs is_full from right to left
+    .RS_is_full(dispatcher_RS_is_full), //TODO: four rs is_full from right to left
     .RS_load(RS_load)
 );
 
@@ -326,7 +331,7 @@ logic [`ROB_TAG_LEN-1:0] rob_tag_from_issue_unit;
 logic select_flag_from_issue_unit;
 logic [1:0] select_signal_from_issue_unit;
 
-logic [2:0] issue_unit_insn_ready;
+logic [3:0] issue_unit_insn_ready;
 assign issue_unit_insn_ready[FU_ALU] = rs_alu_insn_ready;
 assign issue_unit_insn_ready[FU_MULT] = rs_mult_insn_ready;
 assign issue_unit_insn_ready[FU_BTU] = rs_btu_insn_ready; 
@@ -337,7 +342,6 @@ assign issue_unit_ROB_tag[FU_ALU] = rs_alu_dest_rob_tag;
 assign issue_unit_ROB_tag[FU_MULT] = rs_mult_dest_rob_tag;
 assign issue_unit_ROB_tag[FU_BTU] = rs_btu_dest_rob_tag;
 assign issue_unit_ROB_tag[FU_LSU] = rs_lsu_dest_rob_tag;
-//TODO:
 
 issue_unit issue_unit_0 (
     // control signals
