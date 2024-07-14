@@ -9,6 +9,7 @@ module reorder_buffer(
     
     input logic dispatch,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_dispatcher,
+    input [`XLEN-1:0] pc_from_dispatcher,
      
     input logic cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
@@ -34,6 +35,7 @@ module reorder_buffer(
     output ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
     
     output [`ROB_TAG_LEN-1:0] retire_rob_tag;
+    output [`XLEN-1:0] commit_pc;
     
     //rob_curr output
 );
@@ -60,6 +62,7 @@ module reorder_buffer(
         flush = 1'b0;
         assign_rob_tag_to_dispatcher = {`ROB_TAG_LEN{1'b0}};
         retire_rob_tag = {`ROB_TAG_LEN{1'b0}};
+        commit_pc = {`XLEN{1'b0}};
         
         if (dispatch) begin
             rob_next[tail_curr].valid = 1'b1;
@@ -67,6 +70,7 @@ module reorder_buffer(
             rob_next[tail_curr].mispredict = 1'b0;
             rob_next[tail_curr].wb_reg = reg_addr_from_dispatcher;
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
+            rob.next[tail.curr].curr_pc = pc_from_dispatcher;
             tail_next = (tail_curr + 1) % `ROB_SIZE;
             
             assign_rob_tag_to_dispatcher = tail_curr;
@@ -85,6 +89,8 @@ module reorder_buffer(
             wb_data = rob_curr[head_curr].wb_data;
             target_pc = rob_curr[head_curr].target_pc;
             retire_rob_tag = head_curr;
+            commit_pc = rob_curr[head_curr].curr_pc;
+            
             if (rob_curr[head_curr].mispredict == 1'b1) begin
                 flush = 1'b1;
             end
@@ -109,6 +115,7 @@ module reorder_buffer(
                 rob_curr[i].mispredict <= 1'b0;
                 rob_curr[i].wb_reg <= {`REG_ADDR_LEN{1'b0}};
                 rob_curr[i].wb_data <= {`XLEN{1'b0}};
+                rob.curr[i].curr_pc <= {`XLEN{1'b0}};
                 rob_curr[i].target_pc <= {`XLEN{1'b0}};
             end
         end
