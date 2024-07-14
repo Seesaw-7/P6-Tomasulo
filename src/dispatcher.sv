@@ -31,7 +31,7 @@ module dispatcher (
 
     // stall prefetch, decoder and rob
     // the decoded_packed just received will be kept in dispatcher
-    output stall,
+    output logic stall,
 
     // forward to map table
     input return_flag,
@@ -45,7 +45,7 @@ module dispatcher (
 
     // RS control
     input unsigned [3:0] RS_is_full, // 4 RS
-    output unsigned [3:0] RS_load
+    output logic unsigned [3:0] RS_load
 );
 
     // syncronize input
