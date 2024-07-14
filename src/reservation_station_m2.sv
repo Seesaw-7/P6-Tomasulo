@@ -158,7 +158,7 @@ module reservation_station #(
                 //output insn
                 func_out <= entries[min_idx].func; // output at clock edge just to make sure that RS output one single and stable value per clock cycle
                 v1_out <= (wakeup && wakeup_tag_reg == t1) ? wakeup_value_reg : entries[min_idx].v1;
-                v2_out <= (wakeup && wakeup_tag_reg == t2) ? entries[min_idx].v2;
+                v2_out <= (wakeup && wakeup_tag_reg == t2) ? wakeup_value_reg : entries[min_idx].v2;
                 pc_out <= entries[min_idx].pc;
                 imm_out <= entries[min_idx].imm;
                 // dst_tag <= entries[min_idx].dst;

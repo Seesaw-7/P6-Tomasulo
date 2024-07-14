@@ -45,6 +45,16 @@
 `define SD #1
 
 
+// 
+// Memory related
+//
+`define NUM_MEM_TAGS           8
+`define MEM_LATENCY_IN_CYCLES  0
+
+`define MEM_SIZE_IN_BYTES      (64*1024)
+`define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
+
+
 //
 // ALU function code input
 //
