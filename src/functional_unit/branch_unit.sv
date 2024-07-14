@@ -12,8 +12,8 @@ module branch_unit(
     input [`XLEN-1:0] rs2,
 
     output logic cond, // 1 for misprediction/flush
-    output [`XLEN-1:0] wb_data, 
-    output [`XLEN-1:0] target_pc
+    output logic [`XLEN-1:0] wb_data, 
+    output logic [`XLEN-1:0] target_pc
 );
     
 	// branch condition check
