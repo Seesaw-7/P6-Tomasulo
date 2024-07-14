@@ -51,7 +51,7 @@ module decoder(
 		decoded_pack.valid = 0;
 		decoded_pack.fu = FU_ALU; //by default arithmetic and logic unit
 		decoded_pack.arch_reg.src1 = 5'b00000;
-		decoded_pack.arch_reg.scr2 = 5'b00000;
+		decoded_pack.arch_reg.src2 = 5'b00000;
 		decoded_pack.arch_reg.dest = 5'b00000;
 		decoded_pack.imm = {`XLEN{1'b0}};
 		decoded_pack.alu_func = ALU_ADD;
@@ -284,7 +284,7 @@ module decoder(
 					decoded_pack.arch_reg.dest = inst.r.rd;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					decoded_pack.arch_func = ALU_OR;
+					decoded_pack.alu_func = ALU_OR;
 				end
 				`RV32_XOR: begin
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
@@ -292,7 +292,7 @@ module decoder(
 					decoded_pack.arch_reg.dest = inst.r.rd;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					decoded_pack.arch_func = ALU_XOR;
+					decoded_pack.alu_func = ALU_XOR;
 				end
 				`RV32_SLL: begin
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
@@ -300,7 +300,7 @@ module decoder(
 					decoded_pack.arch_reg.dest = inst.r.rd;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					decoded_pack.arch_func = ALU_SLL;
+					decoded_pack.alu_func = ALU_SLL;
 				end
 				`RV32_SRL: begin
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
@@ -308,7 +308,7 @@ module decoder(
 					decoded_pack.arch_reg.dest = inst.r.rd;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					decoded_pack.arch_func = ALU_SRL;
+					decoded_pack.alu_func = ALU_SRL;
 				end
 				`RV32_SRA: begin
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
@@ -316,7 +316,7 @@ module decoder(
 					decoded_pack.arch_reg.dest = inst.r.rd;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					decoded_pack.arch_func = ALU_SRA;
+					decoded_pack.alu_func = ALU_SRA;
 				end
 				`RV32_MUL: begin
 					decoded_pack.fu = FU_MULT;
