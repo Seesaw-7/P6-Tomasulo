@@ -37,6 +37,14 @@
 
 `define FALSE  1'h0
 `define TRUE  1'h1
+
+//
+// actually, you might have to change this if you change VERILOG_CLOCK_PERIOD
+// JK you don't ^^^
+//
+`define SD #1
+
+
 //
 // ALU function code input
 //

@@ -11,7 +11,7 @@
 // } PREFETCH_PACKET;
 
 module prefetch_queue #(
-    size = 40;
+    size = 40
 ) (
     input clock,
     input reset,

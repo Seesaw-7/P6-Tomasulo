@@ -32,10 +32,10 @@ module reorder_buffer(
     
     output [`XLEN-1:0] search_src1_data, // to dispatcher
     output [`XLEN-1:0] search_src2_data,
-    output ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
+    output ROB_ENTRY rob_curr [`ROB_SIZE-1:0],
     
-    output [`ROB_TAG_LEN-1:0] retire_rob_tag;
-    output [`XLEN-1:0] commit_npc;
+    output [`ROB_TAG_LEN-1:0] retire_rob_tag,
+    output [`XLEN-1:0] commit_npc
     
     //rob_curr output
 );
@@ -49,7 +49,7 @@ module reorder_buffer(
     logic [`ROB_TAG_LEN-1:0] tail_next;
     
     always_comb begin
-        for (int i=0; i<`ROB_SIZE; i++) begin
+        for (int i=0; i<`ROB_SIZE; ++i) begin
             rob_next[i] = rob_curr[i];
         end
         head_next = head_curr;

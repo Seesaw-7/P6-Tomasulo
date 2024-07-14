@@ -14,7 +14,7 @@
 module register_file(
         input   [4:0] wr_idx,    // read/write index
         input  [`XLEN-1:0] wr_data,            // write data
-        input         wr_en, clk, reset
+        input         wr_en, clk, reset,
 
         output [`REG_NUM-1:0] [`XLEN-1:0] registers
           
