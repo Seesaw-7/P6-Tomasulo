@@ -16,7 +16,7 @@ module register_file(
         input  [`XLEN-1:0] wr_data,            // write data
         input         wr_en, clk, reset,
 
-        output [`REG_NUM-1:0] [`XLEN-1:0] registers
+        output logic [`REG_NUM-1:0] [`XLEN-1:0] registers
           
       );
   
