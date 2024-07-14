@@ -113,7 +113,7 @@ module reservation_station #(
             for (int i = 0; i < NUM_ENTRIES; i++) begin
                 entries[i] <= empty_entry;
             end
-            for (int i = 0; i < PHY_REG_NUM; i++) begin
+            for (int i = 0; i < REG_NUM; i++) begin
                 ready_table[i] <= 1;
             end
             func_out <= 0;
