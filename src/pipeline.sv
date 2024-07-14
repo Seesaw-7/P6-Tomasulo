@@ -113,50 +113,19 @@ dispatcher dispatch_stage (
     .decoded_pack(decoded_pack),
     .registers(registers),
     .rob(rob_entries),
-    .assign_rob_tag(),
+    .assign_rob_tag(rob_tag_for_dispatch),
     .inst_rs(inst_dispatch_to_rs),
     .inst_rob(inst_dispatch_to_rob),
     .stall(stall),
-    .return_flag(),
-    .ready_flag(),
-    .reg_addr_from_rob(),
-    .rob_tag_from_rob(rob_tag_for_dispatch),
-    .reg_addr_from_cdb(),
-    .rob_tag_from_cdb(),
-    .wb_data().
+    .return_flag(wb_en), // TODO:
+    .ready_flag(select_flag_from_cdb),
+    // .reg_addr_from_rob(),
+    .rob_tag_from_rob(retire_rob_tag),
+    .rob_tag_from_cdb(rob_tag_from_cdb),
+    .wb_data(0), //TODO: redundant for m2
     .RS_is_full('{rs_alu_full}), //TODO: four rs is_full from right to left
     .RS_load(RS_load)
 );
-
-
-    // input from ROB
-    // input ROB_ENTRY rob [`ROB_SIZE-1:0],
-    // input [`ROB_ADDR_LEN-1:0] assign_rob_tag,
-
-    // entry to RS
-    // output INST_RS inst_rs,
-
-    // entry to ROB
-    // output INST_ROB inst_rob,
-
-    // stall prefetch, decoder and rob
-    // output stall,
-
-
-    // forward to map table
-    // input return_flag,
-    // input ready_flag,
-    // input [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
-    // input [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
-    // input [`REG_ADDR_LEN-1:0] reg_addr_from_cdb,
-    // input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
-    // input [`ROB_SIZE] [`XLEN-1:0] wb_data, //wires from rob values
-
-    // RS control
-    // input unsigned [3:0] RS_is_full, // 4 RS
-    // output unsigned [3:0] RS_load
-
-
 
 
 
@@ -166,16 +135,23 @@ dispatcher dispatch_stage (
 //                                              //
 //////////////////////////////////////////////////
 
+// Integer Unit
 logic rs_alu_full;
-logic [`ROB_TAG_LEN-1:0] rs_alu_dest_rob_tag;
 logic rs_alu_insn_ready;
 logic enable_alu;
+// output data
+ALU_FUNC rs_alu_func_out; // to FU
+logic [`XLEN-1:0] rs_alu_v1_out, rs_alu_v2_out; 
+logic [`XLEN-1:0] rs_alu_pc_out, rs_alu_imm_out;// to FU
+logic [`ROB_TAG_LEN-1:0] rs_alu_dst_tag; // to issue unit, TODO: to FU in m3
+logic [`ROB_TAG_LEN-1:0] rs_alu_dest_rob_tag;
+
 reservation_station RS_ALU (
     .clk(clock),
     .reset(reset || flush), // flush when mis predict
-    .load(RS_load[0]), // whether we load in the instruction (assigned by dispatcher)
-    .issue(), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
-    .wakeup(), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
+    .load(RS_load[FU_ALU]), // whether we load in the instruction (assigned by dispatcher)
+    .issue(issue_signal_out[FU_ALU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
+    .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
     .func(),
     .t1(), 
@@ -196,28 +172,183 @@ reservation_station RS_ALU (
     .start(enable_alu), // output to FU
 
     // output data
-    .func_out(), // to FU
-    .v1_out(), 
-    .v2_out(), 
-    .pc_out(), 
-    .imm_out(),// to FU
+    .func_out(rs_alu_func_out), // to FU
+    .v1_out(rs_alu_v1_out), 
+    .v2_out(rs_alu_v2_out), 
+    .pc_out(rs_alu_pc_out), 
+    .imm_out(rs_alu_imm_out),// to FU
     .dst_tag(rs_alu_dest_rob_tag) 
 );
 
-logic [3:0] issue_signal_from_issue_unit;
+// Branch Unit
+
+logic rs_btu_full;
+logic rs_btu_insn_ready;
+logic enable_btu;
+// output data
+ALU_FUNC rs_btu_func_out; // to FU
+logic [`XLEN-1:0] rs_btu_v1_out, rs_btu_v2_out; 
+logic [`XLEN-1:0] rs_btu_pc_out, rs_btu_imm_out;// to FU
+logic [`ROB_TAG_LEN-1:0] rs_btu_dst_tag; // to issue unit, TODO: to FU in m3
+logic [`ROB_TAG_LEN-1:0] rs_btu_dest_rob_tag;
+
+reservation_station RS_BTU (
+    .clk(clock),
+    .reset(reset || flush), // flush when mis predict
+    .load(RS_load[FU_BTU]), // whether we load in the instruction (assigned by dispatcher)
+    .issue(issue_signal_out[RS_BTU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
+    .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
+                        // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
+    .func(),
+    .t1(), 
+    .t2(), 
+    .dst(), // previous renaming unit ensures that dst != inp1 and dst != inp2
+    .ready1(), 
+    .ready2(),
+    .v1(), 
+    .v2(), 
+    .pc(), 
+    .imm(),
+    .wakeup_tag(),
+    .wakeup_value(), 
+
+    // output signals
+    .insn_ready(rs_btu_insn_ready), // to issue unit, indicating if there exists an instruction that is ready to be issued
+    .is_full(rs_btu_full), // to dispatcher, indicating that all entries of the reservation station is occupied, cannot load in more inputs
+    .start(enable_btu), // output to FU
+
+    // output data
+    .func_out(rs_btu_func_out), // to FU
+    .v1_out(rs_btu_v1_out), 
+    .v2_out(rs_btu_v2_out), 
+    .pc_out(rs_btu_pc_out), 
+    .imm_out(rs_btu_imm_out),// to FU
+    .dst_tag(rs_btu_dest_rob_tag) 
+);
+
+// Mult Unit
+
+logic rs_mult_full;
+logic rs_mult_insn_ready;
+logic enable_mult;
+// output data
+ALU_FUNC rs_mult_func_out; // to FU
+logic [`XLEN-1:0] rs_mult_v1_out, rs_mult_v2_out; 
+logic [`XLEN-1:0] rs_mult_pc_out, rs_mult_imm_out;// to FU
+logic [`ROB_TAG_LEN-1:0] rs_mult_dst_tag; // to issue unit, TODO: to FU in m3
+logic [`ROB_TAG_LEN-1:0] rs_mult_dest_rob_tag;
+
+reservation_station RS_mult (
+    .clk(clock),
+    .reset(reset || flush), // flush when mis predict
+    .load(RS_load[FU_MULT]), // whether we load in the instruction (assigned by dispatcher)
+    .issue(issue_signal_out[FU_MULT]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
+    .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
+                        // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
+    .func(),
+    .t1(), 
+    .t2(), 
+    .dst(), // previous renaming unit ensures that dst != inp1 and dst != inp2
+    .ready1(), 
+    .ready2(),
+    .v1(), 
+    .v2(), 
+    .pc(), 
+    .imm(),
+    .wakeup_tag(),
+    .wakeup_value(), 
+
+    // output signals
+    .insn_ready(rs_mult_insn_ready), // to issue unit, indicating if there exists an instruction that is ready to be issued
+    .is_full(rs_mult_full), // to dispatcher, indicating that all entries of the reservation station is occupied, cannot load in more inputs
+    .start(enable_mult), // output to FU
+
+    // output data
+    .func_out(rs_mult_func_out), // to FU
+    .v1_out(rs_mult_v1_out), 
+    .v2_out(rs_mult_v2_out), 
+    .pc_out(rs_mult_pc_out), 
+    .imm_out(rs_mult_imm_out),// to FU
+    .dst_tag(rs_mult_dest_rob_tag) 
+);
+
+// load store unit
+logic rs_lsu_full;
+logic rs_lsu_insn_ready;
+logic enable_lsu;
+// output data
+ALU_FUNC rs_lsu_func_out; // to FU
+logic [`XLEN-1:0] rs_lsu_v1_out, rs_lsu_v2_out; 
+logic [`XLEN-1:0] rs_lsu_pc_out, rs_lsu_imm_out;// to FU
+logic [`ROB_TAG_LEN-1:0] rs_lsu_dst_tag; // to issue unit, TODO: to FU in m3
+logic [`ROB_TAG_LEN-1:0] rs_lsu_dest_rob_tag;
+
+reservation_station RS_LSU (
+    .clk(clock),
+    .reset(reset || flush), // flush when mis predict
+    .load(RS_load[FU_LSU]), // whether we load in the instruction (assigned by dispatcher)
+    .issue(issue_signal_out[FU_LSU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
+    .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
+                        // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
+    .func(),
+    .t1(), 
+    .t2(), 
+    .dst(), // previous renaming unit ensures that dst != inp1 and dst != inp2
+    .ready1(), 
+    .ready2(),
+    .v1(), 
+    .v2(), 
+    .pc(), 
+    .imm(),
+    .wakeup_tag(),
+    .wakeup_value(), 
+
+    // output signals
+    .insn_ready(rs_lsu_insn_ready), // to issue unit, indicating if there exists an instruction that is ready to be issued
+    .is_full(rs_lsu_full), // to dispatcher, indicating that all entries of the reservation station is occupied, cannot load in more inputs
+    .start(enable_lsu), // output to FU
+
+    // output data
+    .func_out(rs_lsu_func_out), // to FU
+    .v1_out(rs_lsu_v1_out), 
+    .v2_out(rs_lsu_v2_out), 
+    .pc_out(rs_lsu_pc_out), 
+    .imm_out(rs_lsu_imm_out),// to FU
+    .dst_tag(rs_lsu_dest_rob_tag) 
+);
+
+
+
+
+
+logic [3:0] issue_signal_out;
 logic [`ROB_TAG_LEN-1:0] rob_tag_from_issue_unit;
 logic select_flag_from_issue_unit;
 logic [1:0] select_signal_from_issue_unit;
+
+logic [2:0] issue_unit_insn_ready;
+assign issue_unit_insn_ready[FU_ALU] = rs_alu_insn_ready;
+assign issue_unit_insn_ready[FU_MULT] = rs_mult_insn_ready;
+assign issue_unit_insn_ready[FU_BTU] = rs_btu_insn_ready; 
+assign issue_unit_insn_ready[FU_LSU] = 1'b1;
+
+logic [3:0][`ROB_TAG_LEN-1:0] issue_unit_ROB_tag;
+assign issue_unit_ROB_tag[FU_ALU] = rs_alu_dest_rob_tag;
+assign issue_unit_ROB_tag[FU_MULT] = rs_mult_dest_rob_tag;
+assign issue_unit_ROB_tag[FU_BTU] = rs_btu_dest_rob_tag;
+assign issue_unit_ROB_tag[FU_LSU] = rs_lsu_dest_rob_tag;
+//TODO:
+
 issue_unit issue_unit_0 (
     // control signals
     .clk(clock),
     .reset(reset || flush), 
     // data
-    .insn_ready(), // from RS
-    .ROB_tag('{}), // TODO: 
+    .insn_ready(issue_unit_insn_ready),
+    .ROB_tag(issue_unit_ROB_tag), 
 
     // output control signals
-    .issue_signals(issue_signal_from_issue_unit), // to each RS
+    .issue_signals(issue_signal_out), // to each RS
     // output data
     .ROB_tag_out(rob_tag_from_issue_unit), // TODO: delete in m3
     .select_flag(select_flag_from_issue_unit), // to CDB 
@@ -233,10 +364,49 @@ issue_unit issue_unit_0 (
 //                Execute-Stage                 //
 //                                              //
 //////////////////////////////////////////////////
+// Integer Unit
+logic [`XLEN-1:0] alu_result;
+arithmetic_logic_unit ALU (
+    .opa(rs_alu_v1_out),
+    .opb(rs_alu_v2_out), //TODO: where is imm?
+    .func(rs_alu_func_out),
+    .result(alu_result)
+);
+
+// branch unit
+
+logic branch_from_lsu;
+logic [`XLEN-1:0] btu_wb_data;
+logic [`XLEN-1:0] btu_target_pc;
+branch_unit BTU (
+    .func(rs_btu_func_out),
+    .pc(rs_btu_pc_out), //target addr cal
+    .imm(rs_btu_imm_out)
+    .rs1(rs_btu_v1_out), // also for jalr
+    .rs2(rs_btu_v2_out),
+    .cond(branch_from_lsu), // 1 for misprediction/flush
+    .wb_data(btu_wb_data), 
+    .target_pc(btu_target_pc)
+);
+
+// mult unit
+logic [63:0] mult_result;
+logic mult_done;
+multiplier mult_0 (
+    .clock(clock),
+    .reset(reset || flush),
+    .mcand(rs_mult_v1_out), // TODO: 32 bits to 64 bits?
+    .mplier(rs_mult_v2_out),
+    .start(enable_mult),
+    .product(mult_result),
+    .done(mult_done)
+);
+
+// load store unit
 
 // memory
 assign proc2Dmem_command = BUS_NONE;
-logic [63:0] Imem2proc_data;
+// logic [63:0] Imem2proc_data;
 
 
 //////////////////////////////////////////////////
@@ -244,15 +414,44 @@ logic [63:0] Imem2proc_data;
 //                Complete-Stage                //
 //                                              //
 //////////////////////////////////////////////////
+logic  [3:0] [`XLEN-1:0] cdb_in_values; // TODO: make FU_NUM global
+assign cdb_in_values[FU_ALU] = alu_result;
+assign cdb_in_values[FU_BTU] = btu_wb_data;
+assign cdb_in_values[FU_MULT] = mult_result;
+assign cdb_in_values[FU_LSU] = 31'd1;
+
+logic select_flag_from_cdb;
+logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb;
+logic [`XLEN-1:0] value_from_cdb;
+logic branch_from_cdb;
+logic [`XLEN-1:0] pc_from_cdb; //TODO: change output size of out_pc
+common_data_bus CDB (
+    .in_values(cdb_in_values),
+    .mispredict(branch_from_lsu),
+    .pc(btu_target_pc),
+    .select_flag(select_flag_from_issue_unit),
+    .select_signal(select_signal_from_issue_unit),
+    .ROB_tag(rob_tag_from_issue_unit),
+    .out_select_flag(select_flag_from_cdb),
+    .out_ROB_tag(rob_tag_from_cdb),
+    .out_value(value_from_cdb),
+    .out_mispredict(branch_from_cdb),
+    .out_pc(pc_from_cdb)
+);
+
+
 logic [`XLEN-1:0] branch_target_pc;
 ROB_ENTRY rob_entries [`ROB_SIZE-1:0];
 logic[`XLEN-1:0] target_pc_from_rob 
 logic flush;
 logic [`ROB_TAG_LEN-1:0] rob_tag_for_dispatch;
 logic rob_full;
+logic wb_en;
+logic [`REG_ADDR_LEN-1:0] wb_reg;
+logic [`XLEN-1:0] wb_data;
 logic [`ROB_TAG_LEN-1:0] src1_data_from_rob;
 logic [`ROB_TAG_LEN-1:0] src2_data_from_rob;
-
+logic [`ROB_TAG_LEN-1:0] retire_rob_tag; 
 reorder_buffer ROB_0 (
     .clk(clock),
     .reset(reset), //TODO: flush when take_branch
@@ -260,18 +459,18 @@ reorder_buffer ROB_0 (
     .dispatch(!stall),
     .reg_addr_from_dispatcher(inst_dispatch_to_rob.reg),
      
-    .cdb_to_rob(),
-    .rob_tag_from_cdb(),
-    .wb_data_from_cdb(),
-    .target_pc_from_cdb(),
-    .mispredict_from_cdb(),
+    .cdb_to_rob(select_flag_from_cdb),
+    .rob_tag_from_cdb(rob_tag_from_cdb),
+    .wb_data_from_cdb(value_from_cdb),
+    .target_pc_from_cdb(pc_from_cdb),
+    .mispredict_from_cdb(branch_from_cdb),
     
     .search_src1_rob_tag(0), // from dispatcher
     .search_src2_rob_tag(0),
     
-    .wb_en(), //wb to reg
-    .wb_reg(), 
-    .wb_data(),
+    .wb_en(wb_en), //wb to reg
+    .wb_reg(wb_reg), 
+    .wb_data(wb_data),
     
     .target_pc(target_pc_from_rob),
     .flush(flush), //also indicate write to pc
@@ -281,9 +480,9 @@ reorder_buffer ROB_0 (
     
     .search_src1_data(src1_data_from_rob), // to dispatcher
     .search_src2_data(src2_data_from_rob),
-    .rob_curr(rob_entries);
-    
-    //rob_curr output
+    .rob_curr(rob_entries),
+
+    .retire_rob_tag(retire_rob_tag)    
 );
 
 
@@ -298,22 +497,14 @@ reorder_buffer ROB_0 (
 
 logic [`REG_NUM-1:0] [`XLEN-1:0] registers;
 register_file regfile (
-    .wr_idx(),
-    .wr_data(),
-    .wr_en(),
+    .wr_idx(wb_reg),
+    .wr_data(wb_data),
+    .wr_en(wb_en),
     .clk(clock),
     .reset(reset),
     .registers(registers)
 );
 
-// module register_file(
-//         input   [4:0] wr_idx,    // read/write index
-//         input  [`XLEN-1:0] wr_data,            // write data
-//         input         wr_en, clk, reset
-
-//         output [`REG_NUM-1:0] [`XLEN-1:0] registers
-          
-//       );
 
 
 
