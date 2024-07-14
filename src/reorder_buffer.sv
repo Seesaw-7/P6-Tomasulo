@@ -21,21 +21,21 @@ module reorder_buffer(
     input [`ROB_TAG_LEN-1:0] search_src2_rob_tag,
     
     output logic wb_en, //wb to reg
-    output [`REG_ADDR_LEN-1:0] wb_reg, 
-    output [`XLEN-1:0] wb_data,
+    output logic [`REG_ADDR_LEN-1:0] wb_reg, 
+    output logic [`XLEN-1:0] wb_data,
     
     //output [`XLEN-1:0] target_pc,
     output logic flush, //also indicate write to pc
     
-    output [`ROB_TAG_LEN-1:0] assign_rob_tag_to_dispatcher,
+    output logic [`ROB_TAG_LEN-1:0] assign_rob_tag_to_dispatcher,
     output logic rob_full_adv,
     
     output [`XLEN-1:0] search_src1_data, // to dispatcher
     output [`XLEN-1:0] search_src2_data,
     output ROB_ENTRY rob_curr [`ROB_SIZE-1:0],
     
-    output [`ROB_TAG_LEN-1:0] retire_rob_tag,
-    output [`XLEN-1:0] commit_npc
+    output logic [`ROB_TAG_LEN-1:0] retire_rob_tag,
+    output logic [`XLEN-1:0] commit_npc
     
     //rob_curr output
 );
