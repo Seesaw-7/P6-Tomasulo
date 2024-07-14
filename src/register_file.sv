@@ -20,7 +20,7 @@ module register_file(
           
       );
   
-  logic    [`REG_NUM-1:0] [`XLEN-1:0] registers;   // 32, 64-bit Registers
+  // logic    [`REG_NUM-1:0] [`XLEN-1:0] registers;   // 32, 64-bit Registers
   logic    [`REG_NUM-1:0] [`XLEN-1:0] registers_next;   // 32, 64-bit Registers
 
   always_ff @(posedge clk) begin

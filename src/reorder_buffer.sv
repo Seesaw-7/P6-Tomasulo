@@ -40,7 +40,7 @@ module reorder_buffer(
     //rob_curr output
 );
     
-    ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
+    // ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
     ROB_ENTRY rob_next [`ROB_SIZE-1:0];
 
     logic [`ROB_TAG_LEN-1:0] head_curr;

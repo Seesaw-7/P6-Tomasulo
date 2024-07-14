@@ -140,7 +140,7 @@ dispatcher dispatch_stage (
     .stall(stall),
     .return_flag(wb_en), // TODO:
     .ready_flag(select_flag_from_cdb),
-    // .reg_addr_from_rob(),
+    .reg_addr_from_rob(wb_reg),
     .rob_tag_from_rob(retire_rob_tag),
     .rob_tag_from_cdb(rob_tag_from_cdb),
     .wb_data(0), //TODO: redundant for m2

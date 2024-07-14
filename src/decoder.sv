@@ -33,7 +33,7 @@ module decoder(
 
 );
 	// TODO: add queue in m3
-	DECODED_PACK decoded_pack;
+	// DECODED_PACK decoded_pack;
 
 	logic valid_inst_in;
 	assign valid_inst_in = in_valid;

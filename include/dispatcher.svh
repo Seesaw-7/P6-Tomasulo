@@ -1,5 +1,5 @@
-`ifndef __DECODER_SVH__
-`define __DECODER_SVH__
+`ifndef __DISPATCHER_SVH__
+`define __DISPATCHER_SVH__
 
 `include "sys_defs.svh"
 
@@ -10,9 +10,9 @@ typedef struct packed {
     logic unsigned [`ROB_TAG_LEN-1:0] tag_src1;
     logic unsigned [`ROB_TAG_LEN-1:0] tag_src2;
     logic unsigned ready_src1;
-    logic unsigned [`XLEN-1] value_src1;
+    logic unsigned [`XLEN-1:0] value_src1;
     logic unsigned ready_src2;
-    logic unsigned [`XLEN-1] value_src2;
+    logic unsigned [`XLEN-1:0] value_src2;
     logic [`XLEN-1:0] imm;
     logic [`XLEN-1:0] pc;
 } INST_RS;

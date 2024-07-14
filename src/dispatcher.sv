@@ -37,7 +37,7 @@ module dispatcher (
     input return_flag,
     input ready_flag,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
-    input [`REG_ADDR_LEN-1:0] reg_addr_from_cdb,
+    input [`REG_ADDR_LEN-1:0] reg_addr_from_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
 
     // input data from ROB
