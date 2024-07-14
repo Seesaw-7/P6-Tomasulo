@@ -78,7 +78,7 @@ assign pipeline_completed_insts = {3'b0, wb_en};
 assign pipeline_commit_wr_idx = 5'b0;
 assign pipeline_commit_wr_data = `XLEN'b0;
 assign pipeline_commit_wr_en = 1'b0;
-assign pipeline_commit_NPC = target_pc_from_rob;
+assign pipeline_commit_NPC = rob_commit_npc;
 
 //////////////////////////////////////////////////
 //                                              //
@@ -472,12 +472,14 @@ logic [`XLEN-1:0] wb_data;
 logic [`ROB_TAG_LEN-1:0] src1_data_from_rob;
 logic [`ROB_TAG_LEN-1:0] src2_data_from_rob;
 logic [`ROB_TAG_LEN-1:0] retire_rob_tag; 
+logic [`XLEN-1:0] rob_commit_npc;
 reorder_buffer ROB_0 (
     .clk(clock),
     .reset(reset), //TODO: flush when take_branch
     
     .dispatch(!stall),
     .reg_addr_from_dispatcher(inst_dispatch_to_rob.reg),
+    .npc_from_dispatcher(inst_dispatch_to_rs.inst_npc)
      
     .cdb_to_rob(select_flag_from_cdb),
     .rob_tag_from_cdb(rob_tag_from_cdb),
@@ -502,7 +504,8 @@ reorder_buffer ROB_0 (
     .search_src2_data(src2_data_from_rob),
     .rob_curr(rob_entries),
 
-    .retire_rob_tag(retire_rob_tag)    
+    .retire_rob_tag(retire_rob_tag),
+    .commit_npc(rob_commit_npc)
 );
 
 
