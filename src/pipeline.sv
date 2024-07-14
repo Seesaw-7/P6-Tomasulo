@@ -99,11 +99,11 @@ prefetch_queue fetch_stage_0 (
     .packet_out(fetch_stage_packet)
 );
 
-logic decoder_csr_op = RS_load[0]; //TODO:
+logic decoder_csr_op;
+assign decoder_csr_op = RS_load[0]; //TODO:
 logic decoder_halt;
 logic decoder_illegal;
 DECODED_PACK decoded_pack;
-logic decoder_csr_op;
 decoder decoder_0 (
     .in_valid(fetch_stage_packet.valid),
     .inst(fetch_stage_packet.inst),
