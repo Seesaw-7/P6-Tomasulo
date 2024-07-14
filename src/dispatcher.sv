@@ -15,7 +15,7 @@ module dispatcher (
     input reset, // TODO: update in m3
 
     // input from decoder,
-    input DECODED_PACK decoded_pack;
+    input DECODED_PACK decoded_pack,
     input [`REG_NUM-1:0] [`XLEN-1:0] registers, // wires from regfile
 
     // input from ROB

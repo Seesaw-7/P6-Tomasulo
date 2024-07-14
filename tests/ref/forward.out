@@ -1,0 +1,43 @@
+Loading memory file: output/forward.hex
+Using writeback output file: output/forward.wb
+Using pipeline output file: output/forward.ppln
+Using pipeline output file: output/forward.reg
+@@
+@@
+@@                     0  Asserting System reset......
+@@
+@@                   100 : System STILL at reset, can't show anything
+@@
+@@
+@@                   200 : System STILL at reset, can't show anything
+@@
+@@
+@@                   300 : System STILL at reset, can't show anything
+@@
+@@                   360  Deasserting System reset......
+@@
+@@
+@@@ Unified Memory contents hex on left, decimal on right: 
+@@@
+@@@ mem[    0] = 0030019300100113 : 13512529754980627
+@@@ mem[    8] = 0000001300000013 : 81604378643
+@@@ mem[   16] = 002181b300110113 : 9431280031695123
+@@@ mem[   24] = 0082829300820213 : 36735314852708883
+@@@ mem[   32] = 0105259300150513 : 73506282213278995
+@@@ mem[   40] = 1050007300830313 : 1175439996673524499
+@@@
+@@@
+@@                  6320 : System halted
+@@
+@@@ System halted on WFI instruction
+@@@
+@@
+@@  60 cycles / 11 instrs = 5.454545 CPI
+@@
+@@  590.00 ns total time to execute
+@@
+
+- testbench/testbench.sv:313: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.026 2024-06-15
+- Verilator: $finish at 735ns; walltime 0.002 s; speed 0.000 s/s
+- Verilator: cpu 0.000 s on 1 threads; alloced 121 MB
