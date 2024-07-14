@@ -162,7 +162,7 @@ module issue_unit (
                     ROB_tag_next[i] = ROB_tag[FU_MULT];
                 end else begin
                     issue_signals[FU_MULT] = 0;
-                    fu_cycles_next[i] = fu_cycles_next[i] > 0 ? fu_cycles_next[i]-1 : 0;
+                    fu_cycles_next[i] = fu_cycles_curr[i] > 0 ? fu_cycles_curr[i]-1 : 0;
                     ROB_tag_next[i] = ROB_tag_next[i];
                 end                
             end
