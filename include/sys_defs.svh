@@ -126,12 +126,8 @@ typedef enum logic [5:0] {
 	ALU_XORI        = 6'h1d,
 	ALU_SLLI        = 6'h1e,
 	ALU_SRLI        = 6'h1f,
-	ALU_SRAI        = 6'h20
- */
-	// ALU_DIV     = 5'h0e,
-	// ALU_DIVU    = 5'h0f,
-	// ALU_REM     = 5'h10,
-	// ALU_REMU    = 5'h11
+	ALU_SRAI        = 6'h20,
+*/
 } ALU_FUNC;
 
 typedef enum logic [1:0] {
@@ -146,13 +142,6 @@ typedef struct packed {
     logic unsigned [`REG_ADDR_LEN-1:0] src2;
     logic unsigned [`REG_ADDR_LEN-1:0] dest;
 } ARCH_REG;
-
-typedef struct packed {
-    logic unsigned [`REG_ADDR_LEN-1:0] src1;
-    logic unsigned [`REG_ADDR_LEN-1:0] src2;
-    logic unsigned [`REG_ADDR_LEN-1:0] dest;
-    logic unsigned [`REG_ADDR_LEN-1:0] dest_old;
-} PHYS_REG;
 
 // RISCV ISA SPEC
 typedef union packed {
