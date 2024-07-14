@@ -20,7 +20,7 @@ module pipeline (
 	output MEM_SIZE proc2mem_size,          // data size sent to memory
 
 	output logic [3:0]  pipeline_completed_insts,
-	output EXCEPTION_CODE   pipeline_error_status,
+	// output EXCEPTION_CODE   pipeline_error_status,
 	output logic [4:0]  pipeline_commit_wr_idx,
 	output logic [`XLEN-1:0] pipeline_commit_wr_data,
 	output logic        pipeline_commit_wr_en,
@@ -63,6 +63,22 @@ module pipeline (
 
 );
 
+assign proc2mem_command = BUS_NONE;
+assign proc2mem_addr = proc2Imem_addr;
+	//if it's an instruction, then load a double word (64 bits)
+assign proc2mem_size = DOUBLE;
+assign proc2mem_data = 64'b0;
+
+assign pipeline_completed_insts = {3'b0, wb_en};
+// assign pipeline_error_status =  mem_wb_illegal             ? ILLEGAL_INST :
+//                                 mem_wb_halt                ? HALTED_ON_WFI :
+//                                 (mem2proc_response==4'h0)  ? LOAD_ACCESS_FAULT :
+//                                 NO_ERROR;
+
+assign pipeline_commit_wr_idx = 5'b0;
+assign pipeline_commit_wr_data = `XLEN'b0;
+assign pipeline_commit_wr_en = 1'b0;
+assign pipeline_commit_NPC = target_pc_from_rob;
 
 //////////////////////////////////////////////////
 //                                              //
