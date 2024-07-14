@@ -24,42 +24,42 @@ module pipeline (
 	output logic [4:0]  pipeline_commit_wr_idx,
 	output logic [`XLEN-1:0] pipeline_commit_wr_data,
 	output logic        pipeline_commit_wr_en,
-	output logic [`XLEN-1:0] pipeline_commit_NPC,
+	output logic [`XLEN-1:0] pipeline_commit_NPC
 	
 	
 	// testing hooks (these must be exported so we can test
 	// the synthesized version) data is tested by looking at
 	// the final values in memory
 	
-`ifdef DEBUG	
-	// Outputs from IF-Stage 
-	output logic [`XLEN-1:0] if_NPC_out,
-	output logic [31:0] if_IR_out,
-	output logic        if_valid_inst_out,
+// `ifdef DEBUG	
+// 	// Outputs from IF-Stage 
+// 	output logic [`XLEN-1:0] if_NPC_out,
+// 	output logic [31:0] if_IR_out,
+// 	output logic        if_valid_inst_out,
 	
-	// Outputs from IF/ID Pipeline Register
-	output logic [`XLEN-1:0] if_id_NPC,
-	output logic [31:0] if_id_IR,
-	output logic        if_id_valid_inst,
-	
-	
-	// Outputs from ID/EX Pipeline Register
-	output logic [`XLEN-1:0] id_ex_NPC,
-	output logic [31:0] id_ex_IR,
-	output logic        id_ex_valid_inst,
+// 	// Outputs from IF/ID Pipeline Register
+// 	output logic [`XLEN-1:0] if_id_NPC,
+// 	output logic [31:0] if_id_IR,
+// 	output logic        if_id_valid_inst,
 	
 	
-	// Outputs from EX/MEM Pipeline Register
-	output logic [`XLEN-1:0] ex_mem_NPC,
-	output logic [31:0] ex_mem_IR,
-	output logic        ex_mem_valid_inst,
+// 	// Outputs from ID/EX Pipeline Register
+// 	output logic [`XLEN-1:0] id_ex_NPC,
+// 	output logic [31:0] id_ex_IR,
+// 	output logic        id_ex_valid_inst,
 	
 	
-	// Outputs from MEM/WB Pipeline Register
-	output logic [`XLEN-1:0] mem_wb_NPC,
-	output logic [31:0] mem_wb_IR,
-	output logic        mem_wb_valid_inst
-`endif
+// 	// Outputs from EX/MEM Pipeline Register
+// 	output logic [`XLEN-1:0] ex_mem_NPC,
+// 	output logic [31:0] ex_mem_IR,
+// 	output logic        ex_mem_valid_inst,
+	
+	
+// 	// Outputs from MEM/WB Pipeline Register
+// 	output logic [`XLEN-1:0] mem_wb_NPC,
+// 	output logic [31:0] mem_wb_IR,
+// 	output logic        mem_wb_valid_inst
+// `endif
 
 );
 
@@ -401,7 +401,7 @@ logic [`XLEN-1:0] btu_target_pc;
 branch_unit BTU (
     .func(rs_btu_func_out),
     .pc(rs_btu_pc_out), //target addr cal
-    .imm(rs_btu_imm_out)
+    .imm(rs_btu_imm_out),
     .rs1(rs_btu_v1_out), // also for jalr
     .rs2(rs_btu_v2_out),
     .cond(branch_from_lsu), // 1 for misprediction/flush
@@ -462,7 +462,7 @@ common_data_bus CDB (
 
 logic [`XLEN-1:0] branch_target_pc;
 ROB_ENTRY rob_entries [`ROB_SIZE-1:0];
-logic[`XLEN-1:0] target_pc_from_rob 
+logic[`XLEN-1:0] target_pc_from_rob; 
 logic flush;
 logic [`ROB_TAG_LEN-1:0] rob_tag_for_dispatch;
 logic rob_full;
@@ -479,7 +479,7 @@ reorder_buffer ROB_0 (
     
     .dispatch(!stall),
     .reg_addr_from_dispatcher(inst_dispatch_to_rob.register),
-    .npc_from_dispatcher(inst_dispatch_to_rs.inst_npc)
+    .npc_from_dispatcher(inst_dispatch_to_rs.inst_npc),
      
     .cdb_to_rob(select_flag_from_cdb),
     .rob_tag_from_cdb(rob_tag_from_cdb),
