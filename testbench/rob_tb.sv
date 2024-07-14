@@ -128,13 +128,12 @@ module tb_reorder_buffer;
         $finish;
     end
 
-    // Monitor signals
+    // output signals (monitor)
     initial begin
         $monitor("Time: %0t, dispatch: %b, cdb_to_rob: %b, wb_en: %b, wb_reg: %0d, wb_data: %h, flush: %b, assign_rob_tag_to_dispatcher: %0d, rob_full_adv: %b, search_src1_data: %h, search_src2_data: %h, retire_rob_tag: %0d, commit_npc: %h",
                  $time, dispatch, cdb_to_rob, wb_en, wb_reg, wb_data, flush, assign_rob_tag_to_dispatcher, rob_full_adv, search_src1_data, search_src2_data, retire_rob_tag, commit_npc);
     end
 
-    // Monitor ROB state
     initial begin
         $monitor("Time: %0t, rob_curr: %p, rob_next: %p",
                  $time, rob_curr, rob_next);
