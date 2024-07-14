@@ -146,7 +146,7 @@ module dispatcher (
 
     // assign inst_rob
     assign inst_rob.reg = renamed_pack.dest;
-    assign inst_rob.inst_pc = insn_reg.pc + 4;
+    assign inst_rob.inst_npc = insn_reg.pc + 4;
 
     // assign stall = |(RS_Load);//TODO: use this in m3
 

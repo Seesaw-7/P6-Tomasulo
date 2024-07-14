@@ -19,7 +19,7 @@ typedef struct packed {
 
 typedef struct packed {
    logic unsigned [`REG_ADDR_LEN-1:0] reg; // architectural reg for dest
-   logic [`XLEN-1:0] inst_pc; // current pc for this instruction
+   logic [`XLEN-1:0] inst_npc; // current pc for this instruction
 } INST_ROB;
 
 `endif
