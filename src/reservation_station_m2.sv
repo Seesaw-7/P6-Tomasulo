@@ -86,7 +86,7 @@ module reservation_station #(
         for (int i = 0; i < NUM_ENTRIES; i++) begin
             if (ready_flags[i] && (entries[i].Bday <= min_Bday)) begin
                 min_Bday = entries[i].Bday;
-                min_idx = i;
+                min_idx = ENTRY_WIDTH'(i);
             end else
                 ;
         end
@@ -96,24 +96,26 @@ module reservation_station #(
     // update issue
     // logic issue_internal;
 
-    RS_ENTRY empty_entry;
-    assign empty_entry = '{func: ALU_ADD, 
-                                t1: '0, 
-                                t2: '0, 
-                                v1: '0, 
-                                v2: '0, 
-                                pc: '0,
-                                dst: '0, 
-                                Bday: '0, 
-                                valid: 1'b0};
-
+    RS_ENTRY_M2 empty_entry;
+    // assign empty_entry = '{func: ALU_ADD, 
+    //                             t1: '0, 
+    //                             t2: '0, 
+    //                             v1: '0, 
+    //                             v2: '0, 
+    //                             pc: '0,
+    //                             dst: '0, 
+    //                             Bday: '0, 
+    //                             ready1: '0,
+    //                             ready2: '0,
+    //                             valid: 1'b0};
+    assign empty_entry = 0; 
 
     always_ff @(posedge clk) begin
         if (reset) begin
             for (int i = 0; i < NUM_ENTRIES; i++) begin
                 entries[i] <= empty_entry;
             end
-            func_out <= 0;
+            func_out <= ALU_ADD;
             v1_out <= 0;
             v2_out <= 0;
             pc_out <= 0;
@@ -135,8 +137,8 @@ module reservation_station #(
                                     v2: (wakeup && wakeup_tag_reg == t2) ? wakeup_value_reg : v2,
                                     pc: pc,
                                     imm: imm,
-                                    Bday: (issue && exist_ready_out) ? num_entry_used - 1 : num_entry_used, 
-                                    valid: 1};
+                                    Bday: (issue && exist_ready_out) ? `ENTRY_WIDTH'(num_entry_used) - 1'd1 : `ENTRY_WIDTH'(num_entry_used), 
+                                    valid: 1'd1};
                         break;
                     end else
                         ;
