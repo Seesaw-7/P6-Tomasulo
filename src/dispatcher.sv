@@ -124,22 +124,22 @@ module dispatcher (
 
     always_comb begin
         RS_load = 4'b0;
+        stall = 0;
         priority case (insn_reg.fu)
             FU_LSU : begin
-                RS_load[0] = 1; 
-                stall = 0;
-            end // Load Store Unit TODO: edit in m3
+                RS_load[FU_LSU] = 1; 
+            end // Load Store Unit TODO: edit stall and rs_load in m3
             FU_MULT: begin 
-                RS_load[1] = RS_is_full[1] ? 1'b0 : 1'b1; // Mult Unit
-                stall = ~RS_is_full[1] ? 1'b0 : 1'b1; 
+                RS_load[FU_MULT] = RS_is_full[FU_MULT] ? 1'b0 : 1'b1; // Mult Unit
+                stall = ~RS_is_full[FU_MULT] ? 1'b0 : 1'b1; 
             end
             FU_BTU: begin 
-                RS_load[2] = RS_is_full[2] ? 1'b0 : 1'b1; // Branch Unit
-                stall = ~RS_is_full[2] ? 1'b0 : 1'b1; 
+                RS_load[FU_BTU] = RS_is_full[FU_BTU] ? 1'b0 : 1'b1; // Branch Unit
+                stall = ~RS_is_full[FU_BTU] ? 1'b0 : 1'b1; 
             end
             FU_ALU: begin 
-                RS_load[3] = RS_is_full[3] ? 1'b0 : 1'b1; // ALU
-                stall = ~RS_is_full[3] ? 1'b0 : 1'b1; 
+                RS_load[FU_ALU] = RS_is_full[FU_ALU] ? 1'b0 : 1'b1; // ALU
+                stall = ~RS_is_full[FU_ALU] ? 1'b0 : 1'b1; 
             end
         endcase
     end
