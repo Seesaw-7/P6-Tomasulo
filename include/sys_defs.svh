@@ -35,6 +35,8 @@
 
 `define FU_NUM 4
 
+`define FALSE  1'h0
+`define TRUE  1'h1
 //
 // ALU function code input
 //
@@ -60,7 +62,7 @@ typedef enum logic [5:0] {
 	BTU_BLTU	= 6'h12,
 	BTU_BGEU	= 6'h13,
 	BTU_JAL		= 6'h14,
-	BTU_JALR	= 6'h15,
+	BTU_JALR	= 6'h15
 /*
 	ALU_LUI         = 6'h17,
 	ALU_ADDI        = 6'h18,
@@ -83,7 +85,7 @@ typedef enum logic [1:0] {
 	FU_LSU    		= 2'b00, // load/store unit
 	FU_MULT     	= 2'b01, // multiplier
 	FU_BTU     		= 2'b10, // branch target unit
-	FU_ALU     		= 2'b11, // arithmetic and logic unit
+	FU_ALU     		= 2'b11 // arithmetic and logic unit
 } FUNC_UNIT;
 
 typedef struct packed {
@@ -98,18 +100,6 @@ typedef struct packed {
     logic unsigned [`REG_ADDR_LEN-1:0] dest;
     logic unsigned [`REG_ADDR_LEN-1:0] dest_old;
 } PHYS_REG;
-
-typedef struct packed {
-
-} DECODED_INST;
-
-typedef struct packed {
-	logic valid; // If low, the data in this struct is garbage
-    INST  inst;  // fetched instruction out
-	logic [`XLEN-1:0] NPC; // PC + 4
-	logic [`XLEN-1:0] PC;  // PC 
-} PREFETCH_PACKET;
-
 
 // RISCV ISA SPEC
 typedef union packed {
@@ -184,6 +174,21 @@ typedef union packed {
 
 } INST; //instruction typedef, this should cover all types of instructions
 
+//
+// Memory bus commands control signals
+//
+typedef enum logic [1:0] {
+	BUS_NONE     = 2'h0,
+	BUS_LOAD     = 2'h1,
+	BUS_STORE    = 2'h2
+} BUS_COMMAND;
 
+
+typedef struct packed {
+	logic valid; // If low, the data in this struct is garbage
+    INST  inst;  // fetched instruction out
+	logic [`XLEN-1:0] NPC; // PC + 4
+	logic [`XLEN-1:0] PC;  // PC 
+} PREFETCH_PACKET;
 
 `endif // __SYS_DEFS_SVH__

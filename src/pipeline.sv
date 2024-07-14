@@ -172,7 +172,7 @@ reservation_station RS_ALU (
     .reset(reset || flush), // flush when mis predict
     .load(RS_load[FU_ALU]), // whether we load in the instruction (assigned by dispatcher)
     .issue(issue_signal_out[FU_ALU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
-    .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
+    .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst L to Yes
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
     .func(inst_dispatch_to_rs.func),
     .t1(inst_dispatch_to_rs.tag_src1), 
@@ -478,7 +478,7 @@ reorder_buffer ROB_0 (
     .reset(reset), //TODO: flush when take_branch
     
     .dispatch(!stall),
-    .reg_addr_from_dispatcher(inst_dispatch_to_rob.reg),
+    .reg_addr_from_dispatcher(inst_dispatch_to_rob.register),
     .npc_from_dispatcher(inst_dispatch_to_rs.inst_npc)
      
     .cdb_to_rob(select_flag_from_cdb),

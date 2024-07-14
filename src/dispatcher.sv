@@ -4,6 +4,7 @@
 `include "map_table.svh"
 `include "decoder.svh"
 `include "dispatcher.svh"
+`include "reorder_buffer.svh"
 
 // TODO: add instruction queue in m3
 // TODO: check maptable input
@@ -20,7 +21,7 @@ module dispatcher (
 
     // input from ROB
     input ROB_ENTRY rob [`ROB_SIZE-1:0],
-    input [`ROB_ADDR_LEN-1:0] assign_rob_tag,
+    input [`ROB_TAG_LEN-1:0] assign_rob_tag,
 
     // entry to RS
     output INST_RS inst_rs,
@@ -35,13 +36,12 @@ module dispatcher (
     // forward to map table
     input return_flag,
     input ready_flag,
-    input [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
     input [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_cdb,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
 
     // input data from ROB
-    input [`ROB_SIZE] [`XLEN-1:0] wb_data, //wires from rob values
+    input [`XLEN-1:0] wb_data, //wires from rob values
 
     // RS control
     input unsigned [3:0] RS_is_full, // 4 RS
@@ -49,7 +49,7 @@ module dispatcher (
 );
 
     // syncronize input
-    logic DECODED_PACK insn_reg;
+    DECODED_PACK insn_reg;
     always_ff @(posedge clk) begin
         if (reset) begin
             insn_reg <= 0;
@@ -145,7 +145,7 @@ module dispatcher (
     end
 
     // assign inst_rob
-    assign inst_rob.reg = renamed_pack.dest;
+    assign inst_rob.register = renamed_pack.dest;
     assign inst_rob.inst_npc = insn_reg.pc + 4;
 
     // assign stall = |(RS_Load);//TODO: use this in m3
