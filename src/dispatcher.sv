@@ -63,7 +63,7 @@ module dispatcher (
     ARCH_REG arch_reg;
     assign arch_reg = insn_reg.arch_reg; 
     logic assign_flag;
-    assign assign_flag = 1;
+    assign assign_flag = ~stall;
     map_table mt (.*); 
 
     // assign inst_rs
