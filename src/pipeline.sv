@@ -347,7 +347,7 @@ reservation_station RS_LSU (
 logic [3:0] issue_signal_out;
 logic [`ROB_TAG_LEN-1:0] rob_tag_from_issue_unit;
 logic select_flag_from_issue_unit;
-logic [1:0] select_signal_from_issue_unit;
+FUNC_UNIT select_signal_from_issue_unit;
 
 logic [3:0] issue_unit_insn_ready;
 assign issue_unit_insn_ready[FU_ALU] = rs_alu_insn_ready;
@@ -464,7 +464,7 @@ common_data_bus CDB (
 
 
 logic [`XLEN-1:0] branch_target_pc;
-ROB_ENTRY rob_entries [`ROB_SIZE-1:0];
+ROB_ENTRY [`ROB_SIZE-1:0] rob_entries ;
 // logic[`XLEN-1:0] target_pc_from_rob; 
 logic flush;
 logic [`ROB_TAG_LEN-1:0] rob_tag_for_dispatch;

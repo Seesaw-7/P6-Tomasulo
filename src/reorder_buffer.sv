@@ -32,7 +32,7 @@ module reorder_buffer(
     
     output [`XLEN-1:0] search_src1_data, // to dispatcher
     output [`XLEN-1:0] search_src2_data,
-    output ROB_ENTRY rob_curr [`ROB_SIZE-1:0],
+    output ROB_ENTRY [`ROB_SIZE-1:0] rob_curr ,
     
     output logic [`ROB_TAG_LEN-1:0] retire_rob_tag,
     output logic [`XLEN-1:0] commit_npc
@@ -41,7 +41,7 @@ module reorder_buffer(
 );
     
     // ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
-    ROB_ENTRY rob_next [`ROB_SIZE-1:0];
+    ROB_ENTRY [`ROB_SIZE-1:0] rob_next ;
 
     logic [`ROB_TAG_LEN-1:0] head_curr;
     logic [`ROB_TAG_LEN-1:0] head_next;

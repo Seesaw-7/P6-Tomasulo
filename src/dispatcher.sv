@@ -20,7 +20,7 @@ module dispatcher (
     input [`REG_NUM-1:0] [`XLEN-1:0] registers, // wires from regfile
 
     // input from ROB
-    input ROB_ENTRY rob [`ROB_SIZE-1:0],
+    input ROB_ENTRY [`ROB_SIZE-1:0] rob ,
     input [`ROB_TAG_LEN-1:0] assign_rob_tag,
 
     // entry to RS
