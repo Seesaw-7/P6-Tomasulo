@@ -417,8 +417,8 @@ logic mult_done;
 multiplier mult_0 (
     .clock(clock),
     .reset(reset || flush),
-    .mcand(rs_mult_v1_out), // TODO: 32 bits to 64 bits?
-    .mplier(rs_mult_v2_out),
+    .mcand(64'(rs_mult_v1_out)), // TODO: 32 bits to 64 bits?
+    .mplier(64'(rs_mult_v2_out)),
     .start(enable_mult),
     .product(mult_result),
     .done(mult_done)
@@ -440,8 +440,8 @@ assign proc2Dmem_command = BUS_NONE;
 logic  [3:0] [`XLEN-1:0] cdb_in_values; // TODO: make FU_NUM global
 assign cdb_in_values[FU_ALU] = alu_result;
 assign cdb_in_values[FU_BTU] = btu_wb_data;
-assign cdb_in_values[FU_MULT] = mult_result;
-assign cdb_in_values[FU_LSU] = 31'd1;
+assign cdb_in_values[FU_MULT] = 32'(mult_result);
+assign cdb_in_values[FU_LSU] = 32'd1;
 
 logic select_flag_from_cdb;
 logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb;
@@ -472,8 +472,8 @@ logic rob_full;
 logic wb_en;
 logic [`REG_ADDR_LEN-1:0] wb_reg;
 logic [`XLEN-1:0] wb_data;
-logic [`ROB_TAG_LEN-1:0] src1_data_from_rob;
-logic [`ROB_TAG_LEN-1:0] src2_data_from_rob;
+logic [`XLEN-1:0] src1_data_from_rob;
+logic [`XLEN-1:0] src2_data_from_rob;
 logic [`ROB_TAG_LEN-1:0] retire_rob_tag; 
 logic [`XLEN-1:0] rob_commit_npc;
 reorder_buffer ROB_0 (
@@ -482,7 +482,7 @@ reorder_buffer ROB_0 (
     
     .dispatch(!stall),
     .reg_addr_from_dispatcher(inst_dispatch_to_rob.register),
-    .npc_from_dispatcher(inst_dispatch_to_rs.inst_npc),
+    .npc_from_dispatcher(inst_dispatch_to_rob.inst_npc),
      
     .cdb_to_rob(select_flag_from_cdb),
     .rob_tag_from_cdb(rob_tag_from_cdb),

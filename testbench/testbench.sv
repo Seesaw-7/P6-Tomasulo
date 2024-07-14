@@ -237,7 +237,7 @@ module testbench;
 			instr_count <= `SD 0;
 		end else begin
 			clock_count <= `SD (clock_count + 1);
-			instr_count <= `SD (instr_count + pipeline_completed_insts);
+			instr_count <= `SD (instr_count + 32'(pipeline_completed_insts));
 		end
 	end
 
