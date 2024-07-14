@@ -1,3 +1,5 @@
+`timescale 1ns/100ps
+
 `include "sys_defs.svh"
 
 module branch_unit(

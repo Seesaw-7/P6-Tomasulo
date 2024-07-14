@@ -1,4 +1,7 @@
 `timescale 1ns/100ps
+
+`include "sys_defs.svh"
+
 `ifndef NUM_STAGE
 `define NUM_STAGE 8
 `endif

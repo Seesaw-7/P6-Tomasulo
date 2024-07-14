@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+`include "sys_defs.svh"
+
 // P6 style Description: 
 // The CDB (Common Data Bus) module selects and broadcasts results from functional units (FUs) to 
 // the reorder buffer (ROB) and reservation station. It takes inputs from functional units and the issue unit, 

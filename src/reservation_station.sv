@@ -1,6 +1,7 @@
-`include "reservation_station.svh"
+`timescale 1ns/100ps
 
-`timescale 1ns/1ps
+`include "sys_defs.svh"
+`include "reservation_station.svh"
 
 //TODO: use CAM instead of loop to improve gate latency
 
@@ -8,8 +9,8 @@
 // Besides, it assumes that wakeup_tag and wakeup_value are stable at clock edge, which is kind of weird
 
 module reservation_station #(
-    parameter NUM_ENTRIES = 4, // #entries in the reservation station
-    parameter ENTRY_WIDTH = 2  // #entries = 2^{ENTRY_WIDTH}
+    parameter NUM_ENTRIES = 8, // #entries in the reservation station
+    parameter ENTRY_WIDTH = 3  // #entries = 2^{ENTRY_WIDTH}
 )(
     // control signals
     input logic clk,

@@ -1,11 +1,7 @@
 `ifndef __MAP_TABLE_SVH__
 `define __MAP_TABLE_SVH__
 
-`define REG_LEN 32
-`define REG_ADDR_LEN 5
-
-// `define ROB_SIZE 64
-// `define ROB_TAG_LEN 6
+`include "sys_defs.svh"
 
 typedef struct packed {
     logic unsigned [`REG_ADDR_LEN-1:0] src1;

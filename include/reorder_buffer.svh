@@ -1,13 +1,7 @@
 `ifndef __REORDER_BUFFER_VH__
 `define __REORDER_BUFFER_VH__
 
-`define XLEN 32
-
-`define REG_LEN 32
-`define REG_ADDR_LEN 5
-
-// `define ROB_SIZE 64
-// `define ROB_TAG_LEN 6
+`include "sys_defs.svh"
 
 typedef struct packed {
     logic valid;

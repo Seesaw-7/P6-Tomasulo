@@ -1,3 +1,6 @@
+`timescale 1ns/100ps
+
+`include "sys_defs.svh"
 `include "map_table.svh"
 
 module map_table(
@@ -15,12 +18,12 @@ module map_table(
     output RENAMED_PACK renamed_pack
 );
     
-    MAP_ENTRY map_table_curr [`REG_LEN-1:0];
-    MAP_ENTRY map_table_next [`REG_LEN-1:0];
+    MAP_ENTRY map_table_curr [`REG_NUM-1:0];
+    MAP_ENTRY map_table_next [`REG_NUM-1:0];
     
     always_ff @(posedge clk) begin
         if (reset) begin
-            for (int i=0; i<`REG_LEN; i++) begin
+            for (int i=0; i<`REG_NUM; i++) begin
                 // if a map table entry doesn't have ROB tag stored, its rob_tag = {ROB_TAG_LEN{1'b1}}
                 map_table_curr[i].rob_tag <= {`ROB_TAG_LEN{1'b1}};
                 map_table_curr[i].ready_in_rob <= 1'b0;
@@ -33,7 +36,7 @@ module map_table(
     
     // map table's update logic based on assign/return/ready
     always_comb begin
-        for (int i=0; i<`REG_LEN; i++) begin
+        for (int i=0; i<`REG_NUM; i++) begin
             map_table_next[i] = map_table_curr[i];
         end
 

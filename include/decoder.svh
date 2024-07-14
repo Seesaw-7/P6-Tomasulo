@@ -1,9 +1,11 @@
 `ifndef __DECODER_SVH__
 `define __DECODER_SVH__
 
+`include "sys_defs.svh"
+
 typedef struct packed {
 	logic unsigned valid;
-	FUNC_UNIT fu; // 4 kinds of FU in enum
+	FUNC_UNIT fu;
 	ARCH_REG arch_reg; // TODO: 5'b0 if empty, especially lw sw
 	logic [`XLEN-1:0] imm; 
 	ALU_FUNC alu_func;

@@ -9,6 +9,8 @@
 
 `timescale 1ns/100ps
 
+`include "sys_defs.svh"
+
 module register_file(
         input   [4:0] wr_idx,    // read/write index
         input  [`XLEN-1:0] wr_data,            // write data

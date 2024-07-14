@@ -1,5 +1,6 @@
-`timescale 1ns/1ps
+`timescale 1ns/100ps
 
+`include "sys_defs.svh"
 `include "issue_unit.svh"
 
 module issue_unit (

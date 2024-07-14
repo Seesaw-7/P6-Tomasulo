@@ -1,3 +1,6 @@
+`timescale 1ns/100ps
+
+`include "sys_defs.svh"
 `include "map_table.svh"
 `include "decoder.svh"
 `include "dispatcher.svh"

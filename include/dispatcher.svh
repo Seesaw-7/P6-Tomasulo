@@ -1,6 +1,8 @@
 `ifndef __DECODER_SVH__
 `define __DECODER_SVH__
 
+`include "sys_defs.svh"
+
 typedef struct packed {
     FUNC_UNIT fu;
     ALU_FUNC func;

@@ -13,12 +13,8 @@
 `define __SYS_DEFS_SVH__
 
 
-`define ARCH_REG_ADDR_LEN         5 // architectural regFile has 2^5 entries
-`define ARCH_REG_NUM 			32
-
-`define PHY_REG_ADDR_LEN         6 // physical regFile has 2^5 entries
-`define PHY_REG_NUM 			64
-
+`define REG_ADDR_LEN         5 // architectural regFile has 2^5 entries
+`define REG_NUM 			32
 
 `define XLEN 				32 // ISA bit length
 
@@ -33,9 +29,6 @@
 
 `define RS_LS_ENTRY_NUM 8 // #entries in RS, ahead of load/store unit
 `define RS_LS_ENTRY_WIDTH 3
-
-`define REG_LEN 32
-`define REG_ADDR_LEN 5
 
 `define ROB_SIZE 64
 `define ROB_TAG_LEN 6

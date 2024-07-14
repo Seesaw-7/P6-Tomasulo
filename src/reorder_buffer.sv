@@ -1,5 +1,7 @@
-`include "reorder_buffer.svh"
+`timescale 1ns/100ps
+
 `include "sys_defs.svh"
+`include "reorder_buffer.svh"
 
 module reorder_buffer(
     input logic clk,

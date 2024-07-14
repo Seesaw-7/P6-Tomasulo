@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+`include "sys_defs.svh"
+
 // functional unit: integer unit, branching, load/store, mult
 
 module issue_unit #(

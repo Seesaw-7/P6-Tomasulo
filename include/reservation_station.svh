@@ -1,9 +1,10 @@
 `ifndef __RESERVATION_STATION_SVH__
 `define __RESERVATION_STATION_SVH__
 
-// local header
+`include "sys_defs.svh"
 
-`include "map_table.svh"
+`define ENTRY_NUM 8 // TODO: revise later
+`define ENTRY_WIDTH 3
 
 typedef struct packed {
     ALU_FUNC                       func;
