@@ -153,18 +153,18 @@ reservation_station RS_ALU (
     .issue(issue_signal_out[FU_ALU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
     .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
-    .func(),
-    .t1(), 
-    .t2(), 
-    .dst(), // previous renaming unit ensures that dst != inp1 and dst != inp2
-    .ready1(), 
-    .ready2(),
-    .v1(), 
-    .v2(), 
-    .pc(), 
-    .imm(),
-    .wakeup_tag(),
-    .wakeup_value(), 
+    .func(inst_dispatch_to_rs.func),
+    .t1(inst_dispatch_to_rs.tag_src1), 
+    .t2(inst_dispatch_to_rs.tag_src2), 
+    .dst(inst_dispatch_to_rs.tag_dest), // previous renaming unit ensures that dst != inp1 and dst != inp2
+    .ready1(inst_dispatch_to_rs.ready_src1), 
+    .ready2(inst_dispatch_to_rs.ready_src2),
+    .v1(inst_dispatch_to_rs.value_src1), 
+    .v2(inst_dispatch_to_rs.value_src2), 
+    .pc(inst_dispatch_to_rs.pc), 
+    .imm(inst_dispatch_to_rs.imm),
+    .wakeup_tag(rob_tag_from_cdb),
+    .wakeup_value(value_from_cdb), 
 
     // output signals
     .insn_ready(rs_alu_insn_ready), // to issue unit, indicating if there exists an instruction that is ready to be issued
@@ -199,18 +199,18 @@ reservation_station RS_BTU (
     .issue(issue_signal_out[RS_BTU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
     .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
-    .func(),
-    .t1(), 
-    .t2(), 
-    .dst(), // previous renaming unit ensures that dst != inp1 and dst != inp2
-    .ready1(), 
-    .ready2(),
-    .v1(), 
-    .v2(), 
-    .pc(), 
-    .imm(),
-    .wakeup_tag(),
-    .wakeup_value(), 
+    .func(inst_dispatch_to_rs.func),
+    .t1(inst_dispatch_to_rs.tag_src1), 
+    .t2(inst_dispatch_to_rs.tag_src2), 
+    .dst(inst_dispatch_to_rs.tag_dest), // previous renaming unit ensures that dst != inp1 and dst != inp2
+    .ready1(inst_dispatch_to_rs.ready_src1), 
+    .ready2(inst_dispatch_to_rs.ready_src2),
+    .v1(inst_dispatch_to_rs.value_src1), 
+    .v2(inst_dispatch_to_rs.value_src2), 
+    .pc(inst_dispatch_to_rs.pc), 
+    .imm(inst_dispatch_to_rs.imm),
+    .wakeup_tag(rob_tag_from_cdb),
+    .wakeup_value(value_from_cdb), 
 
     // output signals
     .insn_ready(rs_btu_insn_ready), // to issue unit, indicating if there exists an instruction that is ready to be issued
@@ -245,18 +245,18 @@ reservation_station RS_mult (
     .issue(issue_signal_out[FU_MULT]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
     .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
-    .func(),
-    .t1(), 
-    .t2(), 
-    .dst(), // previous renaming unit ensures that dst != inp1 and dst != inp2
-    .ready1(), 
-    .ready2(),
-    .v1(), 
-    .v2(), 
-    .pc(), 
-    .imm(),
-    .wakeup_tag(),
-    .wakeup_value(), 
+    .func(inst_dispatch_to_rs.func),
+    .t1(inst_dispatch_to_rs.tag_src1), 
+    .t2(inst_dispatch_to_rs.tag_src2), 
+    .dst(inst_dispatch_to_rs.tag_dest), // previous renaming unit ensures that dst != inp1 and dst != inp2
+    .ready1(inst_dispatch_to_rs.ready_src1), 
+    .ready2(inst_dispatch_to_rs.ready_src2),
+    .v1(inst_dispatch_to_rs.value_src1), 
+    .v2(inst_dispatch_to_rs.value_src2), 
+    .pc(inst_dispatch_to_rs.pc), 
+    .imm(inst_dispatch_to_rs.imm),
+    .wakeup_tag(rob_tag_from_cdb),
+    .wakeup_value(value_from_cdb), 
 
     // output signals
     .insn_ready(rs_mult_insn_ready), // to issue unit, indicating if there exists an instruction that is ready to be issued
@@ -290,17 +290,17 @@ reservation_station RS_LSU (
     .issue(issue_signal_out[FU_LSU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
     .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
-    .func(),
-    .t1(), 
-    .t2(), 
-    .dst(), // previous renaming unit ensures that dst != inp1 and dst != inp2
-    .ready1(), 
-    .ready2(),
-    .v1(), 
-    .v2(), 
-    .pc(), 
-    .imm(),
-    .wakeup_tag(),
+    .func(inst_dispatch_to_rs.func),
+    .t1(inst_dispatch_to_rs.tag_src1), 
+    .t2(inst_dispatch_to_rs.tag_src2), 
+    .dst(inst_dispatch_to_rs.tag_dest), // previous renaming unit ensures that dst != inp1 and dst != inp2
+    .ready1(inst_dispatch_to_rs.ready_src1), 
+    .ready2(inst_dispatch_to_rs.ready_src2),
+    .v1(inst_dispatch_to_rs.value_src1), 
+    .v2(inst_dispatch_to_rs.value_src2), 
+    .pc(inst_dispatch_to_rs.pc), 
+    .imm(inst_dispatch_to_rs.imm),
+    .wakeup_tag(rob_tag_from_cdb),
     .wakeup_value(), 
 
     // output signals
