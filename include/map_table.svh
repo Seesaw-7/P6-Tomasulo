@@ -4,12 +4,6 @@
 `include "sys_defs.svh"
 
 typedef struct packed {
-    logic unsigned [`REG_ADDR_LEN-1:0] src1;
-    logic unsigned [`REG_ADDR_LEN-1:0] src2;
-    logic unsigned [`REG_ADDR_LEN-1:0] dest;
-} ARCH_REG;
-
-typedef struct packed {
     logic [1:0] data_stat; // data status: 00 = in regfile, 10 = in ROB (not ready), 11 = in ROB (ready)
     logic [`REG_ADDR_LEN-1:0] reg_addr; // register address
     logic [`ROB_TAG_LEN-1:0] rob_tag; // ROB entry
