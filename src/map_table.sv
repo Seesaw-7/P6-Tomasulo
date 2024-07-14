@@ -13,7 +13,6 @@ module map_table(
     input logic [`ROB_TAG_LEN-1:0] assign_rob_tag,
     input logic [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
     input logic [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
-    input logic [`REG_ADDR_LEN-1:0] reg_addr_from_cdb,
     input logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
     output RENAMED_PACK renamed_pack
 );
@@ -51,10 +50,12 @@ module map_table(
                 map_table_next[reg_addr_from_rob].ready_in_rob = 1'b0;
             end
         end
-        
+
         if (ready_flag) begin
-            if (map_table_curr[reg_addr_from_cdb].rob_tag == rob_tag_from_cdb) begin
-                map_table_next[reg_addr_from_cdb].ready_in_rob = 1'b1;
+            for (int i=0; i<`REG_NUM; i++) begin
+                if (map_table_curr[i].rob_tag == rob_tag_from_cdb) begin
+                    map_table_next[i].ready_in_rob = 1'b1;
+                end
             end
         end
     end
