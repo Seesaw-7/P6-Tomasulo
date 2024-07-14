@@ -54,6 +54,41 @@
 `define MEM_SIZE_IN_BYTES      (64*1024)
 `define MEM_64BIT_LINES        (`MEM_SIZE_IN_BYTES/8)
 
+//you can change the clock period to whatever, 10 is just fine
+`define VERILOG_CLOCK_PERIOD   10.0
+
+typedef union packed {
+    logic [7:0][7:0] byte_level;
+    logic [3:0][15:0] half_level;
+    logic [1:0][31:0] word_level;
+} EXAMPLE_CACHE_BLOCK;
+
+//////////////////////////////////////////////
+// Exception codes
+// This mostly follows the RISC-V Privileged spec
+// except a few add-ons for our infrastructure
+// The majority of them won't be used, but it's
+// good to know what they are
+//////////////////////////////////////////////
+
+typedef enum logic [3:0] {
+	INST_ADDR_MISALIGN  = 4'h0,
+	INST_ACCESS_FAULT   = 4'h1,
+	ILLEGAL_INST        = 4'h2,
+	BREAKPOINT          = 4'h3,
+	LOAD_ADDR_MISALIGN  = 4'h4,
+	LOAD_ACCESS_FAULT   = 4'h5,
+	STORE_ADDR_MISALIGN = 4'h6,
+	STORE_ACCESS_FAULT  = 4'h7,
+	ECALL_U_MODE        = 4'h8,
+	ECALL_S_MODE        = 4'h9,
+	NO_ERROR            = 4'ha, //a reserved code that we modified for our purpose
+	ECALL_M_MODE        = 4'hb,
+	INST_PAGE_FAULT     = 4'hc,
+	LOAD_PAGE_FAULT     = 4'hd,
+	HALTED_ON_WFI       = 4'he, //another reserved code that we used
+	STORE_PAGE_FAULT    = 4'hf
+} EXCEPTION_CODE;
 
 //
 // ALU function code input

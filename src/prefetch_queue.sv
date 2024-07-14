@@ -45,8 +45,7 @@ module prefetch_queue #(
 	assign next_PC = take_branch ? branch_target_pc : PC_plus_4;
 	
 	// The take-branch signal must override stalling (otherwise it may be lost)
-	assign PC_enable = (enable && packet_out.valid) || take_branch;
-	assign enable = en && !take_branch;
+	assign PC_enable = (en && packet_out.valid) || take_branch;
 	
 	// Pass PC+4 down pipeline w/instruction
 	assign packet_out.NPC = PC_plus_4;

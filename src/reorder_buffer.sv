@@ -70,7 +70,7 @@ module reorder_buffer(
             rob_next[tail_curr].mispredict = 1'b0;
             rob_next[tail_curr].wb_reg = reg_addr_from_dispatcher;
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
-            rob.next[tail.curr].npc = npc_from_dispatcher;
+            rob_next[tail_curr].npc = npc_from_dispatcher;
             tail_next = (tail_curr + 1) % `ROB_SIZE;
             
             assign_rob_tag_to_dispatcher = tail_curr;
@@ -118,7 +118,7 @@ module reorder_buffer(
                 rob_curr[i].mispredict <= 1'b0;
                 rob_curr[i].wb_reg <= {`REG_ADDR_LEN{1'b0}};
                 rob_curr[i].wb_data <= {`XLEN{1'b0}};
-                rob.curr[i].npc <= {`XLEN{1'b0}};
+                rob_curr[i].npc <= {`XLEN{1'b0}};
                 //rob_curr[i].target_pc <= {`XLEN{1'b0}};
             end
         end

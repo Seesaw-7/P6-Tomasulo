@@ -86,6 +86,7 @@ assign pipeline_commit_NPC = rob_commit_npc;
 //                                              //
 //////////////////////////////////////////////////
 PREFETCH_PACKET fetch_stage_packet;
+logic [`XLEN-1:0] proc2Imem_addr;
 prefetch_queue fetch_stage_0 (
     .clock(clock),
     .reset(reset),
@@ -102,6 +103,7 @@ logic decoder_csr_opRS_load[0]; //TODO:
 logic decoder_halt;
 logic decoder_illegal;
 DECODED_PACK decoded_pack;
+logic decoder_csr_op;
 decoder decoder_0 (
     .in_valid(fetch_stage_packet.valid),
     .inst(fetch_stage_packet.inst),
@@ -217,7 +219,7 @@ reservation_station RS_BTU (
     .clk(clock),
     .reset(reset || flush), // flush when mis predict
     .load(RS_load[FU_BTU]), // whether we load in the instruction (assigned by dispatcher)
-    .issue(issue_signal_out[RS_BTU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
+    .issue(issue_signal_out[FU_BTU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
     .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst reg to Yes
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
     .func(inst_dispatch_to_rs.func),
@@ -425,6 +427,7 @@ multiplier mult_0 (
 // load store unit
 
 // memory
+logic [1:0]  proc2Dmem_command;
 assign proc2Dmem_command = BUS_NONE;
 // logic [63:0] Imem2proc_data;
 
@@ -462,7 +465,7 @@ common_data_bus CDB (
 
 logic [`XLEN-1:0] branch_target_pc;
 ROB_ENTRY rob_entries [`ROB_SIZE-1:0];
-logic[`XLEN-1:0] target_pc_from_rob; 
+// logic[`XLEN-1:0] target_pc_from_rob; 
 logic flush;
 logic [`ROB_TAG_LEN-1:0] rob_tag_for_dispatch;
 logic rob_full;
@@ -494,7 +497,7 @@ reorder_buffer ROB_0 (
     .wb_reg(wb_reg), 
     .wb_data(wb_data),
     
-    .target_pc(target_pc_from_rob),
+    // .target_pc(target_pc_from_rob),
     .flush(flush), //also indicate write to pc
     
     .assign_rob_tag_to_dispatcher(rob_tag_for_dispatch),

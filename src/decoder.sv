@@ -83,7 +83,7 @@ module decoder(
 					decoded_pack.imm = `RV32_signext_Jimm(inst);
 					decoded_pack.pc_valid = 1'b1;
 					decoded_pack.imm_valid = 1'b1;
-					alu_func = BTU_JAL;
+					decoded_pack.alu_func = BTU_JAL;
 				end
 				`RV32_JALR: begin
 				    decoded_pack.fu = FU_BTU;
@@ -93,7 +93,7 @@ module decoder(
 					decoded_pack.pc_valid = 1'b1;
 					decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
-					alu_func = BTU_JALR;
+					decoded_pack.alu_func = BTU_JALR;
 				end
 				`RV32_BEQ: begin
 				    decoded_pack.fu = FU_BTU;
@@ -104,7 +104,7 @@ module decoder(
 					decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					alu_func = BTU_BEQ;
+					decoded_pack.alu_func = BTU_BEQ;
 				end
 				`RV32_BNE: begin
 				    decoded_pack.fu = FU_BTU;
@@ -115,7 +115,7 @@ module decoder(
 					decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					alu_func = BTU_BNE;
+					decoded_pack.alu_func = BTU_BNE;
 				end
 			    `RV32_BLT: begin
 				    decoded_pack.fu = FU_BTU;
@@ -126,7 +126,7 @@ module decoder(
 					decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					alu_func = BTU_BLT;
+					decoded_pack.alu_func = BTU_BLT;
 				end
 				`RV32_BGE: begin
 				    decoded_pack.fu = FU_BTU;
@@ -137,7 +137,7 @@ module decoder(
 					decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					alu_func = BTU_BGE;
+					decoded_pack.alu_func = BTU_BGE;
 				end
 				`RV32_BLTU: begin
 				    decoded_pack.fu = FU_BTU;
@@ -148,7 +148,7 @@ module decoder(
 					decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					alu_func = BTU_BLTU;
+					decoded_pack.alu_func = BTU_BLTU;
 				end
 				`RV32_BGEU: begin
 				    decoded_pack.fu = FU_BTU;
@@ -159,7 +159,7 @@ module decoder(
 					decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
 					decoded_pack.rs2_valid = 1'b1; 
-					alu_func = BTU_BGEU;
+					decoded_pack.alu_func = BTU_BGEU;
 				end
 				`RV32_LB, `RV32_LH, `RV32_LW,
 				`RV32_LBU, `RV32_LHU: begin
@@ -181,7 +181,7 @@ module decoder(
 					decoded_pack.imm = `RV32_signext_Iimm(inst);
 					decoded_pack.imm_valid = 1'b1;
 				    decoded_pack.rs1_valid = 1'b1; 
-					alu_func = ALU_SLT;
+					decoded_pack.alu_func = ALU_SLT;
 				end
 				`RV32_SLTIU: begin
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
@@ -189,7 +189,7 @@ module decoder(
 					decoded_pack.imm = `RV32_signext_Iimm(inst);
 					decoded_pack.imm_valid = 1'b1;
 				    decoded_pack.rs1_valid = 1'b1; 
-					alu_func = ALU_SLTU;
+					decoded_pack.alu_func = ALU_SLTU;
 				end
 				`RV32_ANDI: begin
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
@@ -197,7 +197,7 @@ module decoder(
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 				    decoded_pack.imm_valid = 1'b1;
 				    decoded_pack.rs1_valid = 1'b1; 
-				    alu_func = ALU_AND;
+				    decoded_pack.alu_func = ALU_AND;
 				end
 				`RV32_ORI: begin
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
@@ -205,7 +205,7 @@ module decoder(
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 				    decoded_pack.imm_valid = 1'b1;
 				    decoded_pack.rs1_valid = 1'b1; 
-				    alu_func = ALU_OR;
+				    decoded_pack.alu_func = ALU_OR;
 				end
 				`RV32_XORI: begin
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
@@ -213,7 +213,7 @@ module decoder(
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 				    decoded_pack.imm_valid = 1'b1;
 				    decoded_pack.rs1_valid = 1'b1; 
-				    alu_func = ALU_XOR;
+				    decoded_pack.alu_func = ALU_XOR;
 				end
 				`RV32_SLLI: begin
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
@@ -221,7 +221,7 @@ module decoder(
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 				    decoded_pack.imm_valid = 1'b1;
 				    decoded_pack.rs1_valid = 1'b1; 
-				    alu_func = ALU_SLL;
+				    decoded_pack.alu_func = ALU_SLL;
 				end
 				`RV32_SRLI: begin
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
@@ -229,7 +229,7 @@ module decoder(
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 				    decoded_pack.imm_valid = 1'b1;
 				    decoded_pack.rs1_valid = 1'b1; 
-				    alu_func = ALU_SRL;
+				    decoded_pack.alu_func = ALU_SRL;
 				end
 				`RV32_SRAI: begin
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
@@ -237,7 +237,7 @@ module decoder(
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 				    decoded_pack.imm_valid = 1'b1;
 				    decoded_pack.rs1_valid = 1'b1; 
-				    alu_func = ALU_SRA;
+				    decoded_pack.alu_func = ALU_SRA;
 				end
 				`RV32_ADD: begin
 					decoded_pack.arch_reg.src1 = inst.r.rs1;
