@@ -34,7 +34,10 @@ module register_file(
   always_comb begin
     registers_next = registers;
     if (wr_en) begin
-      registers_next[wr_idx] = wr_data;
+      if (wr_idx == 5'b0)
+        registers_next[wr_idx] = 32'b0;
+      else
+        registers_next[wr_idx] = wr_data;
     end
   end
 
