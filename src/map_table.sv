@@ -10,7 +10,7 @@ module map_table(
     input logic assign_flag,
     input logic return_flag, 
     input logic ready_flag,
-    input logic [`ROB_TAG_LEN-1:0] assign_rob_tag,
+    input logic [`ROB_TAG_LEN-1:0] assign_rob_tag_reg,
     input logic [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
     input logic [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
     input logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,

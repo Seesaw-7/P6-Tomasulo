@@ -50,14 +50,17 @@ module dispatcher (
 
     // syncronize input
     DECODED_PACK insn_reg;
+    logic [`ROB_TAG_LEN-1:0] assign_rob_tag_reg;
     always_ff @(posedge clk) begin
         if (reset) begin
             insn_reg <= 0;
+            assign_rob_tag_reg <= 0;
         end else begin
-            if (stall)
+            unique if (stall)
                 insn_reg <= insn_reg;
             else
                 insn_reg <= decoded_pack;
+            assign_rob_tag_reg <= assign_rob_tag;
         end
     end
 
