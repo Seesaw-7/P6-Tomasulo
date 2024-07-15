@@ -70,16 +70,23 @@ module map_table(
             renamed_pack.src1.rob_tag = {`ROB_TAG_LEN{1'b1}};
         end
         else begin
-            if (map_table_curr[arch_reg.src1].ready_in_rob == 1'b0) begin
-                renamed_pack.src1.data_stat = 2'b10;
+            if (arch_reg.src1 == '0) begin
+                renamed_pack.src1.data_stat = 2'b00;
                 renamed_pack.src1.reg_addr = arch_reg.src1;
-                renamed_pack.src1.rob_tag = map_table_curr[arch_reg.src1].rob_tag;    
+                renamed_pack.src1.rob_tag = {`ROB_TAG_LEN{1'b1}};
             end
             else begin
-                renamed_pack.src1.data_stat = 2'b11;
-                renamed_pack.src1.reg_addr = arch_reg.src1;
-                renamed_pack.src1.rob_tag = map_table_curr[arch_reg.src1].rob_tag;
-            end    
+                if (map_table_curr[arch_reg.src1].ready_in_rob == 1'b0) begin
+                    renamed_pack.src1.data_stat = 2'b10;
+                    renamed_pack.src1.reg_addr = arch_reg.src1;
+                    renamed_pack.src1.rob_tag = map_table_curr[arch_reg.src1].rob_tag;    
+                end
+                else begin
+                    renamed_pack.src1.data_stat = 2'b11;
+                    renamed_pack.src1.reg_addr = arch_reg.src1;
+                    renamed_pack.src1.rob_tag = map_table_curr[arch_reg.src1].rob_tag;
+                end
+            end               
         end
         
         //src2
@@ -89,16 +96,23 @@ module map_table(
             renamed_pack.src2.rob_tag = {`ROB_TAG_LEN{1'b1}};
         end
         else begin
-            if (map_table_curr[arch_reg.src2].ready_in_rob == 1'b0) begin
-                renamed_pack.src2.data_stat = 2'b10;
-                renamed_pack.src2.reg_addr = arch_reg.src2;
-                renamed_pack.src2.rob_tag = map_table_curr[arch_reg.src2].rob_tag;    
+            if (arch_reg.src1 == '0) begin
+                renamed_pack.src1.data_stat = 2'b00;
+                renamed_pack.src1.reg_addr = arch_reg.src1;
+                renamed_pack.src1.rob_tag = {`ROB_TAG_LEN{1'b1}};
             end
-            else begin
-                renamed_pack.src2.data_stat = 2'b11;
-                renamed_pack.src2.reg_addr = arch_reg.src2;
-                renamed_pack.src2.rob_tag = map_table_curr[arch_reg.src2].rob_tag;
-            end    
+            else begin 
+                if (map_table_curr[arch_reg.src2].ready_in_rob == 1'b0) begin
+                    renamed_pack.src2.data_stat = 2'b10;
+                    renamed_pack.src2.reg_addr = arch_reg.src2;
+                    renamed_pack.src2.rob_tag = map_table_curr[arch_reg.src2].rob_tag;    
+                end
+                else begin
+                    renamed_pack.src2.data_stat = 2'b11;
+                    renamed_pack.src2.reg_addr = arch_reg.src2;
+                    renamed_pack.src2.rob_tag = map_table_curr[arch_reg.src2].rob_tag;
+                end
+            end                
         end
         
         renamed_pack.dest = arch_reg.dest;
