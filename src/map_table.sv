@@ -40,7 +40,7 @@ module map_table(
         end
 
         if (assign_flag) begin
-            map_table_next[arch_reg.dest].rob_tag = assign_rob_tag;
+            map_table_next[arch_reg.dest].rob_tag = assign_rob_tag_reg;
             map_table_next[arch_reg.dest].ready_in_rob = 1'b0;
         end
 
@@ -116,7 +116,7 @@ module map_table(
         end
         
         renamed_pack.dest = arch_reg.dest;
-        renamed_pack.rob_tag = assign_rob_tag;
+        renamed_pack.rob_tag = assign_rob_tag_reg;
         
     end
     
