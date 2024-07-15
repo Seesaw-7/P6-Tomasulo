@@ -60,6 +60,9 @@ module testbench;
 	logic             pipeline_commit_wr_en;
 	logic [`XLEN-1:0] pipeline_commit_NPC;
 
+	//debug
+	logic [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out;
+
 	// logic [`XLEN-1:0] if_NPC_out;
 	// logic [31:0]      if_IR_out;
 	// logic             if_valid_inst_out;
@@ -98,6 +101,9 @@ module testbench;
 		.pipeline_commit_wr_idx   (pipeline_commit_wr_idx),
 		.pipeline_commit_wr_en    (pipeline_commit_wr_en),
 		.pipeline_commit_NPC      (pipeline_commit_NPC)
+
+		//debug
+		.pipeline_registers_out(pipeline_registers_out)
 
 		// .if_NPC_out        (if_NPC_out),
 		// .if_IR_out         (if_IR_out),
