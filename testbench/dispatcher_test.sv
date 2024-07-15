@@ -2,12 +2,12 @@
 
 module dispatcher_tb;
 
-    localparam CLK_PERIOD = 10;  
+    localparam CLK_PERIOD = 10; 
 
     logic clk;
     logic reset;
-    logic stall;
-    // Inputs 
+
+    // Inputs
     DECODED_PACK decoded_pack;
     logic [`REG_NUM-1:0] [`XLEN-1:0] registers;
     ROB_ENTRY rob [`ROB_SIZE-1:0];
@@ -18,12 +18,14 @@ module dispatcher_tb;
     logic [`REG_ADDR_LEN-1:0] reg_addr_from_rob;
     logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb;
     logic [`XLEN-1:0] wb_data;
+    logic unsigned [3:0] RS_is_full;
 
     // Outputs
     INST_RS inst_rs;
     INST_ROB inst_rob;
-    logic unsigned [3:0] RS_is_full;
- 
+    logic stall;
+    logic unsigned [3:0] RS_load;
+
     dispatcher dut (
         .clk(clk),
         .reset(reset),
@@ -40,47 +42,64 @@ module dispatcher_tb;
         .reg_addr_from_rob(reg_addr_from_rob),
         .rob_tag_from_cdb(rob_tag_from_cdb),
         .wb_data(wb_data),
-        .RS_is_full(RS_is_full)
+        .RS_is_full(RS_is_full),
+        .RS_load(RS_load)
     );
-  
-    always #CLK_PERIOD clk = ~clk;
- 
+
+    always # (CLK_PERIOD / 2) clk = ~clk;
+
     initial begin
         clk = 0;
         reset = 1;
-        stall = 0;
- 
-        decoded_pack = '0;
-        registers = '0;
-        rob = '{default: '0};
-        assign_rob_tag = 0;
-        return_flag = 0;
-        ready_flag = 0;
-        rob_tag_from_rob = 0;
-        reg_addr_from_rob = 0;
-        rob_tag_from_cdb = 0;
-        wb_data = 0;
- 
-        #20 reset = 0;
+        
+        # (2 * CLK_PERIOD) reset = 0;
 
-        // Test 1: Test an ALU instruction 
-        registers[5'h1] = 32'h100;  
+        registers = '{default: '0};
+        rob = '{default: '{default: '0}};
+        assign_rob_tag = '0;
+        return_flag = '0;
+        ready_flag = '0;
+        rob_tag_from_rob = '0;
+        reg_addr_from_rob = '0;
+        rob_tag_from_cdb = '0;
+        wb_data = '0;
+        RS_is_full = '0;
 
-        decoded_pack.fu = FU_ALU;  
-        decoded_pack.func = 5'h02; 
-        decoded_pack.src1.reg_addr = 5'h1;  
-        decoded_pack.src2.data_stat = 2'b00;  
-        decoded_pack.src2.reg_addr = 5'h2;  
-        decoded_pack.arch_reg = 32'h20;  
-  
-        always @(posedge clk) begin
-            $display("Cycle %0t: stall=%b, inst_rs=%h, inst_rob=%h", $time, stall, inst_rs, inst_rob);
-        end
+        # (2 * CLK_PERIOD);
+        
+        // TEST 1: Example ALU instruction
+        decoded_pack.valid = 1'b1;
+        decoded_pack.fu = FU_ALU; 
+        decoded_pack.arch_reg = 'h10;
+        decoded_pack.alu_func = ALU_ADD; 
+        decoded_pack.rs1_valid = 1'b1;
+        decoded_pack.rs2_valid = 1'b1;
+        decoded_pack.pc_valid = 1'b1;
+        decoded_pack.pc = 32'h8000;
+        registers[5'h10] = 32'h100;
+        registers[5'h20] = 32'h200;
+         
+        # (10 * CLK_PERIOD);
+
+        // TEST 2: Example Branch instruction
+        decoded_pack.valid = 1'b1;
+        decoded_pack.fu = FU_BTU;  
+        decoded_pack.arch_reg = 'h30;
+        decoded_pack.imm = 32'h5678;
+        decoded_pack.rs1_valid = 1'b1;
+        decoded_pack.rs2_valid = 1'b1;
+        decoded_pack.pc_valid = 1'b1;
+        decoded_pack.pc = 32'hA000;
  
-        #100;
+        # (10 * CLK_PERIOD);
  
-        #1000;
+        # (10 * CLK_PERIOD);
         $finish;
+    end
+ 
+    initial begin
+        $monitor("Time=%0t | stall=%b | inst_rs=%h | inst_rob=%h | RS_load=%b", 
+                 $time, stall, inst_rs, inst_rob, RS_load);
     end
 
 endmodule
