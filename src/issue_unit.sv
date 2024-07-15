@@ -123,7 +123,7 @@ module issue_unit (
                     ROB_tag_next[i] = ROB_tag[FU_LSU];
                 end else begin
                     issue_signals[FU_LSU] = 0;
-                    fu_cycles_next[i] = fu_cycles_next[i] > 0 ? fu_cycles_next[i]-1 : 0;
+                    fu_cycles_next[i] = fu_cycles_curr[i] > 0 ? fu_cycles_curr[i]-1 : 0;
                     ROB_tag_next[i] = ROB_tag_next[i];
                 end
             end
@@ -200,7 +200,7 @@ module issue_unit (
                     ROB_tag_next[i] = ROB_tag[FU_BTU];
                 end else begin
                     issue_signals[FU_BTU] = 0;
-                    fu_cycles_next[i] = fu_cycles_next[i] > 0 ? fu_cycles_next[i]-1 : 0;
+                    fu_cycles_next[i] = fu_cycles_curr[i] > 0 ? fu_cycles_curr[i]-1 : 0;
                     ROB_tag_next[i] = ROB_tag_next[i];
                 end                
             end
@@ -208,7 +208,7 @@ module issue_unit (
 
             // ALU
             else begin
-                                logic issue_flag1, issue_flag2;
+                logic issue_flag1, issue_flag2;
 
                 // all the other FUs are not previously scheduled to use CDB at the same time with this one
                 issue_flag1 = 1;
@@ -238,7 +238,7 @@ module issue_unit (
                     ROB_tag_next[i] = ROB_tag[FU_ALU];
                 end else begin
                     issue_signals[FU_ALU] = 0;
-                    fu_cycles_next[i] = fu_cycles_next[i] > 0 ? fu_cycles_next[i]-1 : 0;
+                    fu_cycles_next[i] = fu_cycles_curr[i] > 0 ? fu_cycles_curr[i]-1 : 0;
                     ROB_tag_next[i] = ROB_tag_next[i];
                 end                
             end
