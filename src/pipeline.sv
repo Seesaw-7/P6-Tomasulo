@@ -27,7 +27,8 @@ module pipeline (
 	output logic [`XLEN-1:0] pipeline_commit_NPC,
 	
     // debug
-    output [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out
+    output [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out,
+    output flush, stall
 	
 	// testing hooks (these must be exported so we can test
 	// the synthesized version) data is tested by looking at
@@ -65,7 +66,10 @@ module pipeline (
 
 );
 
-assign proc2mem_command = BUS_NONE;
+
+// TODO: edit in m3
+assign proc2mem_command =
+	     (proc2Dmem_command == BUS_NONE) ? BUS_LOAD : proc2Dmem_command;
 assign proc2mem_addr = proc2Imem_addr;
 	//if it's an instruction, then load a double word (64 bits)
 assign proc2mem_size = DOUBLE;
