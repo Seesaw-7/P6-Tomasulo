@@ -24,9 +24,9 @@ module pipeline (
 	output logic [4:0]  pipeline_commit_wr_idx,
 	output logic [`XLEN-1:0] pipeline_commit_wr_data,
 	output logic        pipeline_commit_wr_en,
-	output logic [`XLEN-1:0] pipeline_commit_NPC
+	output logic [`XLEN-1:0] pipeline_commit_NPC,
 	
-    output [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out;
+    output [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out
 	
 	// testing hooks (these must be exported so we can test
 	// the synthesized version) data is tested by looking at
