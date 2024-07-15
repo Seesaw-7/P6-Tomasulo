@@ -92,8 +92,10 @@ module dispatcher (
                                     insn_reg.pc : rob[renamed_pack.src1.rob_tag].wb_data; 
             end
             default: begin // not ready
-                inst_rs.ready_src1 = 1'b0;
-                inst_rs.value_src1 = 0;
+                inst_rs.ready_src1 = (insn_reg.fu != FU_BTU && insn_reg.pc_valid) ?
+                                        1'b1: 1'b0;
+                inst_rs.value_src1 = (insn_reg.fu != FU_BTU && insn_reg.pc_valid) ? 
+                                    insn_reg.pc : 0; 
             end 
         endcase
         // src2
@@ -109,8 +111,10 @@ module dispatcher (
                                     insn_reg.imm : rob[renamed_pack.src2.rob_tag].wb_data; 
             end
             default: begin
-                inst_rs.ready_src2 = 1'b0;
-                inst_rs.value_src2 = 0;
+                inst_rs.ready_src2 = (insn_reg.fu != FU_BTU && insn_reg.imm_valid) ?
+                                        1'b1:1'b0;
+                inst_rs.value_src2 = (insn_reg.fu != FU_BTU && insn_reg.imm_valid) ?
+                                        insn_reg.imm : 0; 
             end 
         endcase   
     end

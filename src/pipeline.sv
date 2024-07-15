@@ -28,7 +28,8 @@ module pipeline (
 	
     // debug
     output [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out,
-    output flush, stall
+    output flush, stall,
+    output logic [3:0] issue_signal_out
 	
 	// testing hooks (these must be exported so we can test
 	// the synthesized version) data is tested by looking at
@@ -359,7 +360,7 @@ logic [3:0] issue_unit_insn_ready;
 assign issue_unit_insn_ready[FU_ALU] = rs_alu_insn_ready;
 assign issue_unit_insn_ready[FU_MULT] = rs_mult_insn_ready;
 assign issue_unit_insn_ready[FU_BTU] = rs_btu_insn_ready; 
-assign issue_unit_insn_ready[FU_LSU] = 1'b1;
+assign issue_unit_insn_ready[FU_LSU] = 1'b0;
 
 logic [3:0][`ROB_TAG_LEN-1:0] issue_unit_ROB_tag;
 assign issue_unit_ROB_tag[FU_ALU] = rs_alu_dest_rob_tag;
