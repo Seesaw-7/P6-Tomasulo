@@ -100,7 +100,7 @@ module testbench;
 		.pipeline_commit_wr_data  (pipeline_commit_wr_data),
 		.pipeline_commit_wr_idx   (pipeline_commit_wr_idx),
 		.pipeline_commit_wr_en    (pipeline_commit_wr_en),
-		.pipeline_commit_NPC      (pipeline_commit_NPC)
+		.pipeline_commit_NPC      (pipeline_commit_NPC),
 
 		//debug
 		.pipeline_registers_out(pipeline_registers_out)
