@@ -26,10 +26,19 @@ module pipeline (
 	output logic        pipeline_commit_wr_en,
 	output logic [`XLEN-1:0] pipeline_commit_NPC,
 	
-    // debug
     output [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out,
     output flush, stall,
-    output logic [3:0] issue_signal_out
+    output dispatcher_RS_is_full,
+    output issue_unit_insn_ready,
+    output issue_signal_out,
+    output decoded_pack,
+    output inst_dispatch_to_rs,
+    output value_from_cdb,
+    output select_signal_from_issue_unit,
+    output rob_tag_from_issue_unit,
+    output rs_alu_v1_out,
+    output rs_alu_v2_out,
+    output alu_result
 	
 	// testing hooks (these must be exported so we can test
 	// the synthesized version) data is tested by looking at
@@ -67,10 +76,7 @@ module pipeline (
 
 );
 
-
-// TODO: edit in m3
-assign proc2mem_command =
-	     (proc2Dmem_command == BUS_NONE) ? BUS_LOAD : proc2Dmem_command;
+assign proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD:proc2Dmem_command;
 assign proc2mem_addr = proc2Imem_addr;
 	//if it's an instruction, then load a double word (64 bits)
 assign proc2mem_size = DOUBLE;
@@ -181,8 +187,9 @@ reservation_station RS_ALU (
     .reset(reset || flush), // flush when mis predict
     .load(RS_load[FU_ALU]), // whether we load in the instruction (assigned by dispatcher)
     .issue(issue_signal_out[FU_ALU]), // whether the issue queue should output one instruction (assigned by issue unit), should be stable during clock edge
-    .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst L to Yes
+//    .wakeup(select_flag_from_cdb), // set by issue unit, indicating whether to set the ready tag of previously issued dst L to Yes
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
+    .wakeup(1'b0),
     .func(inst_dispatch_to_rs.func),
     .t1(inst_dispatch_to_rs.tag_src1), 
     .t2(inst_dispatch_to_rs.tag_src2), 
@@ -191,8 +198,8 @@ reservation_station RS_ALU (
     .ready2(inst_dispatch_to_rs.ready_src2),
     .v1(inst_dispatch_to_rs.value_src1), 
     .v2(inst_dispatch_to_rs.value_src2), 
-    .pc(inst_dispatch_to_rs.pc), 
-    .imm(inst_dispatch_to_rs.imm),
+//    .pc(inst_dispatch_to_rs.pc), 
+//    .imm(inst_dispatch_to_rs.imm),
     .wakeup_tag(rob_tag_from_cdb),
     .wakeup_value(value_from_cdb), 
 
@@ -283,8 +290,8 @@ reservation_station RS_mult (
     .ready2(inst_dispatch_to_rs.ready_src2),
     .v1(inst_dispatch_to_rs.value_src1), 
     .v2(inst_dispatch_to_rs.value_src2), 
-    .pc(inst_dispatch_to_rs.pc), 
-    .imm(inst_dispatch_to_rs.imm),
+//    .pc(inst_dispatch_to_rs.pc), 
+//    .imm(inst_dispatch_to_rs.imm),
     .wakeup_tag(rob_tag_from_cdb),
     .wakeup_value(value_from_cdb), 
 
