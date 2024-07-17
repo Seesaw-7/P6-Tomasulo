@@ -29,7 +29,7 @@ module issue_unit (
 
     always_ff @(posedge clk) begin
         if (reset) begin
-            fu_cycles_curr <= 0; // TODOï¼š check 2d array reset
+            fu_cycles_curr <= 0; // TODO¡G check 2d array reset
             ROB_tag_reg_curr <= 0;
         end else begin
             fu_cycles_curr <= fu_cycles_next;
