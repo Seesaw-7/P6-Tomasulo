@@ -59,11 +59,21 @@ module testbench;
 	logic [`XLEN-1:0] pipeline_commit_wr_data;
 	logic             pipeline_commit_wr_en;
 	logic [`XLEN-1:0] pipeline_commit_NPC;
-
-	//debug
-	logic [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out;
+	
+	logic [`REG_NUM-1:0][`XLEN-1:0] pipeline_registers_out;
 	logic flush;
 	logic stall;
+	logic [3:0] dispatcher_RS_is_full;
+	logic [3:0] issue_unit_insn_ready;
+	logic [3:0] issue_signal_out;
+	DECODED_PACK decoded_pack;
+	INST_RS inst_dispatch_to_rs;
+	logic [`XLEN-1:0] value_from_cdb;
+	FUNC_UNIT select_signal_from_issue_unit;
+	logic [`ROB_TAG_LEN-1:0] rob_tag_from_issue_unit;
+	logic [`XLEN-1:0] rs_alu_v1_out;
+	logic [`XLEN-1:0] rs_alu_v2_out;
+	logic [`XLEN-1:0] alu_result;
 
 	// logic [`XLEN-1:0] if_NPC_out;
 	// logic [31:0]      if_IR_out;
@@ -103,11 +113,20 @@ module testbench;
 		.pipeline_commit_wr_idx   (pipeline_commit_wr_idx),
 		.pipeline_commit_wr_en    (pipeline_commit_wr_en),
 		.pipeline_commit_NPC      (pipeline_commit_NPC),
-
-		//debug
 		.pipeline_registers_out(pipeline_registers_out),
 		.flush(flush),
-		.stall(stall)
+		.stall(stall),
+		.dispatcher_RS_is_full(dispatcher_RS_is_full),
+		.issue_unit_insn_ready(issue_unit_insn_ready),
+		.issue_signal_out(issue_signal_out),
+		.decoded_pack(decoded_pack),
+		.inst_dispatch_to_rs(inst_dispatch_to_rs),
+		.value_from_cdb(value_from_cdb),
+		.select_signal_from_issue_unit(select_signal_from_issue_unit),
+		.rob_tag_from_issue_unit(rob_tag_from_issue_unit),
+		.alu_result(alu_result),
+		.rs_alu_v1_out(rs_alu_v1_out),
+		.rs_alu_v2_out(rs_alu_v2_out)
 
 		// .if_NPC_out        (if_NPC_out),
 		// .if_IR_out         (if_IR_out),
