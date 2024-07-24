@@ -14,10 +14,12 @@ module arithmetic_logic_unit(
 	input [`XLEN-1:0] opa,
 	input [`XLEN-1:0] opb,
 	input ALU_FUNC     func, //TODO: input here?
+	input en,
     // TODO: input INST inst
 
     // TODO: output INST inst
-	output logic [`XLEN-1:0] result
+	output logic [`XLEN-1:0] result,
+	output done
 );
 	wire signed [`XLEN-1:0] signed_opa, signed_opb;
 	wire signed [2*`XLEN-1:0] signed_mul, mixed_mul;
@@ -48,4 +50,6 @@ module arithmetic_logic_unit(
 			default:      result = `XLEN'hfacebeec;  // here to prevent latches
 		endcase
 	end
+
+	assign done = en;
 endmodule // alu
