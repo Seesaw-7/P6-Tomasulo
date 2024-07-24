@@ -6,6 +6,7 @@
 typedef struct packed {
     FUNC_UNIT fu;
     ALU_FUNC func;
+    logic unsigned [`ROB_TAG_LEN-1:0] insn_tag;
     logic unsigned [`ROB_TAG_LEN-1:0] tag_dest;
     logic unsigned [`ROB_TAG_LEN-1:0] tag_src1;
     logic unsigned [`ROB_TAG_LEN-1:0] tag_src2;
@@ -19,7 +20,8 @@ typedef struct packed {
 
 typedef struct packed {
    logic unsigned [`REG_ADDR_LEN-1:0] register; // architectural reg for dest
-   logic [`XLEN-1:0] inst_npc; // current pc for this instruction
+   logic [`XLEN-1:0] inst_pc; // current pc for this instruction
+   logic [`XLEN-1:0] inst_npc; // next pc for this instruction
 } INST_ROB;
 
 `endif
