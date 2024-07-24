@@ -10,6 +10,7 @@ module reorder_buffer(
     input logic dispatch,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_dispatcher,
     input [`XLEN-1:0] npc_from_dispatcher,
+    input [`XLEN-1:0] pc_from_dispatcher,
      
     input logic cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
@@ -71,6 +72,7 @@ module reorder_buffer(
             rob_next[tail_curr].wb_reg = reg_addr_from_dispatcher;
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
             rob_next[tail_curr].npc = npc_from_dispatcher;
+            rob_next[tail_curr].pc = pc_from_dispatcher;
             // tail_next = (tail_curr + `ROB_TAG_LEN'd1) % `ROB_SIZE;
             tail_next = tail_curr + 1;
             
@@ -121,7 +123,7 @@ module reorder_buffer(
                 rob_curr[i].wb_reg <= {`REG_ADDR_LEN{1'b0}};
                 rob_curr[i].wb_data <= {`XLEN{1'b0}};
                 rob_curr[i].npc <= {`XLEN{1'b0}};
-                //rob_curr[i].target_pc <= {`XLEN{1'b0}};
+                rob_curr[i].pc <= {`XLEN{1'b0}};
             end
         end
         else begin
