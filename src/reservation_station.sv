@@ -70,7 +70,10 @@ module reservation_station #(
                 issue_queue_next[i] = issue_queue_next[i+1];
             end
         end
-        // wakeup
+    end
+    
+    // wakeup
+    always_comb begin
         for (int j=0; j<4; ++j) begin
            if (wakeup[j]) begin
                 for (int i=0; i<NUM_ENTRIES; ++i) begin
@@ -88,11 +91,12 @@ module reservation_station #(
     end
 
     RS_ENTRY insn_ready, insn_to_ready;
+
+    // find the first ready insn
     always_comb begin
         insn_ready = 0;
         insn_to_ready = 0;
         // TODO: check whether this for loop siquentially assign variables
-        // find the first ready insn
         for (int i=NUM_ENTRIES; i>=0; --i) begin
             unique if (issue_queue_next[i].valid && issue_queue_next[i].insn.ready_rs1 && issue_queue_next[i].insn.ready_rs2) begin
                 insn_ready = issue_queue_next[i];
@@ -100,7 +104,9 @@ module reservation_station #(
                 insn_ready = insn_ready;
             end
         end
-        // find the first ready insn with the fast fu
+    end
+
+    // find the first ready insn with the fast fu
         /*
             for i <- 0 : NUM_ENTRIES-1
                 if valid 
@@ -113,6 +119,7 @@ module reservation_station #(
                 else
                     break
         */ 
+    always_comb begin
         for (int i=NUM_ENTRIES; i>=0; --i) begin
             unique if (issue_queue_next[i].valid) begin
                 for (int j=0; j<4; ++j) begin //  j follows order [FU_LSU, FU_MULT, FU_BTU, FU_ALU]
@@ -134,14 +141,9 @@ module reservation_station #(
                 insn_to_ready = insn_to_ready;
             end
         end
-
-        unique if (insn_ready.insn.valid) begin
-            insn_for_ex_next = insn_ready;
-        end else begin
-            insn_for_ex_next = insn_to_ready;
-        end
     end
 
+    assign insn_for_ex_next = insn_ready.insn.valid ? insn_ready : insn_to_ready;
     assign is_full =  issue_queue_next[NUM_ENTRIES-1].valid;
     
 endmodule
