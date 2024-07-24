@@ -15,22 +15,19 @@ module branch_predictor(
     output logic predict_taken,
     output [`XLEN-1:0] predict_target 
 );
-
-    parameter BPB_INDEX_LEN = $clog2(`BPB_SIZE);
-    parameter BHB_INDEX_LEN = $clog2(`BHB_SIZE); 
     
-    logic [BPB_INDEX_LEN-1:0] bpb_index_search;
-    logic [BHB_INDEX_LEN-1:0] bhb_index_search;
-    logic [BPB_INDEX_LEN-1:0] bpb_index_update;
-    logic [BHB_INDEX_LEN-1:0] bhb_index_update;
+    logic [`BPB_INDEX_LEN-1:0] bpb_index_search;
+    logic [`BHB_INDEX_LEN-1:0] bhb_index_search;
+    logic [`BPB_INDEX_LEN-1:0] bpb_index_update;
+    logic [`BHB_INDEX_LEN-1:0] bhb_index_update;
     
     logic [1:0] BPB [`BPB_SIZE-1:0];
     BHB_ENTRY [`BHB_SIZE-1:0] BHB; 
 
-    assign bpb_index_search = pc_search[(BPB_INDEX_LEN+1):2]; 
-    assign bhb_index_search = pc_search[(BHB_INDEX_LEN+1):2];
-    assign bpb_index_update = pc_from_rob[(BPB_INDEX_LEN+1):2]; 
-    assign bhb_index_update = pc_from_rob[(BHB_INDEX_LEN+1):2];
+    assign bpb_index_search = pc_search[(`BPB_INDEX_LEN+1):2]; 
+    assign bhb_index_search = pc_search[(`BHB_INDEX_LEN+1):2];
+    assign bpb_index_update = pc_from_rob[(`BPB_INDEX_LEN+1):2]; 
+    assign bhb_index_update = pc_from_rob[(`BHB_INDEX_LEN+1):2];
  
     logic [1:0] bpb_state;
     
