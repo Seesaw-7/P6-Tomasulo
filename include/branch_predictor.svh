@@ -1,5 +1,5 @@
-`ifndef __BRANCH_PREDICTOR__
-`define __BRANCH_PREDICTOR__
+`ifndef __BRANCH_PREDICTOR_SVH__
+`define __BRANCH_PREDICTOR_SVH__
 
 `include "sys_defs.svh"
 
