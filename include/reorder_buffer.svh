@@ -7,6 +7,7 @@ typedef struct packed {
     logic valid;
     logic ready;
     logic mispredict;
+    logic mem_store;
     logic unsigned [`REG_ADDR_LEN-1:0] wb_reg;
     logic [`XLEN-1:0] wb_data;
     logic [`XLEN-1:0] npc;
