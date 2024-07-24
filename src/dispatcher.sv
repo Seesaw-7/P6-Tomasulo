@@ -41,7 +41,7 @@ module dispatcher (
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
 
     // input data from ROB
-    input [`XLEN-1:0] wb_data, //wires from rob values
+    // input [`XLEN-1:0] wb_data, //wires from rob values
 
     // RS control
     input unsigned [3:0] RS_is_full, // 4 RS
@@ -82,6 +82,7 @@ module dispatcher (
     assign inst_rs.tag_src2 = renamed_pack.src2.rob_tag;
     assign inst_rs.imm = insn_reg.fu == FU_BTU? insn_reg.imm : '0;
     assign inst_rs.pc = insn_reg.fu == FU_BTU? insn_reg.pc : '0;
+    assign inst_rs.insn_tag = rob_tag_from_rob;
 
     always_comb begin
         // src1
@@ -132,9 +133,9 @@ module dispatcher (
     // end
 
     always_comb begin
-        RS_load = 4'b0;
-        stall = 0;
-        priority case (insn_reg.fu)
+        // RS_load = 4'b0;
+        // stall = 0;
+        unique case (insn_reg.fu)
             FU_LSU : begin
                 RS_load[FU_LSU] = 1; 
             end // Load Store Unit TODO: edit stall and rs_load in m3
@@ -150,11 +151,16 @@ module dispatcher (
                 RS_load[FU_ALU] = RS_is_full[FU_ALU] ? 1'b0 : 1'b1; // ALU
                 stall = ~RS_is_full[FU_ALU] ? 1'b0 : 1'b1; 
             end
+            default: begin
+                RS_load = 4'b0;
+                stall = 0;
+            end
         endcase
     end
 
     // assign inst_rob
     assign inst_rob.register = renamed_pack.dest;
+    assign inst_rob.inst_pc = insn_reg.pc;
     assign inst_rob.inst_npc = insn_reg.pc + 4;
 
     // assign stall = |(RS_Load);//TODO: use this in m3
