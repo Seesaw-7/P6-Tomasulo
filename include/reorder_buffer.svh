@@ -1,5 +1,5 @@
-`ifndef __REORDER_BUFFER_VH__
-`define __REORDER_BUFFER_VH__
+`ifndef __REORDER_BUFFER_SVH__
+`define __REORDER_BUFFER_SVH__
 
 `include "sys_defs.svh"
 
