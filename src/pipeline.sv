@@ -487,10 +487,15 @@ reorder_buffer ROB_0 (
     .clk(clock),
     .reset(reset), //TODO: flush when take_branch
     
-    .dispatch(!dispatch_reg_curr.stall),
-    .reg_addr_from_dispatcher(dispatch_reg_curr.inst_rob.register),
-    .npc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_npc),
-    .pc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_pc),
+    // .dispatch(!dispatch_reg_curr.stall),
+    // .reg_addr_from_dispatcher(dispatch_reg_curr.inst_rob.register),
+    // .npc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_npc),
+    // .pc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_pc),
+    // TODO:
+    .dispatch(!stall),
+    .reg_addr_from_dispatcher(inst_dispatch_to_rob.register),
+    .npc_from_dispatcher(inst_dispatch_to_rob.inst_npc),
+    .pc_from_dispatcher(inst_dispatch_to_rob.inst_pc),
      
     .cdb_to_rob(select_flag_from_cdb),
     .rob_tag_from_cdb(rob_tag_from_cdb),
