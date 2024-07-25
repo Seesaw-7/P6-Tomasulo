@@ -42,7 +42,9 @@ module reservation_station #(
 
     always_ff @(posedge clk) begin
         unique if (reset) begin
-            issue_queue_curr <= '{default: '0};
+            for (int i=0; i<NUM_ENTRIES; ++i) begin
+                issue_queue_curr[i] <= 0;
+            end
             insn_for_ex <= 0;
         end else begin
             issue_queue_curr <= issue_queue_next;
@@ -71,10 +73,7 @@ module reservation_station #(
                 issue_queue_next[i] = issue_queue_next[i+1];
             end
         end
-    end
-    
-    // wakeup
-    always_latch begin
+        // wakeup
         for (int j=0; j<4; ++j) begin
            if (wakeup[j]) begin
                 for (int i=0; i<NUM_ENTRIES; ++i) begin

@@ -113,7 +113,7 @@ prefetch_queue fetch_stage_0 (
 );
 
 logic decoder_csr_op;
-assign decoder_csr_op = RS_load[0]; //TODO:
+// assign decoder_csr_op = RS_load[0]; //TODO:
 logic decoder_halt;
 logic decoder_illegal;
 DECODED_PACK decoded_pack;
@@ -294,7 +294,7 @@ dispatcher dispatch_stage (
         .clear(rs_clear[FU_MULT]), 
         .clear_tag(rs_clear_tag[FU_MULT]),
         .insn_for_ex(mult_entry_out),
-        .is_full(rs_btu_full)
+        .is_full(rs_mult_full)
     );
 
 // load store unit
@@ -315,23 +315,6 @@ dispatcher dispatch_stage (
         .is_full(rs_lsu_full)
     );
 
-
-// logic [3:0] issue_signal_out;
-// logic [`ROB_TAG_LEN-1:0] rob_tag_from_issue_unit;
-// logic select_flag_from_issue_unit;
-// FUNC_UNIT select_signal_from_issue_unit;
-
-// logic [3:0] issue_unit_insn_ready;
-// assign issue_unit_insn_ready[FU_ALU] = rs_alu_insn_ready;
-// assign issue_unit_insn_ready[FU_MULT] = rs_mult_insn_ready;
-// assign issue_unit_insn_ready[FU_BTU] = rs_btu_insn_ready; 
-// assign issue_unit_insn_ready[FU_LSU] = 1'b0;
-
-// logic [3:0][`ROB_TAG_LEN-1:0] issue_unit_ROB_tag;
-// assign issue_unit_ROB_tag[FU_ALU] = rs_alu_dest_rob_tag;
-// assign issue_unit_ROB_tag[FU_MULT] = rs_mult_dest_rob_tag;
-// assign issue_unit_ROB_tag[FU_BTU] = rs_btu_dest_rob_tag;
-// assign issue_unit_ROB_tag[FU_LSU] = rs_lsu_dest_rob_tag;
 
 //////////////////////////////////////////////////
 //                                              //
@@ -393,15 +376,15 @@ branch_unit BTU (
 // mult unit
 logic [63:0] mult_result;
 logic mult_done;
-// multiplier mult_0 (
-//     .clock(clock),
-//     .reset(reset || flush),
-//     .mcand(64'(rs_mult_v1_out)), // TODO: 32 bits to 64 bits?
-//     .mplier(64'(rs_mult_v2_out)),
-//     .start(enable_mult && !execute_reg_curr.ready[FU_MULT]),
-//     .product(mult_result),
-//     .done(mult_done)
-// );
+multiplier mult_0 (
+    .clock(clock),
+    .reset(reset || flush),
+    .mcand(64'(rs_mult_v1_out)), // TODO: 32 bits to 64 bits?
+    .mplier(64'(rs_mult_v2_out)),
+    .start(enable_mult && !execute_reg_curr.ready[FU_MULT]),
+    .product(mult_result),
+    .done(mult_done)
+);
 
 // load store unit
 
@@ -430,6 +413,7 @@ assign proc2Dmem_command = BUS_NONE;
 
     always_comb begin
         execute_reg_next.ready[FU_ALU] = alu_done;
+        execute_reg_next.ready[FU_MULT] = mult_done;
         // TODO:
         execute_reg_next.result[FU_ALU] = alu_result;
         execute_reg_next.result[FU_MULT] = mult_result;
