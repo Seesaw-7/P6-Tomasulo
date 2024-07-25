@@ -445,30 +445,27 @@ assign cdb_in_values[FU_BTU] = btu_wb_data;
 assign cdb_in_values[FU_MULT] = 32'(mult_result);
 assign cdb_in_values[FU_LSU] = 32'd1;
 
-logic select_flag_from_cdb;
+logic rob_enable;
 logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb;
 logic [`XLEN-1:0] value_from_cdb;
-logic branch_from_cdb;
+logic mispredict_from_cdb;
 logic [`XLEN-1:0] pc_from_cdb; //TODO: change output size of out_pc
-// common_data_bus CDB (
-//     .in_values(cdb_in_values),
-//     .mispredict(branch_from_lsu),
-//     .pc(btu_target_pc),
-//     .select_flag(select_flag_from_issue_unit),
-//     .select_signal(select_signal_from_issue_unit),
-//     .ROB_tag(rob_tag_from_issue_unit),
-//     .out_select_flag(select_flag_from_cdb),
-//     .out_ROB_tag(rob_tag_from_cdb),
-//     .out_value(value_from_cdb),
-//     .out_mispredict(branch_from_cdb),
-//     .out_pc(pc_from_cdb)
-// );
-assign select_flag_from_cdb = execute_reg_curr.ready[FU_ALU];
-assign rob_tag_from_cdb = execute_reg_curr.tag_insn_ex[FU_ALU];
-assign value_from_cdb = execute_reg_curr.result[FU_ALU];
-assign pc_from_cdb = execute_reg_curr.result[FU_BTU];
-assign branch_from_cdb = 1'b0;
+logic [1:0] cdb_select_fu; // TODO: forward it to stop stalling fu
+//TODO: keep ready until moved by cdb
 
+    common_data_bus CDB(
+        .fu_results(execute_reg_curr.result),
+        .fu_result_ready(execute_reg_curr.ready),
+        .fu_tags(execute_reg_curr.tag_insn_ex),
+        .fu_mis_predict(execute_reg_curr.miss_predict),
+        .fu_target_pc(execute_reg_curr.target_pc),
+        .rob_enable(rob_enable),
+        .select_fu(cdb_select_fu),
+        .cdb_value(value_from_cdb),
+        .cdb_tag(rob_tag_from_cdb),
+        .target_pc(pc_from_cdb),
+        .mis_predict(mispredict_from_cdb)
+    );
 
 
 logic [`XLEN-1:0] branch_target_pc;
@@ -497,7 +494,7 @@ reorder_buffer ROB_0 (
     .rob_tag_from_cdb(rob_tag_from_cdb),
     .wb_data_from_cdb(value_from_cdb),
     .target_pc_from_cdb(pc_from_cdb),
-    .mispredict_from_cdb(branch_from_cdb),
+    .mispredict_from_cdb(mispredict_from_cdb),
     
     .search_src1_rob_tag(0), // from dispatcher
     .search_src2_rob_tag(0),
