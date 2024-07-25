@@ -10,6 +10,7 @@ typedef struct packed {
     logic unsigned [`REG_ADDR_LEN-1:0] wb_reg;
     logic [`XLEN-1:0] wb_data;
     logic [`XLEN-1:0] npc;
+    logic [`XLEN-1:0] pc;
     //logic [`XLEN-1:0] target_pc;
 } ROB_ENTRY;
 

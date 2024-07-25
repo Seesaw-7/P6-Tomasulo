@@ -1,6 +1,7 @@
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
+`include "dispatcher.svh"
 
 //
 // The ALU
@@ -11,16 +12,23 @@
 // This module is purely combinational
 //
 module arithmetic_logic_unit(
-	input [`XLEN-1:0] opa,
-	input [`XLEN-1:0] opb,
-	input ALU_FUNC     func, //TODO: input here?
+	// input [`XLEN-1:0] opa,
+	// input [`XLEN-1:0] opb,
+	input INST_RS insn,
+	// input ALU_FUNC     func, //TODO: input here?
 	input en,
     // TODO: input INST inst
 
     // TODO: output INST inst
 	output logic [`XLEN-1:0] result,
+	output [`ROB_TAG_LEN-1:0] insn_tag,
 	output done
 );
+	wire [`XLEN-1:0] opa, opb;
+	wire ALU_FUNC func;
+	assign opa = insn.value_src1;
+	assign opb = insn.value_src2;
+	assign func = insn.func;
 	wire signed [`XLEN-1:0] signed_opa, signed_opb;
 	wire signed [2*`XLEN-1:0] signed_mul, mixed_mul;
 	wire        [2*`XLEN-1:0] unsigned_mul;
@@ -50,6 +58,8 @@ module arithmetic_logic_unit(
 			default:      result = `XLEN'hfacebeec;  // here to prevent latches
 		endcase
 	end
+
+	assign insn_tag = insn.insn_tag;
 
 	assign done = en;
 endmodule // alu

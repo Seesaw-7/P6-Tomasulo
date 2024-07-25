@@ -133,9 +133,9 @@ module dispatcher (
     // end
 
     always_comb begin
-        // RS_load = 4'b0;
-        // stall = 0;
-        unique case (insn_reg.fu)
+        RS_load = 4'b0;
+        stall = 0;
+        case (insn_reg.fu)
             FU_LSU : begin
                 RS_load[FU_LSU] = 1; 
             end // Load Store Unit TODO: edit stall and rs_load in m3
@@ -150,10 +150,6 @@ module dispatcher (
             FU_ALU: begin 
                 RS_load[FU_ALU] = RS_is_full[FU_ALU] ? 1'b0 : 1'b1; // ALU
                 stall = ~RS_is_full[FU_ALU] ? 1'b0 : 1'b1; 
-            end
-            default: begin
-                RS_load = 4'b0;
-                stall = 0;
             end
         endcase
     end

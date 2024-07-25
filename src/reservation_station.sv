@@ -36,13 +36,13 @@ module reservation_station #(
     output logic is_full
 );
 
-    RS_ENTRY issue_queue_curr [NUM_ENTRIES]; 
-    RS_ENTRY issue_queue_next [NUM_ENTRIES]; 
+    RS_ENTRY issue_queue_curr [NUM_ENTRIES-1:0]; 
+    RS_ENTRY issue_queue_next [NUM_ENTRIES-1:0]; 
     RS_ENTRY insn_for_ex_next; // not always ready & reg
 
     always_ff @(posedge clk) begin
         unique if (reset) begin
-            issue_queue_curr <= 0;
+            issue_queue_curr <= '{default: '0};
             insn_for_ex <= 0;
         end else begin
             issue_queue_curr <= issue_queue_next;
@@ -56,9 +56,10 @@ module reservation_station #(
         if (load) begin
             issue_queue_next[NUM_ENTRIES-1].insn = insn_load;
             issue_queue_next[NUM_ENTRIES-1].valid = 1;
+        end
         // clear insn
         if (clear) begin
-            for (int i=0; i<ENTRY_NUM; ++i) begin
+            for (int i=0; i<NUM_ENTRIES; ++i) begin
                 if (issue_queue_next[i].insn.insn_tag == clear_tag) begin
                     issue_queue_next[i].valid = 0;
                 end
@@ -73,17 +74,17 @@ module reservation_station #(
     end
     
     // wakeup
-    always_comb begin
+    always_latch begin
         for (int j=0; j<4; ++j) begin
            if (wakeup[j]) begin
                 for (int i=0; i<NUM_ENTRIES; ++i) begin
-                    if (issue_queue_next[i].tag_src1 == wakeup_tag[j]) begin
-                        issue_queue_next[i].value_src1 = wakeup_value[j];
-                        issue_queue_next[i].ready_src1 = 1;
+                    if (issue_queue_next[i].insn.tag_src1 == wakeup_tag[j]) begin
+                        issue_queue_next[i].insn.value_src1 = wakeup_value[j];
+                        issue_queue_next[i].insn.ready_src1 = 1;
                     end
-                    if (issue_queue_next[i].tag_src2 == wakeup_tag[j]) begin
-                        issue_queue_next[i].value_src2 = wakeup_value[j];
-                        issue_queue_next[i].ready_src2 = 1;
+                    if (issue_queue_next[i].insn.tag_src2 == wakeup_tag[j]) begin
+                        issue_queue_next[i].insn.value_src2 = wakeup_value[j];
+                        issue_queue_next[i].insn.ready_src2 = 1;
                     end
                 end 
             end
@@ -95,10 +96,9 @@ module reservation_station #(
     // find the first ready insn
     always_comb begin
         insn_ready = 0;
-        insn_to_ready = 0;
         // TODO: check whether this for loop siquentially assign variables
         for (int i=NUM_ENTRIES; i>=0; --i) begin
-            unique if (issue_queue_next[i].valid && issue_queue_next[i].insn.ready_rs1 && issue_queue_next[i].insn.ready_rs2) begin
+            unique if (issue_queue_next[i].valid && issue_queue_next[i].insn.ready_src1 && issue_queue_next[i].insn.ready_src2) begin
                 insn_ready = issue_queue_next[i];
             end else begin
                 insn_ready = insn_ready;
@@ -120,10 +120,11 @@ module reservation_station #(
                     break
         */ 
     always_comb begin
+        insn_to_ready = 0;
         for (int i=NUM_ENTRIES; i>=0; --i) begin
             unique if (issue_queue_next[i].valid) begin
                 for (int j=0; j<4; ++j) begin //  j follows order [FU_LSU, FU_MULT, FU_BTU, FU_ALU]
-                    unique if (wake_up[j]) begin
+                    unique if (wakeup[j]) begin
                         insn_to_ready = insn_to_ready;
                     end else begin
                         unique if (
@@ -143,7 +144,7 @@ module reservation_station #(
         end
     end
 
-    assign insn_for_ex_next = insn_ready.insn.valid ? insn_ready : insn_to_ready;
+    assign insn_for_ex_next = insn_ready.valid ? insn_ready : insn_to_ready;
     assign is_full =  issue_queue_next[NUM_ENTRIES-1].valid;
     
 endmodule
