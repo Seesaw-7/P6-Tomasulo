@@ -376,19 +376,19 @@ dispatcher dispatch_stage (
 
 // branch unit
 
-logic branch_from_lsu;
 logic [`XLEN-1:0] btu_wb_data;
 logic [`XLEN-1:0] btu_target_pc;
-// branch_unit BTU (
-//     .func(rs_btu_func_out),
-//     .pc(rs_btu_pc_out), //target addr cal
-//     .imm(rs_btu_imm_out),
-//     .rs1(rs_btu_v1_out), // also for jalr
-//     .rs2(rs_btu_v2_out),
-//     .cond(branch_from_lsu), // 1 for misprediction/flush
-//     .wb_data(btu_wb_data), 
-//     .target_pc(btu_target_pc)
-// );
+logic btu_mis_predict;
+branch_unit BTU (
+    .func(btu_entry_out.insn.func),
+    .pc(btu_entry_out.insn.pc), //target addr cal
+    .imm(btu_entry_out.insn.imm),
+    .rs1(btu_entry_out.insn.value_src1), // also for jalr
+    .rs2(btu_entry_out.insn.value_src2),
+    .cond(btu_mis_predict), // 1 for misprediction/flush
+    .wb_data(btu_wb_data), 
+    .target_pc(btu_target_pc)
+);
 
 // mult unit
 logic [63:0] mult_result;
@@ -422,6 +422,8 @@ assign proc2Dmem_command = BUS_NONE;
         logic [3:0] [`XLEN-1:0] result; //TODO: mult 64 bits
         logic [3:0] [`ROB_TAG_LEN-1:0] tag_insn_ex;
         logic [3:0] [`ROB_TAG_LEN-1:0] tag_result;
+        logic [`XLEN-1:0] target_pc;
+        logic miss_predict;
     } EXECUTE_PACK;
 
     EXECUTE_PACK execute_reg_curr, execute_reg_next;
@@ -434,6 +436,8 @@ assign proc2Dmem_command = BUS_NONE;
         execute_reg_next.result[FU_BTU] = btu_wb_data;
         execute_reg_next.tag_insn_ex[FU_ALU] = alu_result_tag; // TODO:
         execute_reg_next.tag_result[FU_ALU] = alu_result_tag;
+        execute_reg_next.target_pc = btu_target_pc;
+        execute_reg_next.miss_predict = btu_mis_predict;
         //TODO:
     end
 

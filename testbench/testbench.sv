@@ -105,9 +105,9 @@ module testbench;
 		.pipeline_commit_NPC      (pipeline_commit_NPC),
 
 		//debug
-		.pipeline_registers_out(pipeline_registers_out),
-		.flush(flush),
-		.stall(stall)
+		.pipeline_registers_out(pipeline_registers_out)
+		// .flush(flush),
+		// .stall(stall)
 
 		// .if_NPC_out        (if_NPC_out),
 		// .if_IR_out         (if_IR_out),
