@@ -183,23 +183,42 @@ assign dispatcher_RS_is_full[FU_ALU] = rs_alu_full;
 assign dispatcher_RS_is_full[FU_MULT] = rs_mult_full;
 assign dispatcher_RS_is_full[FU_BTU] = rs_btu_full;
 assign dispatcher_RS_is_full[FU_LSU] = 1'b0;
+// dispatcher dispatch_stage (
+//     .clk(clock),
+//     .reset(reset),
+//     .decoded_pack(fetch_reg_curr.decoded_pack),
+//     .registers(registers), // forward from register (reg)
+//     .rob(rob_entries), // forward from rob (reg)
+//     .assign_rob_tag(fetch_reg_curr.rob_tag),
+//     .inst_rs(inst_dispatch_to_rs), //output
+//     .inst_rob(inst_dispatch_to_rob), //output
+//     .stall(stall), // output
+//     .return_flag(fetch_reg_curr.return_flag), 
+//     .ready_flag(fetch_reg_curr.ready_flag),
+//     .reg_addr_from_rob(fetch_reg_curr.reg_addr_from_rob),
+//     .rob_tag_from_rob(fetch_reg_curr.rob_tag_from_rob),
+//     .rob_tag_from_cdb(fetch_reg_curr.rob_tag_from_cdb),
+//     // .wb_data(0), //TODO: redundant for m2
+//     .RS_is_full(fetch_reg_curr.rs_is_full), 
+//     .RS_load(RS_load) //output
+// );
 dispatcher dispatch_stage (
     .clk(clock),
     .reset(reset),
-    .decoded_pack(fetch_reg_curr.decoded_pack),
+    .decoded_pack(fetch_reg_next.decoded_pack),
     .registers(registers), // forward from register (reg)
     .rob(rob_entries), // forward from rob (reg)
-    .assign_rob_tag(fetch_reg_curr.rob_tag),
+    .assign_rob_tag(fetch_reg_next.rob_tag),
     .inst_rs(inst_dispatch_to_rs), //output
     .inst_rob(inst_dispatch_to_rob), //output
     .stall(stall), // output
-    .return_flag(fetch_reg_curr.return_flag), 
-    .ready_flag(fetch_reg_curr.ready_flag),
-    .reg_addr_from_rob(fetch_reg_curr.reg_addr_from_rob),
-    .rob_tag_from_rob(fetch_reg_curr.rob_tag_from_rob),
-    .rob_tag_from_cdb(fetch_reg_curr.rob_tag_from_cdb),
+    .return_flag(fetch_reg_next.return_flag), 
+    .ready_flag(fetch_reg_next.ready_flag),
+    .reg_addr_from_rob(fetch_reg_next.reg_addr_from_rob),
+    .rob_tag_from_rob(fetch_reg_next.rob_tag_from_rob),
+    .rob_tag_from_cdb(fetch_reg_next.rob_tag_from_cdb),
     // .wb_data(0), //TODO: redundant for m2
-    .RS_is_full(fetch_reg_curr.rs_is_full), 
+    .RS_is_full(fetch_reg_next.rs_is_full), 
     .RS_load(RS_load) //output
 );
 
