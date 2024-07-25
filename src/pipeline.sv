@@ -454,11 +454,13 @@ logic [1:0] cdb_select_fu; // TODO: forward it to stop stalling fu
 //TODO: keep ready until moved by cdb
 
     common_data_bus CDB(
+        // input
         .fu_results(execute_reg_curr.result),
         .fu_result_ready(execute_reg_curr.ready),
         .fu_tags(execute_reg_curr.tag_insn_ex),
         .fu_mis_predict(execute_reg_curr.miss_predict),
         .fu_target_pc(execute_reg_curr.target_pc),
+        // output
         .rob_enable(rob_enable),
         .select_fu(cdb_select_fu),
         .cdb_value(value_from_cdb),
@@ -485,7 +487,7 @@ reorder_buffer ROB_0 (
     .clk(clock),
     .reset(reset), //TODO: flush when take_branch
     
-    .dispatch(!stall),
+    .dispatch(!dispatch_reg_curr.stall),
     .reg_addr_from_dispatcher(dispatch_reg_curr.inst_rob.register),
     .npc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_npc),
     .pc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_pc),
