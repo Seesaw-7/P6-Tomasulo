@@ -18,47 +18,36 @@
 // - out_ROB_tag (logic [4:0]): Passes through the input ROB tag, bypass to ROB, forward to RS
 // - out_value (logic [`XLEN-1:0]): Value output to the ROB, forward to RS.
 
-module common_data_bus #(
-    parameter int FU_NUM = 4  // Number of functional units
-) (
+module common_data_bus (
+    input [3:0] [`XLEN-1:0] fu_results,
+    input [3:0] fu_result_ready,
+    input [3:0] [`ROB_TAG_LEN-1:0] fu_tags,
+    input unsigned fu_mis_predict,
+    input [`XLEN-1:0] fu_target_pc,
 
-    // Results from functional units
-    input logic  [FU_NUM-1:0] [`XLEN-1:0] in_values, // Array of results from functional units
-    input logic mispredict, // input from BTU only
-    input logic [`XLEN-1:0] pc, // input from BTU only
-
-    // Signals from issue unit
-    input logic select_flag,              // Flag to indicate if selection is valid
-    input FUNC_UNIT select_signal, // signal to choose the result
-
-    // Data from issue unit
-    input logic [`ROB_TAG_LEN-1:0] ROB_tag,           // ROB tag input
-
-    // Output signals
-    output logic out_select_flag,         // Select flag output
-
-    // Output to ROB and Forward to RS
-    output logic [`ROB_TAG_LEN-1:0] out_ROB_tag,       // ROB tag output, to ROB and RS
-    output logic [`XLEN-1:0] out_value,             // Result output
-    output logic out_mispredict,
-    output logic [`XLEN-1:0] out_pc
+    output logic unsigned rob_enable,
+    output logic [1:0] select_fu,
+    output logic [`XLEN-1:0] cdb_value,
+    output logic [`XLEN-1:0] cdb_tag,
+    output logic [`XLEN-1:0] target_pc,
+    output logic unsigned mis_predict
 );
 
+    assign rob_enable = | fu_result_ready;
+    assign target_pc = fu_target_pc;
+    assign mis_predict = fu_mis_predict;
     always_comb begin
-        // Pass through the ROB tag and select flag
-        // out_ROB_tag = ROB_tag;
-        out_select_flag = select_flag;
-        
-        // default values when select_flag is not set
-        out_value = '0;
-        out_ROB_tag = '0;
-
-        if (select_flag) begin
-            out_value = in_values[select_signal];
-            out_ROB_tag = ROB_tag; 
-            out_mispredict = select_signal == FU_BTU ? mispredict : 0;
-            out_pc = select_signal == FU_BTU ? pc : '0;
+        select_fu = 0;
+        cdb_value = 0;
+        cdb_tag = 0;
+        for (int i=0; i<4; ++i) begin
+            if (fu_result_ready[i]) begin
+                select_fu = i;
+                cdb_value = fu_results[i];
+                cdb_tag = fu_tags[i];
+            end
         end
-    end
+    end 
 
+    
 endmodule

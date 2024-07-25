@@ -376,15 +376,15 @@ branch_unit BTU (
 // mult unit
 logic [63:0] mult_result;
 logic mult_done;
-multiplier mult_0 (
-    .clock(clock),
-    .reset(reset || flush),
-    .mcand(64'(rs_mult_v1_out)), // TODO: 32 bits to 64 bits?
-    .mplier(64'(rs_mult_v2_out)),
-    .start(enable_mult && !execute_reg_curr.ready[FU_MULT]),
-    .product(mult_result),
-    .done(mult_done)
-);
+// multiplier mult_0 (
+//     .clock(clock),
+//     .reset(reset || flush),
+//     .mcand(64'(rs_mult_v1_out)), // TODO: 32 bits to 64 bits?
+//     .mplier(64'(rs_mult_v2_out)),
+//     .start(enable_mult && !execute_reg_curr.ready[FU_MULT]),
+//     .product(mult_result),
+//     .done(mult_done)
+// );
 
 // load store unit
 
