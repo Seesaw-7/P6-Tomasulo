@@ -34,8 +34,8 @@ module common_data_bus (
 );
 
     assign rob_enable = | fu_result_ready;
-    assign target_pc = fu_target_pc;
-    assign mis_predict = fu_mis_predict;
+    assign target_pc = (select_fu == FU_BTU) ? fu_target_pc : 0;
+    assign mis_predict = (select_fu == FU_BTU) ? fu_mis_predict : 0;
     always_comb begin
         select_fu = 0;
         cdb_value = 0;
