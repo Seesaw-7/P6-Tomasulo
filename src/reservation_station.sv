@@ -119,6 +119,7 @@ module reservation_station #(
                 else
                     break
         */ 
+    /*
     always_comb begin
         insn_to_ready = 0;
         for (int i=NUM_ENTRIES; i>=0; --i) begin
@@ -143,8 +144,10 @@ module reservation_station #(
             end
         end
     end
+    */
 
-    assign insn_for_ex_next = insn_ready.valid ? insn_ready : insn_to_ready;
+    // assign insn_for_ex_next = insn_ready.valid ? insn_ready : insn_to_ready;
+    assign insn_for_ex_next = insn_ready;
     assign is_full =  issue_queue_next[NUM_ENTRIES-1].valid;
     
 endmodule
