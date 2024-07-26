@@ -112,6 +112,12 @@ prefetch_queue fetch_stage_0 (
     .packet_out(fetch_stage_packet)
 );
 
+//////////////////////////////////////////////////
+//                                              //
+//                Dispatch-Stage                //
+//                                              //
+//////////////////////////////////////////////////
+
 logic decoder_csr_op;
 // assign decoder_csr_op = RS_load[0]; //TODO:
 logic decoder_halt;
@@ -128,51 +134,7 @@ decoder decoder_0 (
     .decoded_pack(decoded_pack)
 );
 
-//////////////////////////////////////////////////
-//                                              //
-//            Fetch Pipeline Register           //
-//                                              //
-//////////////////////////////////////////////////
 
-    typedef struct packed {
-        DECODED_PACK decoded_pack; 
-        logic [`ROB_TAG_LEN-1:0] rob_tag;
-        logic unsigned [3:0] rs_is_full;
-        // map table
-        logic return_flag;
-        logic ready_flag;
-        logic [`ROB_TAG_LEN-1:0] rob_tag_from_rob;
-        logic [`REG_ADDR_LEN-1:0] reg_addr_from_rob;
-        logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb;
-    } FETCH_REG;
-
-    FETCH_REG fetch_reg_curr, fetch_reg_next;
-
-    always_comb begin
-        fetch_reg_next.decoded_pack = decoded_pack;
-        fetch_reg_next.rs_is_full = dispatcher_RS_is_full; //TODO:
-        fetch_reg_next.return_flag = wb_en;
-        fetch_reg_next.ready_flag = select_flag_from_cdb;
-        fetch_reg_next.rob_tag_from_rob = retire_rob_tag;
-        fetch_reg_next.reg_addr_from_rob = wb_reg;
-        fetch_reg_next.rob_tag_from_cdb = rob_tag_from_cdb;
-    end
-
-	// synopsys sync_set_reset "reset"
-	always_ff @(posedge clock) begin
-		if (reset) begin //TODO: flush
-            fetch_reg_curr <= 0;
-		end else begin// if (reset)
-			fetch_reg_curr <= `SD fetch_reg_next; 
-            // neglect enable signal since invalid insn are dropped in dispatcher 
-		end
-	end // always
-
-//////////////////////////////////////////////////
-//                                              //
-//                Dispatch-Stage                //
-//                                              //
-//////////////////////////////////////////////////
 // TODO: check whether invalid insn are dropped
 logic stall;
 logic [3:0] RS_load;
@@ -183,76 +145,27 @@ assign dispatcher_RS_is_full[FU_ALU] = rs_alu_full;
 assign dispatcher_RS_is_full[FU_MULT] = rs_mult_full;
 assign dispatcher_RS_is_full[FU_BTU] = rs_btu_full;
 assign dispatcher_RS_is_full[FU_LSU] = 1'b0;
-// dispatcher dispatch_stage (
-//     .clk(clock),
-//     .reset(reset),
-//     .decoded_pack(fetch_reg_curr.decoded_pack),
-//     .registers(registers), // forward from register (reg)
-//     .rob(rob_entries), // forward from rob (reg)
-//     .assign_rob_tag(fetch_reg_curr.rob_tag),
-//     .inst_rs(inst_dispatch_to_rs), //output
-//     .inst_rob(inst_dispatch_to_rob), //output
-//     .stall(stall), // output
-//     .return_flag(fetch_reg_curr.return_flag), 
-//     .ready_flag(fetch_reg_curr.ready_flag),
-//     .reg_addr_from_rob(fetch_reg_curr.reg_addr_from_rob),
-//     .rob_tag_from_rob(fetch_reg_curr.rob_tag_from_rob),
-//     .rob_tag_from_cdb(fetch_reg_curr.rob_tag_from_cdb),
-//     // .wb_data(0), //TODO: redundant for m2
-//     .RS_is_full(fetch_reg_curr.rs_is_full), 
-//     .RS_load(RS_load) //output
-// );
+
 dispatcher dispatch_stage (
     .clk(clock),
     .reset(reset),
-    .decoded_pack(fetch_reg_next.decoded_pack),
+    .decoded_pack(decoded_pack),
     .registers(registers), // forward from register (reg)
     .rob(rob_entries), // forward from rob (reg)
-    .assign_rob_tag(fetch_reg_next.rob_tag),
+    .assign_rob_tag(rob_tag_for_dispatch),
     .inst_rs(inst_dispatch_to_rs), //output
     .inst_rob(inst_dispatch_to_rob), //output
     .stall(stall), // output
-    .return_flag(fetch_reg_next.return_flag), 
-    .ready_flag(fetch_reg_next.ready_flag),
-    .reg_addr_from_rob(fetch_reg_next.reg_addr_from_rob),
-    .rob_tag_from_rob(fetch_reg_next.rob_tag_from_rob),
-    .rob_tag_from_cdb(fetch_reg_next.rob_tag_from_cdb),
+    .return_flag(wb_en), 
+    .ready_flag(rob_enable),
+    .reg_addr_from_rob(wb_reg),
+    .rob_tag_from_rob(retire_rob_tag),
+    .rob_tag_from_cdb(rob_tag_from_cdb),
     // .wb_data(0), //TODO: redundant for m2
-    .RS_is_full(fetch_reg_next.rs_is_full), 
-    .RS_load(RS_load) //output
+    .RS_is_full(dispatcher_RS_is_full), 
+    .RS_load(RS_Load) //output
 );
 
-//////////////////////////////////////////////////
-//                                              //
-//            Dispatch Pipeline Register           //
-//                                              //
-//////////////////////////////////////////////////
-
-    typedef struct packed {
-       INST_RS inst_rs;
-       INST_ROB inst_rob; 
-       logic stall;
-       logic unsigned [3:0] rs_load;
-    } DISPATCH_PACK;
-
-    DISPATCH_PACK dispatch_reg_curr, dispatch_reg_next;
-
-    always_comb begin
-        dispatch_reg_next.inst_rs = inst_dispatch_to_rs;
-        dispatch_reg_next.inst_rob = inst_dispatch_to_rob;
-        dispatch_reg_next.stall = stall;
-        dispatch_reg_next.rs_load = RS_load;
-    end
-
-    // synopsys sync_set_reset "reset"
-	always_ff @(posedge clock) begin
-		if (reset) begin //TODO: flush
-            dispatch_reg_curr <= 0;
-		end else begin// if (reset)
-			dispatch_reg_curr <= `SD dispatch_reg_next; 
-            // neglect enable signal since invalid insn are dropped in dispatcher 
-		end
-	end // always
 
 //////////////////////////////////////////////////
 //                                              //
@@ -267,8 +180,8 @@ dispatcher dispatch_stage (
     reservation_station RS_ALU (
         .clk(clock),
         .reset(reset || flush), // flush when mis predict
-        .load(dispatch_reg_curr.rs_load[FU_ALU]),
-        .insn_load(dispatch_reg_curr.inst_rs),
+        .load(RS_load[FU_ALU]),
+        .insn_load(inst_dispatch_to_rs),
         .wakeup(execute_reg_curr.ready), 
         .wakeup_value(execute_reg_curr.result),
         .wakeup_tag(execute_reg_curr.tag_result), 
@@ -287,8 +200,8 @@ dispatcher dispatch_stage (
     reservation_station RS_BTU (
         .clk(clock),
         .reset(reset || flush), // flush when mis predict
-        .load(dispatch_reg_curr.rs_load[FU_BTU]),
-        .insn_load(dispatch_reg_curr.inst_rs),
+        .load(RS_load[FU_BTU]),
+        .insn_load(inst_dispatch_to_rs),
         .wakeup(execute_reg_curr.ready), 
         .wakeup_value(execute_reg_curr.result),
         .wakeup_tag(execute_reg_curr.tag_result), 
@@ -305,8 +218,8 @@ dispatcher dispatch_stage (
     reservation_station RS_MULT (
         .clk(clock),
         .reset(reset || flush), // flush when mis predict
-        .load(dispatch_reg_curr.rs_load[FU_MULT]),
-        .insn_load(dispatch_reg_curr.inst_rs),
+        .load(RS_load[FU_MULT]),
+        .insn_load(inst_dispatch_to_rs),
         .wakeup(execute_reg_curr.ready), 
         .wakeup_value(execute_reg_curr.result),
         .wakeup_tag(execute_reg_curr.tag_result), 
@@ -323,8 +236,8 @@ dispatcher dispatch_stage (
     reservation_station RS_LSU (
         .clk(clock),
         .reset(reset || flush), // flush when mis predict
-        .load(dispatch_reg_curr.rs_load[FU_LSU]),
-        .insn_load(dispatch_reg_curr.inst_rs),
+        .load(RS_load[FU_LSU]),
+        .insn_load(inst_dispatch_to_rs),
         .wakeup(execute_reg_curr.ready), 
         .wakeup_value(execute_reg_curr.result),
         .wakeup_tag(execute_reg_curr.tag_result), 
@@ -333,7 +246,6 @@ dispatcher dispatch_stage (
         .insn_for_ex(lsu_entry_out),
         .is_full(rs_lsu_full)
     );
-
 
 //////////////////////////////////////////////////
 //                                              //
@@ -365,7 +277,6 @@ dispatcher dispatch_stage (
     logic [`XLEN-1:0] alu_result;
     logic [`ROB_TAG_LEN-1:0] alu_result_tag;
     logic alu_done;
-    
 
     arithmetic_logic_unit ALU (
         .insn(alu_insn),
@@ -516,7 +427,7 @@ reorder_buffer ROB_0 (
     .npc_from_dispatcher(inst_dispatch_to_rob.inst_npc),
     .pc_from_dispatcher(inst_dispatch_to_rob.inst_pc),
      
-    .cdb_to_rob(select_flag_from_cdb),
+    .cdb_to_rob(rob_enable),
     .rob_tag_from_cdb(rob_tag_from_cdb),
     .wb_data_from_cdb(value_from_cdb),
     .target_pc_from_cdb(pc_from_cdb),
