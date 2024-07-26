@@ -27,18 +27,6 @@ module pipeline (
 	output logic [`XLEN-1:0] pipeline_commit_NPC,
 	
     output [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out
-    // output flush, stall,
-    // output dispatcher_RS_is_full,
-    // output issue_unit_insn_ready,
-    // output issue_signal_out,
-    // output decoded_pack,
-    // output inst_dispatch_to_rs,
-    // output value_from_cdb,
-    // output select_signal_from_issue_unit,
-    // output rob_tag_from_issue_unit,
-    // output rs_alu_v1_out,
-    // output rs_alu_v2_out,
-    // output alu_result
 	
 	// testing hooks (these must be exported so we can test
 	// the synthesized version) data is tested by looking at
@@ -146,7 +134,7 @@ assign dispatcher_RS_is_full[FU_MULT] = rs_mult_full;
 assign dispatcher_RS_is_full[FU_BTU] = rs_btu_full;
 assign dispatcher_RS_is_full[FU_LSU] = 1'b0;
 
-dispatcher dispatch_stage (
+dispatcher dispatcher_0 (
     .clk(clock),
     .reset(reset),
     .decoded_pack(decoded_pack),
@@ -163,7 +151,7 @@ dispatcher dispatch_stage (
     .rob_tag_from_cdb(rob_tag_from_cdb),
     // .wb_data(0), //TODO: redundant for m2
     .RS_is_full(dispatcher_RS_is_full), 
-    .RS_load(RS_Load) //output
+    .RS_load(RS_load) //output
 );
 
 

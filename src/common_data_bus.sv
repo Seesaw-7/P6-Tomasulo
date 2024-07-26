@@ -28,7 +28,7 @@ module common_data_bus (
     output logic unsigned rob_enable,
     output logic [1:0] select_fu,
     output logic [`XLEN-1:0] cdb_value,
-    output logic [`XLEN-1:0] cdb_tag,
+    output logic [`ROB_TAG_LEN-1:0] cdb_tag,
     output logic [`XLEN-1:0] target_pc,
     output logic unsigned mis_predict
 );
@@ -42,7 +42,7 @@ module common_data_bus (
         cdb_tag = 0;
         for (int i=0; i<4; ++i) begin
             if (fu_result_ready[i]) begin
-                select_fu = i;
+                select_fu = 2'(i);
                 cdb_value = fu_results[i];
                 cdb_tag = fu_tags[i];
             end
