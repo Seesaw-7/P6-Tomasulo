@@ -117,7 +117,8 @@ typedef enum logic [5:0] {
 	BTU_JAL		= 6'h14,
 	BTU_JALR	= 6'h15,
 	LS_LOAD         = 6'h16,
-	LS_STORE        = 6'h17
+	LS_LOADU        = 6'h17,
+	LS_STORE        = 6'h18
 } ALU_FUNC;
 
 typedef enum logic [1:0] {
