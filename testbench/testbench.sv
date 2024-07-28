@@ -10,6 +10,10 @@
 `include "sys_defs.svh"
 `define CLOCK_PERIOD 10.0
 
+// micro for testing
+`define DISPLAY_INTERNAL
+`define ASSERTION
+
 `timescale 1ns/100ps
 
 // these link to the pipe_print.c file in this directory, and are used below to print
@@ -64,6 +68,8 @@ module testbench;
 	logic [`REG_NUM-1:0] [`XLEN-1:0] pipeline_registers_out;
 	logic flush;
 	logic stall;
+
+	assign pipeline_error_status = NO_ERROR;
 
 	// logic [`XLEN-1:0] if_NPC_out;
 	// logic [31:0]      if_IR_out;
@@ -185,6 +191,67 @@ module testbench;
 			$display("@@@");
 		end
 	endtask // task show_mem_with_decimal
+	
+`ifdef DISPLAY_INTERNAL
+	task display_time();
+		$display(">>>>>>>");
+		$display("time: %4.0f", $time);
+		$display(" ");
+	endtask
+
+	task display_fetch_stage();
+		$display("fetch stage output valid: %b", core.fetch_stage_packet.valid);
+		$display("fetch stage output inst: %b", core.fetch_stage_packet.inst);
+		$display("fetch stage output pc: %d", core.fetch_stage_packet.PC);
+		$display("fetch stage output npc: %d", core.fetch_stage_packet.NPC);
+		$display(" ");
+	endtask
+	
+	task _display_decoder();
+		$display("dispatch stage internal: decoder csr_op: %b", core.decoder_csr_op);
+		$display("dispatch stage internal: decoder halt: %b", core.decoder_halt);
+		$display("dispatch stage internal: decoder illegal: %b", core.decoder_illegal);
+		$display("dispatch stage internal: decoder insn valid: %b", core.decoded_pack.valid);
+		$display("dispatch stage internal: decoder insn func unit: %b", core.decoded_pack.fu);
+		$display("dispatch stage internal: decoder insn arch reg: %d", core.decoded_pack.arch_reg);
+		$display("dispatch stage internal: decoder insn imm: %b", core.decoded_pack.imm);
+		$display("dispatch stage internal: decoder insn alu func: %b", core.decoded_pack.alu_func);
+		$display("dispatch stage internal: decoder insn pc: %d", core.decoded_pack.pc);
+		$display(" ");	
+		// rs1 valid, rs2 valid, imm valid, pc valid
+	endtask
+
+	task _display_dispatcher();
+		$display("dispatch stage internal: dispatch input rob tag: %d", core.dispatcher_0.assign_rob_tag);
+		$display("dispatch stage internal: dispatch input RS_is_full: %b", core.dispatcher_0.RS_is_full);
+		$display("dispatch stage internal: dispatch output rs_load: %b", core.dispatcher_0.RS_load);
+		$display("dispatch stage internal: dispatch output stall: %b", core.dispatcher_0.stall);
+		// insn to rs
+		$display("dispatch stage internal: dispatch2rs output pc: %d", core.dispatcher_0.inst_rs.fu);
+		$display(" ");
+	endtask
+
+	task display_dispatch_stage();
+		_display_decoder();	
+		_display_dispatcher();	
+
+		// display map table
+		$display("dispatch stage internal: map table output renamed pack: dest %d, rob tag %d ", core.dispatcher_0.mt.renamed_pack.dest, core.dispatcher_0.mt.renamed_pack.rob_tag);
+		for (int i=0; i<`REG_NUM; ++i) begin
+			$display("map table[%d]: rob tag %d ready: %b", i, core.dispatcher_0.mt.map_table_curr[i].rob_tag, core.dispatcher_0.mt.map_table_curr[i].ready_in_rob);
+		end
+		// core.dispatcher_0.mt.renamed_pack
+
+		$display(" ");
+	endtask
+
+	task dislplay_reg();
+		for (int i=0; i<32; ++i) begin
+			$display("reg[%d]: %d", i, core.regfile.registers[i]);
+		end
+	endtask
+
+`endif 
 
 
 	initial begin
@@ -251,6 +318,14 @@ module testbench;
 		end
 	end
 
+`ifdef DISPLAY_INTERNAL
+	always @(negedge clock) begin
+		display_time();
+		// display_fetch_stage();
+		// display_dispatch_stage();
+		dislplay_reg();
+	end
+`endif
 
 	always @(negedge clock) begin
 		if(reset) begin
@@ -262,7 +337,7 @@ module testbench;
 			`SD;
 
 			 // print the piepline stuff via c code to the pipeline output file
-			 print_cycles();
+			print_cycles();
 			//  print_stage(" ", if_IR_out, if_NPC_out[31:0], {31'b0,if_valid_inst_out});
 			//  print_stage("|", if_id_IR,  if_id_NPC [31:0], {31'b0,if_id_valid_inst});
 			//  print_stage("|", id_ex_IR,  id_ex_NPC [31:0], {31'b0,id_ex_valid_inst});
@@ -286,7 +361,8 @@ module testbench;
 			end
 
 			// deal with any halting conditions
-			if(pipeline_error_status != NO_ERROR || debug_counter > 50000000) begin
+			if(pipeline_error_status != NO_ERROR || debug_counter > 5000) begin
+			// if(pipeline_error_status != NO_ERROR || debug_counter > 50000000) begin
 				$display("@@@ Unified Memory contents hex on left, decimal on right: ");
 				show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
 				// 8Bytes per line, 16kB total
@@ -313,5 +389,18 @@ module testbench;
 			debug_counter <= debug_counter + 1;
 		end // if(reset)
 	end
+
+`ifdef ASSERTION
+
+always @(negedge clock) begin
+	assert (clock != core.fetch_stage_0.clock) else $fatal("It's gone wrong");
+end
+
+
+
+`endif
+
+
+
 
 endmodule // module testbench
