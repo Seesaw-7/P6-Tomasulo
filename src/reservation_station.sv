@@ -145,7 +145,7 @@ module reservation_station #(
 
     // assign insn_for_ex_next = insn_ready.valid ? insn_ready : insn_to_ready;
     assign insn_for_ex_next = insn_ready;
-    assign is_full =  issue_queue_next[NUM_ENTRIES-1].valid;
+    assign is_full =  issue_queue_curr[NUM_ENTRIES-2].valid;
     
 endmodule
 
