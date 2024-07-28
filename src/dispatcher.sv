@@ -82,7 +82,7 @@ module dispatcher (
     assign inst_rs.tag_src2 = renamed_pack.src2.rob_tag;
     assign inst_rs.imm = insn_reg.fu == FU_BTU? insn_reg.imm : '0;
     assign inst_rs.pc = insn_reg.fu == FU_BTU? insn_reg.pc : '0;
-    assign inst_rs.insn_tag = rob_tag_from_rob;
+    assign inst_rs.insn_tag = assign_rob_tag;
 
     always_comb begin
         // src1
