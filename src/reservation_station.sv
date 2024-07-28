@@ -1,7 +1,7 @@
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
-// `include "reservation_station.svh"
+ `include "reservation_station.svh"
 
 //TODO: use CAM instead of loop to improve gate latency
 
