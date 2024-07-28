@@ -115,19 +115,9 @@ typedef enum logic [5:0] {
 	BTU_BLTU	= 6'h12,
 	BTU_BGEU	= 6'h13,
 	BTU_JAL		= 6'h14,
-	BTU_JALR	= 6'h15
-/*
-	ALU_LUI         = 6'h17,
-	ALU_ADDI        = 6'h18,
-	ALU_SLTI        = 6'h19,
-	ALU_SLTIU       = 6'h1a,
-	ALU_ANDI        = 6'h1b,
-	ALU_ORI         = 6'h1c,
-	ALU_XORI        = 6'h1d,
-	ALU_SLLI        = 6'h1e,
-	ALU_SRLI        = 6'h1f,
-	ALU_SRAI        = 6'h20,
-*/
+	BTU_JALR	= 6'h15,
+	LS_LOAD         = 6'h16,
+	LS_STORE        = 6'h17
 } ALU_FUNC;
 
 typedef enum logic [1:0] {
