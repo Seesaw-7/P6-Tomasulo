@@ -54,9 +54,9 @@ module D_Cache #(
     function automatic logic [`XLEN-1:0] read_data_by_size(logic [`XLEN-1:0] data, logic [2:0] size, logic [1:0] offset);
         logic [`XLEN-1:0] result;
         case (size)
-            3'b000: result = {{(`XLEN-8){1'b0}}, data[offset*8 +: 8]};  // Byte
-            3'b001: result = {{(`XLEN-16){1'b0}}, data[offset[1]*16 +: 16]};  // Halfword
-            3'b010: result = data;  // Word
+            3'b001: result = {{(`XLEN-8){1'b0}}, data[offset*8 +: 8]};  // Byte
+            3'b010: result = {{(`XLEN-16){1'b0}}, data[offset[1]*16 +: 16]};  // Halfword
+            3'b100: result = data;  // Word
             default: result = data;
         endcase
         return result;
