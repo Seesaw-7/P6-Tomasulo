@@ -1,0 +1,44 @@
+Loading memory file: output/structural.hex
+Using writeback output file: output/structural.wb
+Using pipeline output file: output/structural.ppln
+@@
+@@
+@@                     0  Asserting System reset......
+@@
+@@                   100 : System STILL at reset, can't show anything
+@@
+@@
+@@                   200 : System STILL at reset, can't show anything
+@@
+@@
+@@                   300 : System STILL at reset, can't show anything
+@@
+@@                   360  Deasserting System reset......
+@@
+@@
+@@@ Unified Memory contents hex on left, decimal on right: 
+@@@
+@@@ mem[    0] = 000012b700110113 : 20577189429523
+@@@ mem[    8] = 0000001300828293 : 81612931731
+@@@ mem[   16] = 0000001300000013 : 81604378643
+@@@ mem[   24] = 002181b300000013 : 9431280030580755
+@@@ mem[   32] = 0002a18300820213 : 740533974729235
+@@@ mem[   40] = 0015051300828293 : 5916553681994387
+@@@ mem[   48] = 0083031301052593 : 36876602105472403
+@@@ mem[   56] = 0000000010500073 : 273678451
+@@@
+@@@
+@@                  2320 : System halted
+@@
+@@@ System halted on WFI instruction
+@@@
+@@
+@@  20 cycles / 14 instrs = 1.428571 CPI
+@@
+@@  190.00 ns total time to execute
+@@
+
+- testbench/testbench.sv:301: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.026 2024-06-15
+- Verilator: $finish at 335ns; walltime 0.002 s; speed 0.000 s/s
+- Verilator: cpu 0.000 s on 1 threads; alloced 121 MB
