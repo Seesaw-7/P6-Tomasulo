@@ -174,7 +174,7 @@ dispatcher dispatcher_0 (
         .wakeup_value(execute_reg_curr.result),
         .wakeup_tag(execute_reg_curr.tag_result), 
         .clear(rs_clear[FU_ALU]), 
-        .clear_tag(rs_clear_tag[FU_ALU]),
+        .clear_tag(fu_insn[FU_ALU].insn_tag),
         .insn_for_ex(alu_entry_out),
         .is_full(rs_alu_full)
     );
@@ -194,7 +194,7 @@ dispatcher dispatcher_0 (
         .wakeup_value(execute_reg_curr.result),
         .wakeup_tag(execute_reg_curr.tag_result), 
         .clear(rs_clear[FU_BTU]), 
-        .clear_tag(rs_clear_tag[FU_BTU]),
+        .clear_tag(fu_insn[FU_BTU].insn_tag),
         .insn_for_ex(btu_entry_out),
         .is_full(rs_btu_full)
     );
@@ -212,7 +212,7 @@ dispatcher dispatcher_0 (
         .wakeup_value(execute_reg_curr.result),
         .wakeup_tag(execute_reg_curr.tag_result), 
         .clear(rs_clear[FU_MULT]), 
-        .clear_tag(rs_clear_tag[FU_MULT]),
+        .clear_tag(fu_insn[FU_MULT].insn_tag),
         .insn_for_ex(mult_entry_out),
         .is_full(rs_mult_full)
     );
@@ -230,7 +230,7 @@ dispatcher dispatcher_0 (
         .wakeup_value(execute_reg_curr.result),
         .wakeup_tag(execute_reg_curr.tag_result), 
         .clear(rs_clear[FU_LSU]), 
-        .clear_tag(rs_clear_tag[FU_LSU]),
+        .clear_tag(fu_insn[FU_LSU].insn_tag),
         .insn_for_ex(lsu_entry_out),
         .is_full(rs_lsu_full)
     );
@@ -242,24 +242,39 @@ dispatcher dispatcher_0 (
 //////////////////////////////////////////////////
     // Integer issue unit
     logic [3:0] rs_clear;
-    logic [3:0] [`ROB_TAG_LEN-1:0] rs_clear_tag;
-    INST_RS alu_insn;
-    always_comb begin
-        alu_insn = alu_entry_out.insn;
-        // broadcast
-        if (execute_reg_curr.ready[FU_ALU]) begin
-            if (alu_insn.tag_src1 == execute_reg_curr.tag_result[FU_ALU])begin
-                alu_insn.value_src1 = execute_reg_curr.result[FU_ALU];
-                alu_insn.ready_src1 = 1'b1;
-            end
-            if (alu_insn.tag_src2 == execute_reg_curr.tag_result[FU_ALU])begin
-                alu_insn.value_src2 = execute_reg_curr.result[FU_ALU];
-                alu_insn.ready_src2 = 1'b1;
-            end
-        end
-    end
-    assign rs_clear[FU_ALU] = alu_entry_out.valid && !execute_reg_curr.ready[FU_ALU] && alu_insn.ready_src1 && alu_insn.ready_src1; // FU reg is empty and insn is ready 
-    assign rs_clear_tag[FU_ALU] = alu_entry_out.insn.insn_tag;
+    INST_RS fu_insn [3:0];
+
+    RS_ENTRY rs_entries_ex [3:0];
+    assign rs_entries_ex[FU_ALU] = alu_entry_out;
+    assign rs_entries_ex[FU_MULT] = mult_entry_out;
+    assign rs_entries_ex[FU_BTU] = btu_entry_out;
+    assign rs_entries_ex[FU_LSU] = lsu_entry_out;
+    // always_comb begin
+    //     alu_insn = alu_entry_out.insn;
+    //     // broadcast
+    //     if (execute_reg_curr.ready[FU_ALU]) begin
+    //         if (alu_insn.tag_src1 == execute_reg_curr.tag_result[FU_ALU])begin
+    //             alu_insn.value_src1 = execute_reg_curr.result[FU_ALU];
+    //             alu_insn.ready_src1 = 1'b1;
+    //         end
+    //         if (alu_insn.tag_src2 == execute_reg_curr.tag_result[FU_ALU])begin
+    //             alu_insn.value_src2 = execute_reg_curr.result[FU_ALU];
+    //             alu_insn.ready_src2 = 1'b1;
+    //         end
+    //     end
+    // end
+    // assign rs_clear[FU_ALU] = alu_entry_out.valid && !execute_reg_curr.ready[FU_ALU] && alu_insn.ready_src1 && alu_insn.ready_src1; // FU reg is empty and insn is ready 
+    // assign rs_clear_tag[FU_ALU] = alu_entry_out.insn.insn_tag;
+
+    issue_unit issue_unit_0 (
+        .insns_ready(execute_reg_curr.ready),
+        .cdb_select(1 << cdb_select_fu),
+        .alu_result(execute_reg_curr.result[FU_ALU]),
+        .alu_result_tag(execute_reg_curr.tag_result[FU_ALU]),
+        .rs_entries_ex(rs_entries_ex),
+        .fu_en(rs_clear),
+        .insns_select(fu_insn)
+    );
 
     // Integer Unit
     logic [`XLEN-1:0] alu_result;
@@ -267,7 +282,7 @@ dispatcher dispatcher_0 (
     logic alu_done;
 
     arithmetic_logic_unit ALU (
-        .insn(alu_insn),
+        .insn(fu_insn[FU_ALU]),
         .en(rs_clear[FU_ALU]),
         .result(alu_result),
         .insn_tag(alu_result_tag),
@@ -277,32 +292,34 @@ dispatcher dispatcher_0 (
 
 // branch unit
 
-logic [`XLEN-1:0] btu_wb_data;
-logic [`XLEN-1:0] btu_target_pc;
-logic btu_mis_predict;
-branch_unit BTU (
-    .func(btu_entry_out.insn.func),
-    .pc(btu_entry_out.insn.pc), //target addr cal
-    .imm(btu_entry_out.insn.imm),
-    .rs1(btu_entry_out.insn.value_src1), // also for jalr
-    .rs2(btu_entry_out.insn.value_src2),
-    .cond(btu_mis_predict), // 1 for misprediction/flush
-    .wb_data(btu_wb_data), 
-    .target_pc(btu_target_pc)
-);
+    logic [`XLEN-1:0] btu_wb_data;
+    logic [`XLEN-1:0] btu_target_pc;
+    logic btu_mis_predict;
+    logic [`ROB_TAG_LEN-1:0] btu_result_tag;
+    logic btu_done;
+    branch_unit BTU (
+        .insn(fu_insn[FU_BTU])
+        .en(rs_clear[FU_BTU])
+        .cond(btu_mis_predict), // 1 for misprediction/flush
+        .wb_data(btu_wb_data), 
+        .target_pc(btu_target_pc),
+        .insn_tag(btu_result_tag),
+        .done(btu_done)
+    );
 
 // mult unit
 logic [63:0] mult_result;
 logic mult_done;
-// multiplier mult_0 (
-//     .clock(clock),
-//     .reset(reset || flush),
-//     .mcand(64'(rs_mult_v1_out)), // TODO: 32 bits to 64 bits?
-//     .mplier(64'(rs_mult_v2_out)),
-//     .start(enable_mult && !execute_reg_curr.ready[FU_MULT]),
-//     .product(mult_result),
-//     .done(mult_done)
-// );
+multiplier mult_0 (
+    .clock(clock),
+    .reset(reset || flush),
+    .mcand(64'(rs_mult_v1_out)), 
+    .mplier(64'(rs_mult_v2_out)),
+    .insn_tag_in(fu_insn[FU_MULT].insn_tag),
+    .start(rs_clear[FU_MULT]),
+    .product(mult_result),
+    .done(mult_done)
+);
 
 // load store unit
 

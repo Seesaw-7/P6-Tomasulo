@@ -3,18 +3,23 @@
 `include "sys_defs.svh"
 
 module branch_unit(
-    input ALU_FUNC func,
-    input [`XLEN-1:0] pc, //target addr cal
-    input [`XLEN-1:0] imm,
+    input INST_RS insn,
+    input en,
 
     // for branch condition check
-    input [`XLEN-1:0] rs1, // also for jalr
-    input [`XLEN-1:0] rs2,
 
     output logic cond, // 1 for misprediction/flush
     output logic [`XLEN-1:0] wb_data, 
-    output logic [`XLEN-1:0] target_pc
+    output logic [`XLEN-1:0] target_pc,
+    
+    output logic [`ROB_TAG_LEN-1:0] insn_tag,
+    output logic done
 );
+    logic ALU_FUNC func = insn.func;
+    logic [`XLEN-1:0] pc = insn.pc;
+    logic [`XLEN-1:0] imm = insn.imm;
+    logic [`XLEN-1:0] rs1 = insn.value_src1;
+    logic [`XLEN-1:0] rs2 = insn.value_src2;
     
 	// branch condition check
 	logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
@@ -58,5 +63,8 @@ module branch_unit(
 	       target_pc = pc + 4;
 	   end
 	end
+
+    assign insn_tag = insn.insn_tag;
+    assign done = en;
 
 endmodule
