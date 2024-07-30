@@ -156,14 +156,40 @@ module decoder(
 );
 
 ```
+### Overview 
+The decoder module performs the following key functions:
+1. Validates and decodes the instruction.
+2. Identifies special instructions such as CSR operations and halts.
+3. Outputs a decoded packet containing the necessary information for further stages in the pipeline.
 
-balabala
+### Inputs
+The decoder module receives inputs from the fetch stage and the pipeline control logic.
+- in_valid: Signal from the fetch stage indicating the validity of the input instruction.
+- inst: Instruction to be decoded, provided by the fetch stage.
+- flush: Signal originating from the pipeline control logic, used to flush the current operation in case of mispredictions or exceptions.
+- in_pc: Program counter value associated with the instruction, provided by the fetch stage.
 
-formalize the input and output of this module based on the description in ## pipeline
-1. where to get input
-2. flow from input to output
-3. important point to check
-4. how output will be used in other module
+
+### Flow from Input to Output
+**Validation**: The module first checks if the input instruction is valid using the `in_valid` signal. If `in_valid` is low, the instruction is ignored and set to noop defaults.
+
+**Default Initialization**: If instruction valid, the module initializes the decoded output packet (`decoded_pack`) with default values. These defaults correspond to a noop, ensuring that invalid instructions do not produce incorrect signals.
+
+**Instruction Decoding**: The module uses a combinational logic block to decode the instruction and set appropriate fields in `decoded_pack`.
+
+**Output Generation**: The `decoded_pack` is populated with the decoded instruction details, including the opcode, operand registers, immediate values, and control signals. The other output signals (`csr_op`, `halt`, `illegal`) are also set based on the decoded instruction.
+
+**Flush Handling**: The `flush` signal is monitored to reset the decoded output in case of pipeline flush events due to mispredictions or exceptions, ensuring that invalid operations do not propagate through the pipeline.
+
+### Outputs
+
+The outputs from the decoder module are used by subsequent stages in the pipeline:
+
+- csr_op: Utilized in the execution stage for handling CSR instructions.
+- halt: Indicates a halt condition to other pipeline stages.
+- illegal: Flags illegal instructions for exception handling.
+- decoded_pack: Provides necessary control signals and information for the dispatch stage to process the instruction.
+
 
 
 
