@@ -9,7 +9,7 @@ module ls_unit(
     input LS_UNIT_PACK insn_in, 
     input logic en, 
     input logic mem_hit, // from mem; hit or miss
-    input logic load_data, // load from mem
+    input [`XLEN-1:0] load_data, // load from mem
 
     output logic mem_read,
     output logic mem_write, 
