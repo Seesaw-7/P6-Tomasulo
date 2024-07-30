@@ -21,7 +21,6 @@ module ls_queue(
     
     output to_ls_unit, 
     output INST_RS insn_out_to_ls_unit, 
-    output read_write 
 );
     
     LS_QUEUE_ENTRY [`LS_QUEUE_SIZE-1:0] ls_queue_curr; 
