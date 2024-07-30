@@ -15,14 +15,17 @@ module multiplier #(
 ) (
 				input clock, reset,
 				input unsigned [63:0] mcand, mplier,
+				input [`ROB_TAG_LEN-1:0] insn_tag_in,
 				input start,
 				
 				output [63:0] product,
+				output [`ROB_TAG_LEN-1:0] insn_tag,
 				output done
 			);
 
   logic [63:0] mcand_out, mplier_out;
-  logic [((N-1)*64)-1:0] internal_products, internal_mcands, internal_mpliers;
+  logic [((N-1)*64)-1:0] internal_products, internal_mcands, internal_mpliers; 
+  logic [((N-1)*`ROB_TAG_LEN)-1:0] internal_insn_tags;
   logic [(N-2):0] internal_dones;
   
 	mult_stage #(N) mstage [(N-1):0]  (
@@ -31,10 +34,12 @@ module multiplier #(
 		.product_in({internal_products,64'h0}),
 		.mplier_in({internal_mpliers,mplier}),
 		.mcand_in({internal_mcands,mcand}),
+		.insn_tag_in({internal_insn_tags, insn_tag_in})
 		.start({internal_dones,start}),
 		.product_out({product,internal_products}),
 		.mplier_out({mplier_out,internal_mpliers}),
 		.mcand_out({mcand_out,internal_mcands}),
+		.insn_tag_out({insn_tag, internal_insn_tags}),
 		.done({done,internal_dones})
 	);
 
@@ -49,9 +54,11 @@ module mult_stage #(
 ) (
 					input clock, reset, start,
 					input [63:0] product_in, mplier_in, mcand_in,
+					input [`ROB_TAG_LEN-1:0] insn_tag_in,
 
 					output logic done,
-					output logic [63:0] product_out, mplier_out, mcand_out
+					output logic [63:0] product_out, mplier_out, mcand_out,
+					input [`ROB_TAG_LEN-1:0] insn_tag_out
 				);
 
 	localparam M = 64 / N;
@@ -72,6 +79,7 @@ module mult_stage #(
 		partial_prod_reg <= partial_product;
 		mplier_out       <= next_mplier;
 		mcand_out        <= next_mcand;
+		insn_tag_out	 <= insn_tag_in;
 	end
 
 	// synopsys sync_set_reset "reset"
