@@ -2,6 +2,7 @@
 
 `include "sys_defs.svh"
 `include "ls_unit.svh"
+`include "ls_queue.svh"
 
 module ls_unit(
     // input [`XLEN-1:0] opa,
@@ -13,21 +14,21 @@ module ls_unit(
 
     output logic mem_read,
     output logic mem_write, 
-    output [`XLEN-1:0] mem_addr, 
-    output [2:0] mem_size,
-    output [`XLEN-1:0] proc2Dmem_data,
-    output [`XLEN-1:0] wb_data, // load from mem
-    output [`ROB_TAG_LEN-1:0] inst_tag, 
+    output logic [`XLEN-1:0] mem_addr, 
+    output logic [2:0] mem_size,
+    output logic [`XLEN-1:0] proc2Dmem_data,
+    output logic [`XLEN-1:0] wb_data, // load from mem
+    output logic [`ROB_TAG_LEN-1:0] inst_tag, 
     output logic done
 );
    
-    wire [`XLEN-1:0] data_from_mem, unsigned_result;  
-    wire signed signed_result;
+    logic [`XLEN-1:0] data_from_mem, unsigned_result;  
+    logic signed signed_result;
     
     always_comb begin
         if (en == 1'b1) begin
-            mem_addr = insn_in.value_src1 + insn_in.imm;
-            mem_size = insn_in.func3; 
+            mem_addr = insn_in.insn.value_src1 + insn_in.insn.imm;
+            mem_size = insn_in.insn.func3; 
             
             // load
             if (insn_in.read_write == 1'b1) begin
@@ -37,10 +38,10 @@ module ls_unit(
                     data_from_mem = load_data; 
                     signed_result = $signed(data_from_mem); // 32'(signed'(data_from_mem)) 
                     unsigned_result = data_from_mem;
-                    if (insn_in.func == LS_LOAD) begin
+                    if (insn_in.insn.func == LS_LOAD) begin
                         wb_data = signed_result;
                     end
-                    else if (insn_in.func == LS_LOADU) begin
+                    else if (insn_in.insn.func == LS_LOADU) begin
                         wb_data = unsigned_result;
                     end
                     else begin
@@ -52,7 +53,7 @@ module ls_unit(
             else begin
                 mem_read = 1'b0;
                 mem_write = 1'b1;
-                proc2Dmem_data = insn_in.value_src2; 
+                proc2Dmem_data = insn_in.insn.value_src2; 
             end
             done = mem_hit;
             inst_tag = insn_in.insn.insn_tag;
