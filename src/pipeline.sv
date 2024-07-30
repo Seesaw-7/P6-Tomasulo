@@ -17,7 +17,7 @@ module pipeline (
 	output logic [1:0]  proc2mem_command,    // command sent to memory
 	output logic [`XLEN-1:0] proc2mem_addr,      // Address sent to memory
 	output logic [63:0] proc2mem_data,      // Data sent to memory
-	output MEM_SIZE proc2mem_size,          // data size sent to memory
+	// output MEM_SIZE proc2mem_size,          // data size sent to memory
 
 	output logic [3:0]  pipeline_completed_insts,
 	// output EXCEPTION_CODE   pipeline_error_status,
@@ -67,7 +67,10 @@ module pipeline (
 assign proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD:proc2Dmem_command;
 assign proc2mem_addr = proc2Imem_addr;
 	//if it's an instruction, then load a double word (64 bits)
-assign proc2mem_size = DOUBLE;
+`ifndef CACHE_MODE
+    assign proc2mem_size = DOUBLE;
+`endif
+
 assign proc2mem_data = 64'b0;
 
 assign pipeline_completed_insts = {3'b0, wb_en};
@@ -242,9 +245,9 @@ dispatcher dispatcher_0 (
 //////////////////////////////////////////////////
     // Integer issue unit
     logic [3:0] rs_clear;
-    INST_RS fu_insn [3:0];
+    INST_RS [3:0] fu_insn;
 
-    RS_ENTRY rs_entries_ex [3:0];
+    RS_ENTRY [3:0] rs_entries_ex;
     assign rs_entries_ex[FU_ALU] = alu_entry_out;
     assign rs_entries_ex[FU_MULT] = mult_entry_out;
     assign rs_entries_ex[FU_BTU] = btu_entry_out;
@@ -308,18 +311,20 @@ dispatcher dispatcher_0 (
     );
 
 // mult unit
-logic [63:0] mult_result;
-logic mult_done;
-multiplier mult_0 (
-    .clock(clock),
-    .reset(reset || flush),
-    .mcand(64'(rs_mult_v1_out)), 
-    .mplier(64'(rs_mult_v2_out)),
-    .insn_tag_in(fu_insn[FU_MULT].insn_tag),
-    .start(rs_clear[FU_MULT]),
-    .product(mult_result),
-    .done(mult_done)
-);
+    logic [63:0] mult_result;
+    logic mult_done;
+    logic [`ROB_TAG_LEN-1:0] mult_result_tag;
+    multiplier mult_0 (
+        .clock(clock),
+        .reset(reset || flush),
+        .mcand({32'b0, fu_insn[FU_MULT].value_src1}), 
+        .mplier({32'b0, fu_insn[FU_MULT].value_src2}),
+        .insn_tag_in(fu_insn[FU_MULT].insn_tag),
+        .start(rs_clear[FU_MULT]),
+        .product(mult_result),
+        .insn_tag(mult_result_tag),
+        .done(mult_done)
+    );
 
 // load store unit
 
@@ -351,7 +356,7 @@ assign proc2Dmem_command = BUS_NONE;
         execute_reg_next.ready[FU_MULT] = mult_done;
         // TODO:
         execute_reg_next.result[FU_ALU] = alu_result;
-        execute_reg_next.result[FU_MULT] = mult_result;
+        execute_reg_next.result[FU_MULT] = mult_result[31:0];
         execute_reg_next.result[FU_BTU] = btu_wb_data;
         execute_reg_next.tag_insn_ex[FU_ALU] = alu_result_tag; // TODO:
         execute_reg_next.tag_result[FU_ALU] = alu_result_tag;

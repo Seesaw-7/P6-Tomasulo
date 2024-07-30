@@ -58,7 +58,7 @@ module mult_stage #(
 
 					output logic done,
 					output logic [63:0] product_out, mplier_out, mcand_out,
-					input [`ROB_TAG_LEN-1:0] insn_tag_out
+					output logic [`ROB_TAG_LEN-1:0] insn_tag_out
 				);
 
 	localparam M = 64 / N;

@@ -2,19 +2,20 @@
 
 `include "sys_defs.svh"
 `include "issue_unit.svh"
+`include "reservation_station.svh"
 
 module issue_unit (
     // data
     input [3:0] insns_ready,
     input [3:0] cdb_select,
     // broadcast
-    input [`XLEN-1] alu_result,
-    input [`ROB_TAG_LEN-1] alu_result_tag,
-    input [3:0] RS_ENTRY rs_entries_ex, 
+    input [`XLEN-1:0] alu_result,
+    input [`ROB_TAG_LEN-1:0] alu_result_tag,
+    input RS_ENTRY [3:0] rs_entries_ex, 
 
     // output control signals
     output logic [3:0] fu_en, // to each RS
-    output [3:0] INST_RS insns_select
+    output INST_RS [3:0] insns_select
 );
 
 RS_ENTRY entry_for_ex [3:0];
@@ -38,7 +39,7 @@ always_comb begin
     end
     for (int i=0; i<4; ++i) begin
         fu_en[i] = entry_for_ex[i].valid && (!insns_ready[i] || cdb_select[i]) && entry_for_ex[i].insn.ready_src1 && entry_for_ex[i].insn.ready_src2; 
-        insns_select[i] = entry_for_ex[i].valid;
+        insns_select[i] = entry_for_ex[i].insn;
     end
 end
 

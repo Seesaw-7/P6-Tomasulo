@@ -15,11 +15,14 @@ module branch_unit(
     output logic [`ROB_TAG_LEN-1:0] insn_tag,
     output logic done
 );
-    assign ALU_FUNC func = insn.func;
-    assign [`XLEN-1:0] pc = insn.pc;
-    assign [`XLEN-1:0] imm = insn.imm;
-    assign [`XLEN-1:0] rs1 = insn.value_src1;
-    assign [`XLEN-1:0] rs2 = insn.value_src2;
+    ALU_FUNC func;
+    logic [`XLEN-1:0] pc, imm, rs1, rs2;
+
+    assign func = insn.func;
+    assign pc = insn.pc;
+    assign imm = insn.imm;
+    assign rs1 = insn.value_src1;
+    assign rs2 = insn.value_src2;
     
 	// branch condition check
 	logic signed [`XLEN-1:0] signed_rs1, signed_rs2;
