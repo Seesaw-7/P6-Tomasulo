@@ -14,6 +14,7 @@ typedef struct packed {
 	logic imm_valid;
 	logic pc_valid;
 	logic [`XLEN-1:0] pc;
+	logic [`XLEN-1:0] func3;
 } DECODED_PACK;
 
 `endif
