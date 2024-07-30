@@ -32,6 +32,7 @@ module main_memory #(
             for (int i = 0; i < MEM_SIZE; i++) begin
                 memory[i] <= 0;
             end
+            memory[32'h8] <= 32'hABCDFEEC;
         end else begin
             mem_ready <= 0;
             if (mem_read) begin
