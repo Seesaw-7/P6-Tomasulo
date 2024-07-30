@@ -298,8 +298,8 @@ dispatcher dispatcher_0 (
     logic [`ROB_TAG_LEN-1:0] btu_result_tag;
     logic btu_done;
     branch_unit BTU (
-        .insn(fu_insn[FU_BTU])
-        .en(rs_clear[FU_BTU])
+        .insn(fu_insn[FU_BTU]),
+        .en(rs_clear[FU_BTU]),
         .cond(btu_mis_predict), // 1 for misprediction/flush
         .wb_data(btu_wb_data), 
         .target_pc(btu_target_pc),

@@ -34,7 +34,7 @@ module multiplier #(
 		.product_in({internal_products,64'h0}),
 		.mplier_in({internal_mpliers,mplier}),
 		.mcand_in({internal_mcands,mcand}),
-		.insn_tag_in({internal_insn_tags, insn_tag_in})
+		.insn_tag_in({internal_insn_tags, insn_tag_in}),
 		.start({internal_dones,start}),
 		.product_out({product,internal_products}),
 		.mplier_out({mplier_out,internal_mpliers}),
