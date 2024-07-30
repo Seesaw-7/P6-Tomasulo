@@ -166,24 +166,20 @@ module decoder(
 				`RV32_LB, `RV32_LH, `RV32_LW: begin
 				    decoded_pack.fu = FU_LSU;
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
-				    decoded_pack.arch_reg.src2 = inst.i.rs2;
 				    decoded_pack.arch_reg.dest = inst.i.rd;
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 				    decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
-					decoded_pack.rs2_valid = 1'b1;
 				    decoded_pack.alu_func = LS_LOAD;
 				    decoded_pack.func3 = inst.i.funct3; 
 				end
 				`RV32_LBU, `RV32_LHU: begin
 				    decoded_pack.fu = FU_LSU;
 				    decoded_pack.arch_reg.src1 = inst.i.rs1;
-				    decoded_pack.arch_reg.src2 = inst.i.rs2;
 				    decoded_pack.arch_reg.dest = inst.i.rd;
 				    decoded_pack.imm = `RV32_signext_Iimm(inst);
 					decoded_pack.imm_valid = 1'b1;
 					decoded_pack.rs1_valid = 1'b1; 
-					decoded_pack.rs2_valid = 1'b1;
 				    decoded_pack.alu_func = LS_LOADU;
 				    decoded_pack.func3 = inst.i.funct3; 
 				end
