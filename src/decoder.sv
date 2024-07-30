@@ -164,6 +164,8 @@ module decoder(
 				`RV32_LB, `RV32_LH, `RV32_LW,
 				`RV32_LBU, `RV32_LHU: begin
 				    decoded_pack.fu = FU_LSU;
+				    decoded_pack.arch_reg.src1 = inst.i.rs1;
+				    decoded_pack.arch_reg.src2 = inst.
 				end
 				`RV32_SB, `RV32_SH, `RV32_SW: begin
 				    decoded_pack.fu = FU_LSU;
