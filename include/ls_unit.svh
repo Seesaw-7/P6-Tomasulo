@@ -3,6 +3,6 @@
 
 `include "sys_defs.svh"
 `include "dispatcher.svh"
-`include "ls_queue"
+`include "ls_queue.svh"
 
 `endif
