@@ -4,11 +4,11 @@
 `include "ls_queue.svh"
 
 module ls_queue(
-    input logic clk,
-    input logic reset, 
-    input logic flush, 
+    input clk,
+    input reset, 
+    input flush, 
     
-    input logic dispatch, 
+    input dispatch, 
     input INST_RS insn_in, 
     
     input commit_store, 
@@ -19,8 +19,8 @@ module ls_queue(
     
     input done_from_ls_unit, 
     
-    output to_ls_unit, 
-    output INST_RS insn_out_to_ls_unit, 
+    output logic to_ls_unit, 
+    output LS_UNIT_PACK insn_out_to_ls_unit
 );
     
     LS_QUEUE_ENTRY [`LS_QUEUE_SIZE-1:0] ls_queue_curr; 
@@ -41,11 +41,10 @@ module ls_queue(
         // dispatch insn into ls queue
         if (dispatch) begin
             ls_queue_next[tail_curr].valid = 1'b1;
-            ls_queue_next[tail_curr].ready = (insn_in.ready_src1) && (insn_in.ready_src2);
             if ((insn_in.func == LS_LOAD) || (insn_in.func == LS_LOADU)) begin
                 ls_queue_next[tail_curr].read_write = 1'b1;
             end
-            else if (insn_in.func == LS_WRITE) begin
+            else if (insn_in.func == LS_STORE) begin
                 ls_queue_next[tail_curr].read_write = 1'b0;
             end
             else begin
@@ -57,22 +56,22 @@ module ls_queue(
         end
         
         // to ls unit
-        if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].ready && ls_queue_curr[head_curr].read_write == 1'b0) begin
+        if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].insn.ready_src2 && ls_queue_curr[head_curr].read_write == 1'b0) begin
             if (commit_store && (commit_store_rob_tag == ls_queue_curr[head_curr].insn.insn_tag)) begin
                 to_ls_unit = 1'b1; 
-                insn_out_to_ls_unit = ls_queue_curr[head_curr].insn;
-                read_write = 1'b0;
+                insn_out_to_ls_unit.insn = ls_queue_curr[head_curr].insn;
+                insn_out_to_ls_unit.read_write = ls_queue_curr[head_curr].read_write;
             end
-        end
-        else if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].ready && ls_queue_curr[head_curr].read_write == 1'b1) begin
+        end // store
+        else if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].read_write == 1'b1) begin
             to_ls_unit = 1'b1; 
-            insn_out_to_ls_unit = ls_queue_curr[head_curr].insn;
-            read_write = 1'b1;
-        end
+            insn_out_to_ls_unit.insn = ls_queue_curr[head_curr].insn;
+            insn_out_to_ls_unit.read_write = ls_queue_curr[head_curr].read_write;
+        end //load
         
        // syncronize forwarding with rs  
         for (int i=0; i<`LS_QUEUE_SIZE; i++) begin
-            if (ls_queue_curr[i].valid == 1'b1 && ls_queue_curr[i].ready == 1'b0) begin
+            if (ls_queue_curr[i].valid == 1'b1) begin
                 if (ls_queue_curr[i].insn.tag_src1 == forwarding_rob_tag) begin
                     ls_queue_next[i].insn.value_src1 = forwarding_data;
                     ls_queue_next[i].insn.ready_src1 = 1'b1;
@@ -81,10 +80,7 @@ module ls_queue(
                     ls_queue_next[i].insn.value_src2 = forwarding_data;
                     ls_queue_next[i].insn.ready_src2 = 1'b1;
                 end
-            end
-            if (ls_queue_next[i].insn.ready_src1 && ls_queue_next[i].insn.ready_src2) begin
-                ls_queue_next[i].ready = 1'b1;
-            end
+            end         
         end
         
         // clear ls queue's entry when ls done
