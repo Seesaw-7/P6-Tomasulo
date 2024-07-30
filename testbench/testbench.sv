@@ -101,7 +101,9 @@ module testbench;
 		.proc2mem_command (proc2mem_command),
 		.proc2mem_addr    (proc2mem_addr),
 		.proc2mem_data    (proc2mem_data),
+`ifndef CACHE_MODE
 		.proc2mem_size    (proc2mem_size),
+`endif
 
 		.pipeline_completed_insts (pipeline_completed_insts),
 		// .pipeline_error_status    (pipeline_error_status),
@@ -251,6 +253,12 @@ module testbench;
 		end
 	endtask
 
+	task display_alu_rs();
+		for (int i=0; i<8; ++i) begin
+			$display("rs[%d]: insn valid %d rob tag %d", i, core.RS_ALU.issue_queue_curr[i].valid, core.RS_ALU.issue_queue_curr[i].insn.insn_tag);
+		end
+	endtask
+
 `endif 
 
 
@@ -323,7 +331,8 @@ module testbench;
 		display_time();
 		// display_fetch_stage();
 		// display_dispatch_stage();
-		dislplay_reg();
+		display_alu_rs();
+		// dislplay_reg();
 	end
 `endif
 
@@ -393,7 +402,7 @@ module testbench;
 `ifdef ASSERTION
 
 always @(negedge clock) begin
-	assert (clock != core.fetch_stage_0.clock) else $fatal("It's gone wrong");
+	assert (1'b0 == 1'b1) else $fatal("It's gone wrong");
 end
 
 
