@@ -97,7 +97,7 @@ prefetch_queue fetch_stage_0 (
     .en(!stall),	
     .mem_bus_none(proc2Dmem_command == BUS_NONE),
     .take_branch(flush),
-    .branch_target_pc(branch_target_pc),
+    .branch_target_pc(rob_commit_npc),
     .Imem2proc_data(mem2proc_data),
     .proc2Imem_addr(proc2Imem_addr),
     .packet_out(fetch_stage_packet)
@@ -139,7 +139,7 @@ assign dispatcher_RS_is_full[FU_LSU] = 1'b0;
 
 dispatcher dispatcher_0 (
     .clk(clock),
-    .reset(reset),
+    .reset(reset || flush),
     .decoded_pack(decoded_pack),
     .registers(registers), // forward from register (reg)
     .rob(rob_entries), // forward from rob (reg)
@@ -243,7 +243,8 @@ dispatcher dispatcher_0 (
 //                Execute-Stage                 //
 //                                              //
 //////////////////////////////////////////////////
-    // Integer issue unit
+
+    // issue unit
     logic [3:0] rs_clear;
     INST_RS [3:0] fu_insn;
 
@@ -252,22 +253,6 @@ dispatcher dispatcher_0 (
     assign rs_entries_ex[FU_MULT] = mult_entry_out;
     assign rs_entries_ex[FU_BTU] = btu_entry_out;
     assign rs_entries_ex[FU_LSU] = lsu_entry_out;
-    // always_comb begin
-    //     alu_insn = alu_entry_out.insn;
-    //     // broadcast
-    //     if (execute_reg_curr.ready[FU_ALU]) begin
-    //         if (alu_insn.tag_src1 == execute_reg_curr.tag_result[FU_ALU])begin
-    //             alu_insn.value_src1 = execute_reg_curr.result[FU_ALU];
-    //             alu_insn.ready_src1 = 1'b1;
-    //         end
-    //         if (alu_insn.tag_src2 == execute_reg_curr.tag_result[FU_ALU])begin
-    //             alu_insn.value_src2 = execute_reg_curr.result[FU_ALU];
-    //             alu_insn.ready_src2 = 1'b1;
-    //         end
-    //     end
-    // end
-    // assign rs_clear[FU_ALU] = alu_entry_out.valid && !execute_reg_curr.ready[FU_ALU] && alu_insn.ready_src1 && alu_insn.ready_src1; // FU reg is empty and insn is ready 
-    // assign rs_clear_tag[FU_ALU] = alu_entry_out.insn.insn_tag;
 
     issue_unit issue_unit_0 (
         .insns_ready(execute_reg_curr.ready),
@@ -282,13 +267,15 @@ dispatcher dispatcher_0 (
     // Integer Unit
     logic [`XLEN-1:0] alu_result;
     logic [`ROB_TAG_LEN-1:0] alu_result_tag;
+    logic [`ROB_TAG_LEN-1:0] alu_insn_tag;
     logic alu_done;
 
     arithmetic_logic_unit ALU (
         .insn(fu_insn[FU_ALU]),
         .en(rs_clear[FU_ALU]),
         .result(alu_result),
-        .insn_tag(alu_result_tag),
+        .insn_tag(alu_insn_tag),
+        .result_tag(alu_result_tag),
         .done(alu_done)
     );
 
@@ -298,6 +285,7 @@ dispatcher dispatcher_0 (
     logic [`XLEN-1:0] btu_wb_data;
     logic [`XLEN-1:0] btu_target_pc;
     logic btu_mis_predict;
+    logic [`ROB_TAG_LEN-1:0] btu_insn_tag;
     logic [`ROB_TAG_LEN-1:0] btu_result_tag;
     logic btu_done;
     branch_unit BTU (
@@ -306,7 +294,8 @@ dispatcher dispatcher_0 (
         .cond(btu_mis_predict), // 1 for misprediction/flush
         .wb_data(btu_wb_data), 
         .target_pc(btu_target_pc),
-        .insn_tag(btu_result_tag),
+        .insn_tag(btu_insn_tag),
+        .result_tag(btu_result_tag),
         .done(btu_done)
     );
 
@@ -314,15 +303,18 @@ dispatcher dispatcher_0 (
     logic [63:0] mult_result;
     logic mult_done;
     logic [`ROB_TAG_LEN-1:0] mult_result_tag;
+    logic [`ROB_TAG_LEN-1:0] mult_insn_tag;
     multiplier mult_0 (
         .clock(clock),
         .reset(reset || flush),
         .mcand({32'b0, fu_insn[FU_MULT].value_src1}), 
         .mplier({32'b0, fu_insn[FU_MULT].value_src2}),
         .insn_tag_in(fu_insn[FU_MULT].insn_tag),
+        .result_tag_in(fu_insn[FU_MULT].tag_dest),
         .start(rs_clear[FU_MULT]),
         .product(mult_result),
-        .insn_tag(mult_result_tag),
+        .insn_tag(mult_insn_tag),
+        .result_tag(mult_result_tag),
         .done(mult_done)
     );
 
@@ -352,14 +344,21 @@ assign proc2Dmem_command = BUS_NONE;
     EXECUTE_PACK execute_reg_curr, execute_reg_next;
 
     always_comb begin
-        execute_reg_next.ready[FU_ALU] = alu_done;
-        execute_reg_next.ready[FU_MULT] = mult_done;
+        execute_reg_next.ready[FU_ALU] = alu_done ? 1'b1 : (cdb_select_fu == FU_ALU) ? 1'b0 : execute_reg_curr.ready[FU_ALU];
+        execute_reg_next.ready[FU_MULT] = mult_done ? 1'b1 : (cdb_select_fu == FU_MULT) ? 1'b0 : execute_reg_curr.ready[FU_MULT];
+        execute_reg_next.ready[FU_BTU] = btu_done ? 1'b1 : (cdb_select_fu == FU_BTU) ? 1'b0 : execute_reg_curr.ready[FU_BTU];
+//        execute_reg_next.ready[FU_MULT] = mult_done;
+//        execute_reg_next.ready[FU_BTU] = btu_done;
         // TODO:
         execute_reg_next.result[FU_ALU] = alu_result;
         execute_reg_next.result[FU_MULT] = mult_result[31:0];
         execute_reg_next.result[FU_BTU] = btu_wb_data;
-        execute_reg_next.tag_insn_ex[FU_ALU] = alu_result_tag; // TODO:
+        execute_reg_next.tag_insn_ex[FU_ALU] = alu_insn_tag;
         execute_reg_next.tag_result[FU_ALU] = alu_result_tag;
+        execute_reg_next.tag_insn_ex[FU_MULT] = mult_insn_tag;
+        execute_reg_next.tag_result[FU_MULT] = mult_result_tag;
+        execute_reg_next.tag_insn_ex[FU_BTU] = btu_insn_tag;
+        execute_reg_next.tag_result[FU_BTU] = btu_result_tag;
         execute_reg_next.target_pc = btu_target_pc;
         execute_reg_next.miss_predict = btu_mis_predict;
         //TODO:
@@ -367,7 +366,7 @@ assign proc2Dmem_command = BUS_NONE;
 
     // synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
-		if (reset) begin //TODO: flush
+		if (reset || flush) begin //TODO: flush
             execute_reg_curr <= 0;
 		end else begin// if (reset)
 			execute_reg_curr <= `SD execute_reg_next; 
@@ -410,7 +409,7 @@ logic [1:0] cdb_select_fu; // TODO: forward it to stop stalling fu
     );
 
 
-logic [`XLEN-1:0] branch_target_pc;
+//logic [`XLEN-1:0] branch_target_pc;
 ROB_ENTRY [`ROB_SIZE-1:0] rob_entries ;
 // logic[`XLEN-1:0] target_pc_from_rob; 
 logic flush;
