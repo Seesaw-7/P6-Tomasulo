@@ -22,6 +22,7 @@ module arithmetic_logic_unit(
     // TODO: output INST inst
 	output logic [`XLEN-1:0] result,
 	output [`ROB_TAG_LEN-1:0] insn_tag,
+	output [`ROB_TAG_LEN-1:0] result_tag,
 	output done
 );
 	wire [`XLEN-1:0] opa, opb;
@@ -60,6 +61,7 @@ module arithmetic_logic_unit(
 	end
 
 	assign insn_tag = insn.insn_tag;
+	assign result_tag = insn.tag_dest;
 
 	assign done = en;
 endmodule // alu
