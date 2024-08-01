@@ -8,11 +8,6 @@
 `include "ISA.svh"
 `include "decoder.svh"
 
-  // Decode an instruction: given instruction bits IR produce the
-  // appropriate datapath control signals.
-  
-  // This is a *combinational* module (basically a PLA).
-
 module decoder(
 	input in_valid,
 	input INST inst,
