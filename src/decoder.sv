@@ -47,8 +47,6 @@ module decoder(
 		// - invalid instructions should clear valid_inst.
 		// - These defaults are equivalent to a noop
 		// * see sys_defs.vh for the constants used here
-		
-		decoded_pack.valid = 0;
 		decoded_pack.fu = FU_ALU; //by default arithmetic and logic unit
 		decoded_pack.arch_reg.src1 = 5'b00000;
 		decoded_pack.arch_reg.src2 = 5'b00000;
@@ -59,7 +57,7 @@ module decoder(
 		decoded_pack.rs2_valid = 1'b0;
 		decoded_pack.imm_valid = 1'b0;
 		decoded_pack.pc_valid = 1'b0;
-		decoded_pack.pc = {`XLEN{1'b0}}; 
+		//decoded_pack.pc = {`XLEN{1'b0}}; 
 		decoded_pack.func3 = 3'b000;
 
 		csr_op = 0;
