@@ -1,3 +1,7 @@
+/////////////////////////////////////////////////////////////////////////
+// Module name : decoder.sv
+// Description : This module decodes instructions. It checks the validity of the instruction. The decoded information is packed.
+/////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
@@ -10,18 +14,12 @@
   // This is a *combinational* module (basically a PLA).
 
 module decoder(
-
-	//input valid_inst_in,  // ignore inst when low, outputs will
-	                      // reflect noop (except valid_inst)
-	//see sys_defs.svh for definition
-	// input from IF_ID_PACKET if_packet
-	input logic in_valid,
+	input in_valid,
 	input INST inst,
-	input logic flush,
+	input flush,
 	input [`XLEN-1:0] in_pc,
 	
-	output logic csr_op,    // used for CSR operations, we only used this as 
-	                        //a cheap way to get the return code out
+	output logic csr_op,    // used for CSR operations, we only used this as a cheap way to get the return code out
 	output logic halt,      // non-zero on a halt
 	output logic illegal,    // non-zero on an illegal instruction
 	// output logic valid_inst,  // for counting valid instructions executed
@@ -29,28 +27,25 @@ module decoder(
 	//                         // keeping track of when to allow the next
 	//                         // instruction out of fetch
 	//                         // 0 for HALT and illegal instructions (die on halt)
+	
 	output DECODED_PACK decoded_pack
-
 );
 	// TODO: add queue in m3
 	// DECODED_PACK decoded_pack;
 
 	logic valid_inst_in;
 	assign valid_inst_in = in_valid;
-	assign decoded_pack.valid    = valid_inst_in & ~illegal;
+	assign decoded_pack.valid = valid_inst_in & ~illegal;
 	assign decoded_pack.pc = in_pc;
 
 	always_comb begin
-		// default control values:
-		// - valid instructions must override these defaults as necessary.
-		//	 opa_select, opb_select, and alu_func should be set explicitly.
-		// - invalid instructions should clear valid_inst.
-		// - These defaults are equivalent to a noop
-		// * see sys_defs.vh for the constants used here
+		// default control values: equivalent to a nop
+		// valid instructions must override these defaults as necessary
+		// ps: invalid instructions should clear valid_inst
 		decoded_pack.fu = FU_ALU; //by default arithmetic and logic unit
-		decoded_pack.arch_reg.src1 = 5'b00000;
-		decoded_pack.arch_reg.src2 = 5'b00000;
-		decoded_pack.arch_reg.dest = 5'b00000;
+		decoded_pack.arch_reg.src1 = {`REG_ADDR_LEN{1'b0}};
+		decoded_pack.arch_reg.src2 = {`REG_ADDR_LEN{1'b0}};
+		decoded_pack.arch_reg.dest = {`REG_ADDR_LEN{1'b0}};
 		decoded_pack.imm = {`XLEN{1'b0}};
 		decoded_pack.alu_func = ALU_ADD;
 		decoded_pack.rs1_valid = 1'b0;
@@ -59,10 +54,10 @@ module decoder(
 		decoded_pack.pc_valid = 1'b0;
 		//decoded_pack.pc = {`XLEN{1'b0}}; 
 		decoded_pack.func3 = 3'b000;
-
-		csr_op = 0;
-		halt = 0;
-		illegal = 0;
+        
+		csr_op = `FALSE;
+		halt = `FALSE;
+		illegal = `FALSE;
 
 		if(valid_inst_in) begin
 			casez (inst) 
@@ -386,7 +381,7 @@ module decoder(
 				end
 				default: illegal = `TRUE;
 
-		endcase // casez (inst)
-		end // if(valid_inst_in)
-	end // always
-endmodule // decoder
+		endcase 
+		end 
+	end
+endmodule
