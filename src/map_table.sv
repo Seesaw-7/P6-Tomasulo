@@ -40,8 +40,10 @@ module map_table(
         end
 
         if (assign_flag) begin
-            map_table_next[arch_reg.dest].rob_tag = assign_rob_tag_reg;
-            map_table_next[arch_reg.dest].ready_in_rob = 1'b0;
+            if (arch_reg.dest != {`REG_ADDR_LEN{1'b0}}) begin 
+                map_table_next[arch_reg.dest].rob_tag = assign_rob_tag_reg;
+                map_table_next[arch_reg.dest].ready_in_rob = 1'b0;
+            end
         end
 
         if (return_flag) begin
@@ -52,7 +54,7 @@ module map_table(
         end
 
         if (ready_flag) begin
-            for (int i=0; i<`REG_NUM; i++) begin
+            for (int i=1; i<`REG_NUM; i++) begin
                 if (map_table_curr[i].rob_tag == rob_tag_from_cdb) begin
                     map_table_next[i].ready_in_rob = 1'b1;
                 end
