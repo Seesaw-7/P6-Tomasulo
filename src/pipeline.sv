@@ -464,9 +464,6 @@ reorder_buffer ROB_0 (
 );
 
 
-
-
-
 //////////////////////////////////////////////////
 //                                              //
 //                 Retire-Stage                 //
@@ -476,17 +473,14 @@ reorder_buffer ROB_0 (
 assign pipeline_registers_out = registers;
 
 logic [`REG_NUM-1:0] [`XLEN-1:0] registers;
-register_file regfile (
-    .wr_idx(wb_reg),
+register_file register_file_0 (
+    .reg_addr(wb_reg),
     .wr_data(wb_data),
     .wr_en(wb_en),
     .clk(clock),
     .reset(reset),
-    .registers(registers)
+    .regfile(registers)
 );
-
-
-
 
 
 endmodule
