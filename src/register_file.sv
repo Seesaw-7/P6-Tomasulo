@@ -1,10 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//   Modulename :  register_file.v                                     //
-//                                                                     //
-//  Description :  This module creates the Regfile read before FU calculation and  // 
-//                 written at ROB 嚗B嚗� .                          //
-//                                                                     //
+// Module name : register_file.sv
+// Description : This module implements the register file. It supports reading at the dispatch stage and writing when the ROB commits.
 /////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
@@ -12,33 +8,34 @@
 `include "sys_defs.svh"
 
 module register_file(
-        input   [4:0] wr_idx,    // read/write index
-        input  [`XLEN-1:0] wr_data,            // write data
-        input         wr_en, clk, reset,
+    input  [4:0] reg_addr,      // read/write index
+    input  [`XLEN-1:0] wr_data,     // write data
+    input  wr_en, clk, reset,
 
-        output logic [`REG_NUM-1:0] [`XLEN-1:0] registers
-          
-      );
-  
-  // logic    [`REG_NUM-1:0] [`XLEN-1:0] registers;   // 32, 64-bit Registers
-  logic    [`REG_NUM-1:0] [`XLEN-1:0] registers_next;   // 32, 64-bit Registers
+    output logic [`REG_NUM-1:0] [`XLEN-1:0] regfile 
+);
 
-  always_ff @(posedge clk) begin
-    if (reset) begin
-      registers <= 0;
-    end else begin
-      registers <= registers_next;
+    logic [`REG_NUM-1:0] [`XLEN-1:0] regfile_next;
+
+    // sequentially update register file
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset) begin
+            regfile <= '0;   // reset all registers to 0
+        end else begin
+            regfile <= regfile_next;
+        end
     end
-  end
 
-  always_comb begin
-    registers_next = registers;
-    if (wr_en) begin
-      if (wr_idx == 5'b0)
-        registers_next[wr_idx] = 32'b0;
-      else
-        registers_next[wr_idx] = wr_data;
+    // combinational logic for writing to register file
+    always_comb begin
+        regfile_next = regfile;
+        if (wr_en) begin
+            if (reg_addr == 5'b0)
+                regfile_next[reg_addr] = `XLEN'b0;  // reg0 is hardwired to 0
+            else
+                regfile_next[reg_addr] = wr_data;
+        end
     end
-  end
 
 endmodule
+
