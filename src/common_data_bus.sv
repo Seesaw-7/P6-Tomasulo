@@ -9,7 +9,7 @@
 
 // Inputs:
 // - in_values ([`XLEN-1:0] [FU_NUM-1:0]): Array of results from functional units.
-// - ROB_tag：bypass to ROB, forward to RS
+// - ROB_tag嚗ypass to ROB, forward to RS
 // - select_flag (logic): Indicates if selection is valid, bypass to ROB
 // - select_signal (logic [$clog2(FU_NUM)-1:0]): signal selecting which result to output.
 
@@ -40,7 +40,8 @@ module common_data_bus (
         select_fu = 0;
         cdb_value = 0;
         cdb_tag = 0;
-        for (int i=0; i<4; ++i) begin
+        for (int i=3; i>=0; --i) begin
+//     for (int i=0; i<4; ++i) begin
             if (fu_result_ready[i]) begin
                 select_fu = 2'(i);
                 cdb_value = fu_results[i];
