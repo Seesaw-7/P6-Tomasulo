@@ -13,6 +13,7 @@ module branch_unit(
     output logic [`XLEN-1:0] target_pc,
     
     output logic [`ROB_TAG_LEN-1:0] insn_tag,
+    output logic [`ROB_TAG_LEN-1:0] result_tag,
     output logic done
 );
     ALU_FUNC func;
@@ -68,6 +69,7 @@ module branch_unit(
 	end
 
     assign insn_tag = insn.insn_tag;
+    assign result_tag = insn.tag_dest;
     assign done = en;
 
 endmodule
