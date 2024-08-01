@@ -3,7 +3,7 @@
 //   Modulename :  register_file.v                                     //
 //                                                                     //
 //  Description :  This module creates the Regfile read before FU calculation and  // 
-//                 written at ROB （WB） .                          //
+//                 written at ROB 嚗B嚗� .                          //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
