@@ -7,19 +7,21 @@ module D_Cache #(
 ) (
     input logic clk,
     input logic rst,
-    input logic [`XLEN-1:0] addr,
-    input logic [`XLEN-1:0] write_data,
-    input logic [2:0] mem_size, 
-    input logic read,
-    input logic write,
-    input logic mem_ready,
-    input logic [`XLEN-1:0] mem_data,
-    output logic [`XLEN-1:0] read_data,
-    output logic hit,
-    output logic [`XLEN-1:0] mem_addr,
-    output logic [`XLEN-1:0] mem_write_data,
-    output logic mem_write,
-    output logic mem_request
+    input logic [`XLEN-1:0] proc2cache_addr,
+    input logic [63:0] proc2cache_data,
+    input MEM_SIZE proc2cache_size,
+    input logic [1:0] proc2cache_command,
+    
+    output logic [63:0] cache2proc_data,
+    output logic cache2proc_valid,
+    
+    // Memory interface
+    output logic [`XLEN-1:0] cache2mem_addr,
+    output logic [63:0] cache2mem_data,
+    output logic [1:0] cache2mem_command,
+    input logic [3:0] mem2cache_response,
+    input logic [63:0] mem2cache_data,
+    input logic [3:0] mem2cache_tag
 );
 
     // Cache line and MSHR entry structures
@@ -27,16 +29,15 @@ module D_Cache #(
         logic valid;
         logic dirty;
         logic [`XLEN-1:$clog2(CACHE_SIZE)] tag;
-        logic [`XLEN-1:0] data;
+        logic [63:0] data;
     } cache_line_t;
 
     typedef struct packed {
         logic valid;
         logic [`XLEN-1:0] addr;
-        logic [`XLEN-1:0] data;
-        logic read;
-        logic write;
-        logic [2:0] size;
+        logic [63:0] data;
+        MEM_SIZE size;
+        logic [1:0] command;
     } mshr_entry_t;
 
     // Cache and MSHR arrays
@@ -46,37 +47,17 @@ module D_Cache #(
     // Internal signals
     logic [$clog2(CACHE_SIZE)-1:0] index;
     logic [`XLEN-1:$clog2(CACHE_SIZE)] tag;
-    logic [1:0] offset;
+    logic [2:0] offset;
     logic mshr_full, mshr_hit;
     logic [$clog2(MSHR_SIZE)-1:0] mshr_index;
     logic need_writeback, writing_back;
-
-    // Helper functions
-    function automatic logic [`XLEN-1:0] read_data_by_size(logic [`XLEN-1:0] data, logic [2:0] size, logic [1:0] offset);
-        case (size)
-            3'b001: return {{(`XLEN-8){1'b0}}, data[offset*8 +: 8]};  // Byte
-            3'b010: return {{(`XLEN-16){1'b0}}, data[offset[1]*16 +: 16]};  // Halfword
-            3'b100: return data;  // Word
-            default: return data;
-        endcase
-    endfunction
-
-    function automatic logic [`XLEN-1:0] write_data_by_size(logic [`XLEN-1:0] old_data, logic [`XLEN-1:0] new_data, logic [2:0] size, logic [1:0] offset);
-        logic [`XLEN-1:0] result = old_data;
-        case (size)
-            3'b001: result[offset*8 +: 8] = new_data[7:0];  // Byte
-            3'b010: result[offset[1]*16 +: 16] = new_data[15:0];  // Halfword
-            3'b100: result = new_data;  // Word
-            default: result = new_data;
-        endcase
-        return result;
-    endfunction
+    logic [3:0] current_mem_tag;
 
     // Address decoding
     always_comb begin
-        index = addr[$clog2(CACHE_SIZE)-1:0];
-        tag = addr[`XLEN-1:$clog2(CACHE_SIZE)];
-        offset = addr[1:0];
+        index = proc2cache_addr[$clog2(CACHE_SIZE)+2:3];
+        tag = proc2cache_addr[`XLEN-1:$clog2(CACHE_SIZE)+3];
+        offset = proc2cache_addr[2:0];
     end
 
     // MSHR logic
@@ -85,7 +66,7 @@ module D_Cache #(
         mshr_hit = 1'b0;
         mshr_index = '0;
         for (int i = 0; i < MSHR_SIZE; i++) begin
-            if (mshr[i].valid && mshr[i].addr == addr) begin
+            if (mshr[i].valid && mshr[i].addr == proc2cache_addr) begin
                 mshr_hit = 1'b1;
                 mshr_index = i[$clog2(MSHR_SIZE)-1:0];
                 break;
@@ -102,19 +83,19 @@ module D_Cache #(
         if (rst) begin
             cache <= '{default: '0};
             mshr <= '{default: '0};
-            mem_request <= 0;
-            mem_write <= 0;
-            hit <= 0;
-            read_data <= '0;
-            mem_addr <= '0;
-            mem_write_data <= '0;
+            cache2mem_command <= BUS_NONE;
+            cache2proc_valid <= 0;
+            cache2cache_data <= '0;
+            cache2mem_addr <= '0;
+            cache2mem_data <= '0;
             writing_back <= 0;
+            current_mem_tag <= '0;
         end else begin
-            if (read || write) begin
+            if (proc2cache_command != BUS_NONE) begin
                 handle_cache_access();
             end
 
-            if (mem_ready) begin
+            if (mem2cache_response != 0) begin
                 handle_memory_response();
             end
         end
@@ -130,17 +111,17 @@ module D_Cache #(
     endtask
 
     task handle_cache_hit();
-        hit <= 1;
-        if (read) begin
-            read_data <= read_data_by_size(cache[index].data, mem_size, offset);
-        end else if (write) begin
-            cache[index].data <= write_data_by_size(cache[index].data, write_data, mem_size, offset);
+        cache2proc_valid <= 1;
+        if (proc2cache_command == BUS_LOAD) begin
+            cache2proc_data <= extract_data(cache[index].data, proc2cache_size, offset);
+        end else if (proc2cache_command == BUS_STORE) begin
+            cache[index].data <= insert_data(cache[index].data, proc2cache_data, proc2cache_size, offset);
             cache[index].dirty <= 1;
         end
     endtask
 
     task handle_cache_miss();
-        hit <= 0;
+        cache2proc_valid <= 0;
         need_writeback = cache[index].valid && cache[index].dirty;
         if (!mshr_hit && !mshr_full) begin
             if (need_writeback && !writing_back) begin
@@ -153,59 +134,68 @@ module D_Cache #(
 
     task start_writeback();
         writing_back <= 1;
-        mem_write <= 1;
-        mem_addr <= {cache[index].tag, index, {$clog2(CACHE_SIZE){1'b0}}};
-        mem_write_data <= cache[index].data;
+        cache2mem_command <= BUS_STORE;
+        cache2mem_addr <= {cache[index].tag, index, 3'b000};
+        cache2mem_data <= cache[index].data;
     endtask
 
     task start_memory_request();
         mshr[mshr_index].valid <= 1;
-        mshr[mshr_index].addr <= addr;
-        mshr[mshr_index].data <= write ? write_data : '0;
-        mshr[mshr_index].read <= read;
-        mshr[mshr_index].write <= write;
-        mshr[mshr_index].size <= mem_size;
-        mem_request <= 1;
-        mem_addr <= addr;
+        mshr[mshr_index].addr <= proc2cache_addr;
+        mshr[mshr_index].data <= proc2cache_data;
+        mshr[mshr_index].size <= proc2cache_size;
+        mshr[mshr_index].command <= proc2cache_command;
+        cache2mem_command <= BUS_LOAD;
+        cache2mem_addr <= proc2cache_addr;
     endtask
 
     task handle_memory_response();
-        hit <= 1;
         if (writing_back) begin
             writing_back <= 0;
-            mem_write <= 0;
-            mem_request <= 1;
-            mem_addr <= addr;
+            cache2mem_command <= BUS_LOAD;
+            cache2mem_addr <= mshr[current_mem_tag-1].addr;
         end else begin
-            update_cache_from_mshr();
-            mem_request <= 0;
-            mem_write <= 0;
+            update_cache_from_memory();
+            cache2mem_command <= BUS_NONE;
         end
+        current_mem_tag <= mem2cache_response;
     endtask
 
-    task update_cache_from_mshr();
-        for (int i = 0; i < MSHR_SIZE; i++) begin
-            if (mshr[i].valid && mshr[i].addr[`XLEN-1:$clog2(CACHE_SIZE)] == mem_addr[`XLEN-1:$clog2(CACHE_SIZE)]) begin
-                cache[mshr[i].addr[$clog2(CACHE_SIZE)-1:0]].valid <= 1;
-                cache[mshr[i].addr[$clog2(CACHE_SIZE)-1:0]].tag <= mshr[i].addr[`XLEN-1:$clog2(CACHE_SIZE)];
-                if (mshr[i].write) begin
-                    cache[mshr[i].addr[$clog2(CACHE_SIZE)-1:0]].data <= write_data_by_size(
-                        cache[mshr[i].addr[$clog2(CACHE_SIZE)-1:0]].data,
-                        mshr[i].data,
-                        mshr[i].size,
-                        mshr[i].addr[1:0]
-                    );
-                    cache[mshr[i].addr[$clog2(CACHE_SIZE)-1:0]].dirty <= 1;
-                end else begin
-                    cache[mshr[i].addr[$clog2(CACHE_SIZE)-1:0]].data <= mem_data;
-                    cache[mshr[i].addr[$clog2(CACHE_SIZE)-1:0]].dirty <= 0;
-                end
-                if (mshr[i].read) begin
-                    read_data <= read_data_by_size(mem_data, mshr[i].size, mshr[i].addr[1:0]);
-                end
-                mshr[i].valid <= 0;
-            end
+    task update_cache_from_memory();
+        cache[index].valid <= 1;
+        cache[index].tag <= tag;
+        cache[index].data <= mem2cache_data;
+        cache[index].dirty <= 0;
+        
+        if (mshr[current_mem_tag-1].command == BUS_LOAD) begin
+            cache2proc_valid <= 1;
+            cache2proc_data <= extract_data(mem2cache_data, mshr[current_mem_tag-1].size, offset);
+        end else if (mshr[current_mem_tag-1].command == BUS_STORE) begin
+            cache[index].data <= insert_data(mem2cache_data, mshr[current_mem_tag-1].data, mshr[current_mem_tag-1].size, offset);
+            cache[index].dirty <= 1;
         end
+        
+        mshr[current_mem_tag-1].valid <= 0;
     endtask
+
+    // Helper functions
+    function logic [63:0] extract_data(logic [63:0] data, MEM_SIZE size, logic [2:0] offset);
+        case (size)
+            BYTE:   return {56'b0, data[offset*8 +: 8]};
+            HALF:   return {48'b0, data[{offset[2:1], 1'b0}*8 +: 16]};
+            WORD:   return {32'b0, data[{offset[2], 2'b0}*8 +: 32]};
+            DOUBLE: return data;
+        endcase
+    endfunction
+
+    function logic [63:0] insert_data(logic [63:0] old_data, logic [63:0] new_data, MEM_SIZE size, logic [2:0] offset);
+        case (size)
+            BYTE:   old_data[offset*8 +: 8] = new_data[7:0];
+            HALF:   old_data[{offset[2:1], 1'b0}*8 +: 16] = new_data[15:0];
+            WORD:   old_data[{offset[2], 2'b0}*8 +: 32] = new_data[31:0];
+            DOUBLE: old_data = new_data;
+        endcase
+        return old_data;
+    endfunction
 
 endmodule
