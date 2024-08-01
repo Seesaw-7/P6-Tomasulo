@@ -79,11 +79,11 @@ module reservation_station #(
         for (int j=0; j<4; ++j) begin
            if (wakeup[j]) begin
                 for (int i=0; i<NUM_ENTRIES; ++i) begin
-                    if (issue_queue_next[i].insn.tag_src1 == wakeup_tag[j]) begin
+                    if (!issue_queue_next[i].insn.ready_src1 && issue_queue_next[i].insn.tag_src1 == wakeup_tag[j]) begin
                         issue_queue_next[i].insn.value_src1 = wakeup_value[j];
                         issue_queue_next[i].insn.ready_src1 = 1;
                     end
-                    if (issue_queue_next[i].insn.tag_src2 == wakeup_tag[j]) begin
+                    if (!issue_queue_next[i].insn.ready_src2 && issue_queue_next[i].insn.tag_src2 == wakeup_tag[j]) begin
                         issue_queue_next[i].insn.value_src2 = wakeup_value[j];
                         issue_queue_next[i].insn.ready_src2 = 1;
                     end
