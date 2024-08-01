@@ -2,7 +2,6 @@
 // Module name : register_file.sv
 // Description : This module implements the register file. It supports reading at the dispatch stage and writing when the ROB commits.
 /////////////////////////////////////////////////////////////////////////
-
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
