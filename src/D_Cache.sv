@@ -8,19 +8,20 @@ module D_Cache #(
     input logic clk,
     input logic rst,
     input logic [`XLEN-1:0] proc2cache_addr,
-    input logic [63:0] proc2cache_data,
+    input logic [`XLEN-1:0] proc2cache_data,
     input MEM_SIZE proc2cache_size,
-    input logic [1:0] proc2cache_command,
+    input BUS_COMMAND proc2cache_command,
     
-    output logic [63:0] cache2proc_data,
+    output logic [`XLEN-1:0] cache2proc_data,
     output logic cache2proc_valid,
     
     // Memory interface
     output logic [`XLEN-1:0] cache2mem_addr,
-    output logic [63:0] cache2mem_data,
-    output logic [1:0] cache2mem_command,
+    output logic [`XLEN-1:0] cache2mem_data,
+    output BUS_COMMAND cache2mem_command,
+    output MEM_SIZE cache2mem_size, // 添加 mem_size 信号
     input logic [3:0] mem2cache_response,
-    input logic [63:0] mem2cache_data,
+    input logic [`XLEN-1:0] mem2cache_data,
     input logic [3:0] mem2cache_tag
 );
 
@@ -29,15 +30,15 @@ module D_Cache #(
         logic valid;
         logic dirty;
         logic [`XLEN-1:$clog2(CACHE_SIZE)] tag;
-        logic [63:0] data;
+        logic [`XLEN-1:0] data;
     } cache_line_t;
 
     typedef struct packed {
         logic valid;
         logic [`XLEN-1:0] addr;
-        logic [63:0] data;
+        logic [`XLEN-1:0] data;
         MEM_SIZE size;
-        logic [1:0] command;
+        BUS_COMMAND command;
     } mshr_entry_t;
 
     // Cache and MSHR arrays
@@ -81,13 +82,18 @@ module D_Cache #(
     // Main cache logic
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
-            cache <= '{default: '0};
-            mshr <= '{default: '0};
+            for (int i = 0; i < CACHE_SIZE; i++) begin
+                cache[i] <= '{valid: 1'b0, dirty: 1'b0, tag: '0, data: '0};
+            end
+            for (int i = 0; i < MSHR_SIZE; i++) begin
+                mshr[i] <= '{valid: 1'b0, addr: '0, data: '0, size: BYTE, command: BUS_NONE};
+            end
             cache2mem_command <= BUS_NONE;
             cache2proc_valid <= 0;
-            cache2cache_data <= '0;
+            cache2proc_data <= '0;
             cache2mem_addr <= '0;
             cache2mem_data <= '0;
+            cache2mem_size <= BYTE; // 默认值
             writing_back <= 0;
             current_mem_tag <= '0;
         end else begin
@@ -137,6 +143,7 @@ module D_Cache #(
         cache2mem_command <= BUS_STORE;
         cache2mem_addr <= {cache[index].tag, index, 3'b000};
         cache2mem_data <= cache[index].data;
+        cache2mem_size <= proc2cache_size; // 传递 mem_size
     endtask
 
     task start_memory_request();
@@ -147,6 +154,7 @@ module D_Cache #(
         mshr[mshr_index].command <= proc2cache_command;
         cache2mem_command <= BUS_LOAD;
         cache2mem_addr <= proc2cache_addr;
+        cache2mem_size <= proc2cache_size; // 传递 mem_size
     endtask
 
     task handle_memory_response();
@@ -154,6 +162,7 @@ module D_Cache #(
             writing_back <= 0;
             cache2mem_command <= BUS_LOAD;
             cache2mem_addr <= mshr[current_mem_tag-1].addr;
+            cache2mem_size <= mshr[current_mem_tag-1].size; // 传递 mem_size
         end else begin
             update_cache_from_memory();
             cache2mem_command <= BUS_NONE;

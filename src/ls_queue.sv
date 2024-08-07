@@ -42,13 +42,13 @@ module ls_queue(
         if (dispatch) begin
             ls_queue_next[tail_curr].valid = 1'b1;
             if ((insn_in.func == LS_LOAD) || (insn_in.func == LS_LOADU)) begin
-                ls_queue_next[tail_curr].read_write = 1'b1;
+                ls_queue_next[tail_curr].mem_command = BUS_LOAD;
             end
             else if (insn_in.func == LS_STORE) begin
-                ls_queue_next[tail_curr].read_write = 1'b0;
+                ls_queue_next[tail_curr].mem_command = BUS_STORE;
             end
             else begin
-                ls_queue_next[tail_curr].read_write = 1'b0;
+                ls_queue_next[tail_curr].mem_command = BUS_NONE;
             end
             ls_queue_next[tail_curr].insn = insn_in; 
             
@@ -56,27 +56,31 @@ module ls_queue(
         end
         
         // to ls unit
-        if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].insn.ready_src2 && ls_queue_curr[head_curr].read_write == 1'b0) begin
-            if (commit_store && (commit_store_rob_tag == ls_queue_curr[head_curr].insn.insn_tag)) begin
+        to_ls_unit = 1'b0; // Default value
+        insn_out_to_ls_unit = '0; // Default value
+        
+        if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].insn.ready_src2) begin
+            if (ls_queue_curr[head_curr].mem_command == BUS_STORE) begin
+                if (commit_store && (commit_store_rob_tag == ls_queue_curr[head_curr].insn.insn_tag)) begin
+                    to_ls_unit = 1'b1; 
+                    insn_out_to_ls_unit.insn = ls_queue_curr[head_curr].insn;
+                    insn_out_to_ls_unit.mem_command = ls_queue_curr[head_curr].mem_command;
+                end
+            end else if (ls_queue_curr[head_curr].mem_command == BUS_LOAD) begin
                 to_ls_unit = 1'b1; 
                 insn_out_to_ls_unit.insn = ls_queue_curr[head_curr].insn;
-                insn_out_to_ls_unit.read_write = ls_queue_curr[head_curr].read_write;
+                insn_out_to_ls_unit.mem_command = ls_queue_curr[head_curr].mem_command;
             end
-        end // store
-        else if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].read_write == 1'b1) begin
-            to_ls_unit = 1'b1; 
-            insn_out_to_ls_unit.insn = ls_queue_curr[head_curr].insn;
-            insn_out_to_ls_unit.read_write = ls_queue_curr[head_curr].read_write;
-        end //load
+        end
         
-       // syncronize forwarding with rs  
+       // synchronize forwarding with rs  
         for (int i=0; i<`LS_QUEUE_SIZE; i++) begin
             if (ls_queue_curr[i].valid == 1'b1) begin
-                if ((ls_queue_curr[i].insn.tag_src1 == forwarding_rob_tag) && (ls_queue_curr[i].insn.ready_src1)) begin
+                if ((ls_queue_curr[i].insn.tag_src1 == forwarding_rob_tag) && (!ls_queue_curr[i].insn.ready_src1)) begin
                     ls_queue_next[i].insn.value_src1 = forwarding_data;
                     ls_queue_next[i].insn.ready_src1 = 1'b1;
                 end
-                else if ((ls_queue_curr[i].insn.tag_src2 == forwarding_rob_tag) && (ls_queue_curr[i].insn.ready_src2)) begin
+                else if ((ls_queue_curr[i].insn.tag_src2 == forwarding_rob_tag) && (!ls_queue_curr[i].insn.ready_src2)) begin
                     ls_queue_next[i].insn.value_src2 = forwarding_data;
                     ls_queue_next[i].insn.ready_src2 = 1'b1;
                 end
@@ -90,13 +94,14 @@ module ls_queue(
         end
     end
     
-    
     always_ff @(posedge clk) begin
         if (reset || flush) begin
             head_curr <= {(`LS_QUEUE_POINTER_LEN){1'b0}}; 
             tail_curr <= {(`LS_QUEUE_POINTER_LEN){1'b0}}; 
             for (int i=0; i<`LS_QUEUE_SIZE; i++) begin
                 ls_queue_curr[i].valid = 1'b0;
+                ls_queue_curr[i].mem_command = BUS_NONE;
+                ls_queue_curr[i].insn = '0;
             end
         end
         else begin
