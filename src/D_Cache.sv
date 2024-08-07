@@ -48,7 +48,7 @@ module D_Cache #(
     // Internal signals
     logic [$clog2(CACHE_SIZE)-1:0] index;
     logic [`XLEN-1:$clog2(CACHE_SIZE)] tag;
-    logic [2:0] offset;
+    logic [5:0] offset;
     logic mshr_full, mshr_hit;
     logic [$clog2(MSHR_SIZE)-1:0] mshr_index;
     logic need_writeback, writing_back;
@@ -56,9 +56,9 @@ module D_Cache #(
 
     // Address decoding
     always_comb begin
-        index = proc2cache_addr[$clog2(CACHE_SIZE)+2:3];
-        tag = proc2cache_addr[`XLEN-1:$clog2(CACHE_SIZE)+3];
-        offset = proc2cache_addr[2:0];
+        index = proc2cache_addr[$clog2(CACHE_SIZE)+5:6];
+        tag = proc2cache_addr[`XLEN-1:$clog2(CACHE_SIZE)+6];
+        offset = proc2cache_addr[5:0];
     end
 
     // MSHR logic
@@ -93,10 +93,11 @@ module D_Cache #(
             cache2proc_data <= '0;
             cache2mem_addr <= '0;
             cache2mem_data <= '0;
-            cache2mem_size <= BYTE; // 默认值
+            cache2mem_size <= BYTE;
             writing_back <= 0;
             current_mem_tag <= '0;
         end else begin
+            cache2proc_valid <= 0; // 每个周期开始时复位 cache2proc_valid
             if (proc2cache_command != BUS_NONE) begin
                 handle_cache_access();
             end
@@ -117,12 +118,13 @@ module D_Cache #(
     endtask
 
     task handle_cache_hit();
-        cache2proc_valid <= 1;
         if (proc2cache_command == BUS_LOAD) begin
             cache2proc_data <= extract_data(cache[index].data, proc2cache_size, offset);
+            cache2proc_valid <= 1;  // 只在这里设置为高
         end else if (proc2cache_command == BUS_STORE) begin
             cache[index].data <= insert_data(cache[index].data, proc2cache_data, proc2cache_size, offset);
             cache[index].dirty <= 1;
+            cache2proc_valid <= 1;  // 对于存储操作也设置有效信号
         end
     endtask
 
@@ -133,7 +135,17 @@ module D_Cache #(
             if (need_writeback && !writing_back) begin
                 start_writeback();
             end else if (!writing_back) begin
-                start_memory_request();
+                if (proc2cache_command == BUS_STORE) begin
+                    // 处理store miss
+                    start_memory_request();
+                    // 在内存请求完成后,我们需要更新缓存行
+                    cache[index].valid <= 1;
+                    cache[index].tag <= tag;
+                    cache[index].data <= insert_data('0, proc2cache_data, proc2cache_size, offset);
+                    cache[index].dirty <= 1;
+                end else begin
+                    start_memory_request();
+                end
             end
         end
     endtask
@@ -182,26 +194,27 @@ module D_Cache #(
         end else if (mshr[current_mem_tag-1].command == BUS_STORE) begin
             cache[index].data <= insert_data(mem2cache_data, mshr[current_mem_tag-1].data, mshr[current_mem_tag-1].size, offset);
             cache[index].dirty <= 1;
+            cache2proc_valid <= 1; // 表示store操作完成
         end
         
         mshr[current_mem_tag-1].valid <= 0;
     endtask
 
     // Helper functions
-    function logic [63:0] extract_data(logic [63:0] data, MEM_SIZE size, logic [2:0] offset);
+    function logic [63:0] extract_data(logic [63:0] data, MEM_SIZE size, logic [5:0] offset);
         case (size)
             BYTE:   return {56'b0, data[offset*8 +: 8]};
-            HALF:   return {48'b0, data[{offset[2:1], 1'b0}*8 +: 16]};
-            WORD:   return {32'b0, data[{offset[2], 2'b0}*8 +: 32]};
+            HALF:   return {48'b0, data[{offset[5:4], 1'b0}*8 +: 16]};
+            WORD:   return {32'b0, data[{offset[5:3], 2'b0}*8 +: 32]};
             DOUBLE: return data;
         endcase
     endfunction
 
-    function logic [63:0] insert_data(logic [63:0] old_data, logic [63:0] new_data, MEM_SIZE size, logic [2:0] offset);
+    function logic [63:0] insert_data(logic [63:0] old_data, logic [63:0] new_data, MEM_SIZE size, logic [5:0] offset);
         case (size)
             BYTE:   old_data[offset*8 +: 8] = new_data[7:0];
-            HALF:   old_data[{offset[2:1], 1'b0}*8 +: 16] = new_data[15:0];
-            WORD:   old_data[{offset[2], 2'b0}*8 +: 32] = new_data[31:0];
+            HALF:   old_data[{offset[5:4], 1'b0}*8 +: 16] = new_data[15:0];
+            WORD:   old_data[{offset[5:3], 2'b0}*8 +: 32] = new_data[31:0];
             DOUBLE: old_data = new_data;
         endcase
         return old_data;
