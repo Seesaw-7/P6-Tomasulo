@@ -9,12 +9,12 @@
 
 typedef struct packed {
     logic valid;
-    logic read_write; // read:1 write:0
+    BUS_COMMAND mem_command; // read:1 write:0
     INST_RS insn; 
 } LS_QUEUE_ENTRY;
 
 typedef struct packed {
-    logic read_write; 
+    BUS_COMMAND mem_command; 
     INST_RS insn; 
 } LS_UNIT_PACK;
 
