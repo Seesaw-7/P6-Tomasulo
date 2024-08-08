@@ -14,6 +14,7 @@ module reorder_buffer(
     input br_jp_from_dispatcher,  
     input predict_branch_from_dispatcher,
     input halt_from_dispatcher, 
+    input illegal_from_dispatcher,
      
     input cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
@@ -41,7 +42,9 @@ module reorder_buffer(
     output logic [`ROB_TAG_LEN-1:0] retire_rob_tag,
     output logic commit_br_jp, 
     output logic [`XLEN-1:0] commit_pc,
-    output logic [`XLEN-1:0] commit_npc
+    output logic [`XLEN-1:0] commit_npc,
+    output logic halt,
+    output logic illegal
 );
     
     // ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
@@ -68,6 +71,8 @@ module reorder_buffer(
         retire_rob_tag = {`ROB_TAG_LEN{1'b0}};
         commit_pc = {`XLEN{1'b0}};
         commit_npc = {`XLEN{1'b0}};
+        halt = 1'b0;
+        illegal = 1'b0;
         
         if (dispatch) begin
             rob_next[tail_curr].valid = 1'b1;
@@ -78,7 +83,9 @@ module reorder_buffer(
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
             rob_next[tail_curr].npc = npc_from_dispatcher;
             rob_next[tail_curr].pc = pc_from_dispatcher;
-            rob_next[tail_curr].pc = halt_from_dispatcher;
+            rob_next[tail_curr].halt = halt_from_dispatcher;
+            rob_next[tail_curr].illegal = illegal_from_dispatcher;
+            
             // tail_next = (tail_curr + `ROB_TAG_LEN'd1) % `ROB_SIZE;
             tail_next = tail_curr + 1;
             
@@ -121,6 +128,14 @@ module reorder_buffer(
                 commit_br_jp = 1'b1; 
             end
             
+            if (rob_curr[head_curr].halt == 1'b1) begin
+                halt = 1'b1; 
+            end
+            
+            if (rob_curr[head_curr].illegal == 1'b1) begin
+                illegal = 1'b1;
+            end
+            
             rob_next[head_curr].valid = 1'b0;
             // head_next = (head_curr + 1) % `ROB_SIZE;
             head_next = head_curr + 1;
@@ -147,6 +162,7 @@ module reorder_buffer(
                 rob_curr[i].npc <= {`XLEN{1'b0}};
                 rob_curr[i].pc <= {`XLEN{1'b0}};
                 rob_curr[i].halt <= 1'b0;
+                rob_curr[i].illegal <= 1'b0; 
             end
         end
         else begin
