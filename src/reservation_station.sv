@@ -68,13 +68,12 @@ module reservation_station #(
             end
         end
         // move everything to the end
-        for (int i=0; i<NUM_ENTRIES-1; ++i) begin // TODO: test whether work properly
+        for (int i=0; i<NUM_ENTRIES-1; ++i) begin 
             if (!issue_queue_next[i].valid) begin
                 issue_queue_next[i] = issue_queue_next[i+1];
                 issue_queue_next[i+1].valid = 1'b0;
             end
         end
-        // TODO: alternatively: shift right and add to the first
         // wakeup
         for (int j=0; j<4; ++j) begin
            if (wakeup[j]) begin
@@ -97,7 +96,6 @@ module reservation_station #(
     // find the first ready insn
     always_comb begin
         insn_ready = 0;
-        // TODO: check whether this for loop siquentially assign variables
         for (int i=NUM_ENTRIES; i>=0; --i) begin
             unique if (issue_queue_curr[i].valid && issue_queue_curr[i].insn.ready_src1 && issue_queue_curr[i].insn.ready_src2) begin
                 insn_ready = issue_queue_curr[i];

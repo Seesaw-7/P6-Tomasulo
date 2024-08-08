@@ -98,7 +98,7 @@ assign prefetch_queue_branch_target_pc = flush ? rob_commit_npc : predict_target
 prefetch_queue fetch_stage_0 (
     .clock(clock),
     .reset(reset),
-    .en(!stall),	
+    .en(!stall && !rob_full),	
     .mem_bus_none(proc2Dmem_command == BUS_NONE),
     .take_branch(flush || predict_taken),
     .branch_target_pc(prefetch_queue_branch_target_pc),
@@ -373,7 +373,7 @@ assign proc2Dmem_command = BUS_NONE;
 
     typedef struct packed {
         logic [3:0] ready;
-        logic [3:0] [`XLEN-1:0] result; //TODO: mult 64 bits
+        logic [3:0] [`XLEN-1:0] result; 
         logic [3:0] [`ROB_TAG_LEN-1:0] tag_insn_ex;
         logic [3:0] [`ROB_TAG_LEN-1:0] tag_result;
         logic [`XLEN-1:0] target_pc;
@@ -386,8 +386,6 @@ assign proc2Dmem_command = BUS_NONE;
         execute_reg_next.ready[FU_ALU] = alu_done ? 1'b1 : (cdb_select_fu == FU_ALU) ? 1'b0 : execute_reg_curr.ready[FU_ALU];
         execute_reg_next.ready[FU_MULT] = mult_done ? 1'b1 : (cdb_select_fu == FU_MULT) ? 1'b0 : execute_reg_curr.ready[FU_MULT];
         execute_reg_next.ready[FU_BTU] = btu_done ? 1'b1 : (cdb_select_fu == FU_BTU) ? 1'b0 : execute_reg_curr.ready[FU_BTU];
-//        execute_reg_next.ready[FU_MULT] = mult_done;
-//        execute_reg_next.ready[FU_BTU] = btu_done;
         // TODO:
         execute_reg_next.result[FU_ALU] = alu_result;
         execute_reg_next.result[FU_MULT] = mult_result[31:0];
@@ -405,7 +403,7 @@ assign proc2Dmem_command = BUS_NONE;
 
     // synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
-		if (reset || flush) begin //TODO: flush
+		if (reset || flush) begin 
             execute_reg_curr <= 0;
 		end else begin// if (reset)
 			execute_reg_curr <= `SD execute_reg_next; 
@@ -417,7 +415,7 @@ assign proc2Dmem_command = BUS_NONE;
 //                Complete-Stage                //
 //                                              //
 //////////////////////////////////////////////////
-logic  [3:0] [`XLEN-1:0] cdb_in_values; // TODO: make FU_NUM global
+logic  [3:0] [`XLEN-1:0] cdb_in_values; 
 assign cdb_in_values[FU_ALU] = alu_result;
 assign cdb_in_values[FU_BTU] = btu_wb_data;
 assign cdb_in_values[FU_MULT] = 32'(mult_result);
@@ -427,9 +425,8 @@ logic rob_enable;
 logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb;
 logic [`XLEN-1:0] value_from_cdb;
 logic mispredict_from_cdb;
-logic [`XLEN-1:0] pc_from_cdb; //TODO: change output size of out_pc
-logic [1:0] cdb_select_fu; // TODO: forward it to stop stalling fu
-//TODO: keep ready until moved by cdb
+logic [`XLEN-1:0] pc_from_cdb; 
+logic [1:0] cdb_select_fu; 
 
     common_data_bus CDB(
         // input
@@ -495,7 +492,7 @@ reorder_buffer ROB_0 (
     .flush(flush), //also indicate write to pc
     
     .assign_rob_tag_to_dispatcher(rob_tag_for_dispatch),
-    .rob_full_adv(rob_full), // TODO: not used in m2
+    .rob_full_adv(rob_full), 
     
     .search_src1_data(src1_data_from_rob), // to dispatcher
     .search_src2_data(src2_data_from_rob),
@@ -503,7 +500,6 @@ reorder_buffer ROB_0 (
 
     .retire_rob_tag(retire_rob_tag),
     .commit_branch(rob_commit_branch),
-    .commit_branch_taken(rob_commit_branch_taken),
     .commit_pc(rob_commit_pc),
     .commit_npc(rob_commit_npc)
 );
