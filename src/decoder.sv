@@ -30,7 +30,7 @@ module decoder(
 
 	logic valid_inst_in;
 	assign valid_inst_in = in_valid;
-	assign decoded_pack.valid = valid_inst_in & ~illegal;
+	assign decoded_pack.valid = valid_inst_in & ~decoded_pack.illegal;
 	assign decoded_pack.pc = in_pc;
 	assign decoded_pack.npc = in_pc + 4;
 
