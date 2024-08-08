@@ -26,6 +26,7 @@ typedef struct packed {
    logic [`XLEN-1:0] inst_npc; // next pc for this instruction
    INSN_FUNC func;
    logic branch;
+   logic halt;
 } INST_ROB;
 
 `endif

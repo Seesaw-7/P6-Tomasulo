@@ -124,7 +124,7 @@ decoder decoder_0 (
     .flush(stall),
     .in_pc(fetch_stage_packet.PC),
     .csr_op(decoder_csr_op),
-    .halt(decoder_halt),
+    // .halt(decoder_halt),
     .illegal(decoder_illegal),
     .decoded_pack(decoded_pack)
 );
@@ -488,6 +488,7 @@ reorder_buffer ROB_0 (
     // .func_from_dispatcher(inst_dispatch_to_rob.func),
     .br_jp_from_dispatcher(br_jp),
     .predict_branch_from_dispatcher(inst_dispatch_to_rob.branch),
+    .halt_from_dispatcher(inst_dispatch_to_rob.halt),
      
     .cdb_to_rob(rob_enable),
     .rob_tag_from_cdb(rob_tag_from_cdb),

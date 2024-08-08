@@ -16,6 +16,7 @@ typedef struct packed {
 	logic [`XLEN-1:0] pc;
 	logic [`XLEN-1:0] npc;
 	logic [2:0] func3;
+	logic unsigned halt;
 } DECODED_PACK;
 
 `endif
