@@ -79,8 +79,6 @@ module dispatcher (
     assign inst_rs.fu = insn_reg.fu;
     assign inst_rs.func = insn_reg.alu_func;
     assign inst_rs.func3 = insn_reg.func3;
-    assign inst_rs.halt = insn_reg.halt;
-    assign inst_rs.illegal = insn_reg.illegal;
     assign inst_rs.tag_dest = renamed_pack.rob_tag; 
     assign inst_rs.tag_src1 = renamed_pack.src1.rob_tag;
     assign inst_rs.tag_src2 = renamed_pack.src2.rob_tag;
@@ -165,6 +163,8 @@ module dispatcher (
     assign inst_rob.inst_npc = insn_reg.npc;
     assign inst_rob.func = insn_reg.alu_func;
     assign inst_rob.branch = branch_from_bp;
+    assign inst_rob.halt = insn_reg.halt;
+    assign inst_rob.illegal = insn_reg.illegal;
 
     // assign stall = |(RS_Load);//TODO: use this in m3
 
