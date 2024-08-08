@@ -1,7 +1,11 @@
+/////////////////////////////////////////////////////////////////////////
+// Module name : reservation_station.sv
+// Description : The reservation station (RS)  holds instructions waiting to be issued to the functional units. It manages instruction dispatching, waking up operands, and issuing instructions for execution. 
+/////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
- `include "reservation_station.svh"
+`include "reservation_station.svh"
 
 //TODO: use CAM instead of loop to improve gate latency
 
