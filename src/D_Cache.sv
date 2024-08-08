@@ -1,25 +1,29 @@
 `timescale 1ns/100ps
 `include "sys_defs.svh"
 
+// TODO: switch func3 and unsign extension
+
 module D_Cache #(
     parameter CACHE_SIZE = 256,
     parameter MSHR_SIZE = 4
 ) (
     input clk,
     input rst,
+
+    // LS Unit interface
     input [`XLEN-1:0] proc2cache_addr,
     input [`XLEN-1:0] proc2cache_data,
-    input MEM_SIZE proc2cache_size, 
-    input BUS_COMMAND proc2cache_command, // TODO: cache to mem communicate, and proc to cache communicate
+    input [2:0] proc2cache_size, 
+    input BUS_COMMAND proc2cache_command, // mem_command from ls_unit // TODO: cache to mem communicate, and proc to cache communicate
     
-    output logic [`XLEN-1:0] cache2proc_data, // TODO: check communication
-    output logic cache2proc_valid,
+    output logic [`XLEN-1:0] cache2proc_data, //to ls_unit data // TODO: check communication
+    output logic cache2proc_valid, // to ls_unit hit/miss
     
     // Memory interface
     output logic [`XLEN-1:0] cache2mem_addr,
     output logic [`XLEN-1:0] cache2mem_data,
     output BUS_COMMAND cache2mem_command,
-    output MEM_SIZE cache2mem_size, // ���� mem_size �ź�
+    // output MEM_SIZE cache2mem_size, // ���� mem_size �ź�
     input [3:0] mem2cache_response,
     input [`XLEN-1:0] mem2cache_data,
     input [3:0] mem2cache_tag
