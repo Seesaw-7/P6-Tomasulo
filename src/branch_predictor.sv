@@ -1,3 +1,7 @@
+/////////////////////////////////////////////////////////////////////////
+// Module name : branch_predictor.sv
+// Description : This module predicts the outcome of cond/uncond branch instructions. It takes the current PC from decoder and searches BPB and BHB for a prediction. The module also updates the prediction history based on feedback from the ROB . 
+/////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
@@ -14,7 +18,7 @@ module branch_predictor(
     input [`XLEN-1:0] branch_target_from_rob,
     
     output logic predict_taken,
-    output [`XLEN-1:0] predict_target 
+    output logic [`XLEN-1:0] predict_target 
 );
     
     logic [`BPB_INDEX_LEN-1:0] bpb_index_search;
