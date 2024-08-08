@@ -16,7 +16,7 @@ typedef struct packed {
     logic unsigned [`XLEN-1:0] value_src2;
     logic [`XLEN-1:0] imm;
     logic [`XLEN-1:0] pc;
-    logic [2:0] func3;
+    MEM_SIZE func3;
 } INST_RS;
 
 typedef struct packed {
