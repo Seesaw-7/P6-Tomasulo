@@ -1,3 +1,7 @@
+/////////////////////////////////////////////////////////////////////////
+// Module name : dispatcher.sv
+// Description : This module is responsible for dispatching decoded instructions to the RS. The dispatcher also interacts with the map table and ROB to ensure the proper tracking and signal forwarding of instructions.
+/////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
@@ -5,10 +9,6 @@
 `include "decoder.svh"
 `include "dispatcher.svh"
 `include "reorder_buffer.svh"
-
-// TODO: add instruction queue in m3
-// TODO: check maptable input
-// TODO: edit LSU stall in m3
 
 module dispatcher (
     // control signals
