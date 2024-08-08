@@ -5,24 +5,24 @@ module D_Cache #(
     parameter CACHE_SIZE = 256,
     parameter MSHR_SIZE = 4
 ) (
-    input logic clk,
-    input logic rst,
-    input logic [`XLEN-1:0] proc2cache_addr,
-    input logic [`XLEN-1:0] proc2cache_data,
-    input MEM_SIZE proc2cache_size,
-    input BUS_COMMAND proc2cache_command,
+    input clk,
+    input rst,
+    input [`XLEN-1:0] proc2cache_addr,
+    input [`XLEN-1:0] proc2cache_data,
+    input MEM_SIZE proc2cache_size, 
+    input BUS_COMMAND proc2cache_command, // TODO: cache to mem communicate, and proc to cache communicate
     
-    output logic [`XLEN-1:0] cache2proc_data,
+    output logic [`XLEN-1:0] cache2proc_data, // TODO: check communication
     output logic cache2proc_valid,
     
     // Memory interface
     output logic [`XLEN-1:0] cache2mem_addr,
     output logic [`XLEN-1:0] cache2mem_data,
     output BUS_COMMAND cache2mem_command,
-    output MEM_SIZE cache2mem_size, // Ìí¼Ó mem_size ÐÅºÅ
-    input logic [3:0] mem2cache_response,
-    input logic [`XLEN-1:0] mem2cache_data,
-    input logic [3:0] mem2cache_tag
+    output MEM_SIZE cache2mem_size, // ï¿½ï¿½ï¿½ï¿½ mem_size ï¿½Åºï¿½
+    input [3:0] mem2cache_response,
+    input [`XLEN-1:0] mem2cache_data,
+    input [3:0] mem2cache_tag
 );
 
     // Cache line and MSHR entry structures
@@ -97,7 +97,7 @@ module D_Cache #(
             writing_back <= 0;
             current_mem_tag <= '0;
         end else begin
-            cache2proc_valid <= 0; // Ã¿¸öÖÜÆÚ¿ªÊ¼Ê±¸´Î» cache2proc_valid
+            cache2proc_valid <= 0; // Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½Ê¼Ê±ï¿½ï¿½Î» cache2proc_valid
             if (proc2cache_command != BUS_NONE) begin
                 handle_cache_access();
             end
@@ -120,11 +120,11 @@ module D_Cache #(
     task handle_cache_hit();
         if (proc2cache_command == BUS_LOAD) begin
             cache2proc_data <= extract_data(cache[index].data, proc2cache_size, offset);
-            cache2proc_valid <= 1;  // Ö»ÔÚÕâÀïÉèÖÃÎª¸ß
+            cache2proc_valid <= 1;  // Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½
         end else if (proc2cache_command == BUS_STORE) begin
             cache[index].data <= insert_data(cache[index].data, proc2cache_data, proc2cache_size, offset);
             cache[index].dirty <= 1;
-            cache2proc_valid <= 1;  // ¶ÔÓÚ´æ´¢²Ù×÷Ò²ÉèÖÃÓÐÐ§ÐÅºÅ
+            cache2proc_valid <= 1;  // ï¿½ï¿½ï¿½Ú´æ´¢ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½Åºï¿½
         end
     endtask
 
@@ -136,9 +136,9 @@ module D_Cache #(
                 start_writeback();
             end else if (!writing_back) begin
                 if (proc2cache_command == BUS_STORE) begin
-                    // ´¦Àístore miss
+                    // ï¿½ï¿½ï¿½ï¿½store miss
                     start_memory_request();
-                    // ÔÚÄÚ´æÇëÇóÍê³Éºó,ÎÒÃÇÐèÒª¸üÐÂ»º´æÐÐ
+                    // ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Éºï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Â»ï¿½ï¿½ï¿½ï¿½ï¿½
                     cache[index].valid <= 1;
                     cache[index].tag <= tag;
                     cache[index].data <= insert_data('0, proc2cache_data, proc2cache_size, offset);
@@ -155,7 +155,7 @@ module D_Cache #(
         cache2mem_command <= BUS_STORE;
         cache2mem_addr <= {cache[index].tag, index, 3'b000};
         cache2mem_data <= cache[index].data;
-        cache2mem_size <= proc2cache_size; // ´«µÝ mem_size
+        cache2mem_size <= proc2cache_size; // ï¿½ï¿½ï¿½ï¿½ mem_size
     endtask
 
     task start_memory_request();
@@ -166,7 +166,7 @@ module D_Cache #(
         mshr[mshr_index].command <= proc2cache_command;
         cache2mem_command <= BUS_LOAD;
         cache2mem_addr <= proc2cache_addr;
-        cache2mem_size <= proc2cache_size; // ´«µÝ mem_size
+        cache2mem_size <= proc2cache_size; // ï¿½ï¿½ï¿½ï¿½ mem_size
     endtask
 
     task handle_memory_response();
@@ -174,7 +174,7 @@ module D_Cache #(
             writing_back <= 0;
             cache2mem_command <= BUS_LOAD;
             cache2mem_addr <= mshr[current_mem_tag-1].addr;
-            cache2mem_size <= mshr[current_mem_tag-1].size; // ´«µÝ mem_size
+            cache2mem_size <= mshr[current_mem_tag-1].size; // ï¿½ï¿½ï¿½ï¿½ mem_size
         end else begin
             update_cache_from_memory();
             cache2mem_command <= BUS_NONE;
@@ -194,7 +194,7 @@ module D_Cache #(
         end else if (mshr[current_mem_tag-1].command == BUS_STORE) begin
             cache[index].data <= insert_data(mem2cache_data, mshr[current_mem_tag-1].data, mshr[current_mem_tag-1].size, offset);
             cache[index].dirty <= 1;
-            cache2proc_valid <= 1; // ±íÊ¾store²Ù×÷Íê³É
+            cache2proc_valid <= 1; // ï¿½ï¿½Ê¾storeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         end
         
         mshr[current_mem_tag-1].valid <= 0;

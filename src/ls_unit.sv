@@ -18,7 +18,7 @@ module ls_unit(
     output logic [`ROB_TAG_LEN-1:0] inst_tag, 
     output logic done
 );
-   
+    
     logic [`XLEN-1:0] data_from_mem, unsigned_result;  
     logic signed [`XLEN-1:0] signed_result;
     

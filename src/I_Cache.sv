@@ -3,14 +3,14 @@
 `include "sys_defs.svh"
 
 module I_Cache #(
-    parameter CACHE_SIZE = 256,
-    parameter BLOCK_SIZE = 8  // 64 bits = 8 bytes
+    parameter CACHE_SIZE = 256, // 256 blocks
+    parameter BLOCK_SIZE = 8  // 64 bits = 8 bytes, one block contains 2 words (2 instructions or 2 data)
 ) (
-    input logic clk,
-    input logic reset,
-    input logic [`XLEN-1:0] proc2Imem_addr,
-    input logic mem_ready,
-    input logic [63:0] mem_data,
+    input clk,
+    input reset,
+    input [`XLEN-1:0] proc2Imem_addr,
+    input mem_ready,
+    input [63:0] mem_data,
     output logic [63:0] Imem2proc_data,
     output logic mem_bus_none,
     output logic [`XLEN-1:0] mem_addr,
