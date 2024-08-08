@@ -12,6 +12,7 @@ module reorder_buffer(
     input [`XLEN-1:0] npc_from_dispatcher,
     input [`XLEN-1:0] pc_from_dispatcher,
     input INSN_FUNC func_from_dispatcher, //TODO: store in rob entry
+    input branch_from_dispatcher,
      
     input cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
@@ -38,7 +39,6 @@ module reorder_buffer(
     
     output logic [`ROB_TAG_LEN-1:0] retire_rob_tag,
     output logic commit_branch, // TODO: commit && branch
-    output logic commit_branch_taken, // TODO: cond in commit insn
     output logic [`XLEN-1:0] commit_pc, // TODO: current pc
     output logic [`XLEN-1:0] commit_npc
     
