@@ -1,3 +1,7 @@
+/////////////////////////////////////////////////////////////////////////
+// Module name : multiplier.sv
+// Description : This module performs a multi-cycle multiplication of two unsigned 64-bit operands. 
+/////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
@@ -98,4 +102,3 @@ module mult_stage #(
 	end
 
 endmodule
-
