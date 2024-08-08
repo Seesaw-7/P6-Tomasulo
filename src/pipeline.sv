@@ -217,6 +217,7 @@ dispatcher dispatcher_0 (
         .wakeup_tag(execute_reg_curr.tag_result), 
         .clear(rs_clear[FU_ALU]), 
         .clear_tag(fu_insn[FU_ALU].insn_tag),
+        .alu_ex_tag(fu_insn[FU_ALU].tag_dest),
         .insn_for_ex(alu_entry_out),
         .is_full(rs_alu_full)
     );
@@ -237,6 +238,7 @@ dispatcher dispatcher_0 (
         .wakeup_tag(execute_reg_curr.tag_result), 
         .clear(rs_clear[FU_BTU]), 
         .clear_tag(fu_insn[FU_BTU].insn_tag),
+        .alu_ex_tag(fu_insn[FU_ALU].tag_dest),
         .insn_for_ex(btu_entry_out),
         .is_full(rs_btu_full)
     );
@@ -255,6 +257,7 @@ dispatcher dispatcher_0 (
         .wakeup_tag(execute_reg_curr.tag_result), 
         .clear(rs_clear[FU_MULT]), 
         .clear_tag(fu_insn[FU_MULT].insn_tag),
+        .alu_ex_tag(fu_insn[FU_ALU].tag_dest),
         .insn_for_ex(mult_entry_out),
         .is_full(rs_mult_full)
     );
@@ -273,6 +276,7 @@ dispatcher dispatcher_0 (
         .wakeup_tag(execute_reg_curr.tag_result), 
         .clear(rs_clear[FU_LSU]), 
         .clear_tag(fu_insn[FU_LSU].insn_tag),
+        .alu_ex_tag(fu_insn[FU_ALU].tag_dest),
         .insn_for_ex(lsu_entry_out),
         .is_full(rs_lsu_full)
     );

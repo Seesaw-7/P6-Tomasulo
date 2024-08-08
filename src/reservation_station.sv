@@ -31,6 +31,7 @@ module reservation_station #(
     // from issue unit
     input unsigned clear,
     input [`ROB_TAG_LEN-1:0] clear_tag,
+    input [`ROB_TAG_LEN-1:0] alu_ex_tag,
 
     output RS_ENTRY insn_for_ex, // not always ready & reg
     output logic is_full
@@ -105,44 +106,30 @@ module reservation_station #(
         end
     end
 
-    // find the first ready insn with the fast fu
-            // for i <- 0 : NUM_ENTRIES-1
-            //     if valid 
-            //         for j <- flip [FU_LSU, FU_MULT, FU_BTU, FU_ALU]
-            //             if !wakeup[j] -- not ready 
-            //                 flag <- check whether add wake_up tag will be ready
-            //                 if (src1 ready && tag2 == wakeup_tag[j]) or (src2 ready && tag2 == wakeup_tag[j]) or (tag1 == tag2 == wakeup_tag[j]) -- we don't care about two src with different tag ready together in the future
-            //                     insn_to_ready = current insn
-            //                     break
-            //     else
-            //         break
-    // always_comb begin
-    //     insn_to_ready = 0;
-    //     for (int i=NUM_ENTRIES; i>=0; --i) begin
-    //         unique if (issue_queue_next[i].valid) begin
-    //             for (int j=0; j<4; ++j) begin //  j follows order [FU_LSU, FU_MULT, FU_BTU, FU_ALU]
-    //                 unique if (wakeup[j]) begin
-    //                     insn_to_ready = insn_to_ready;
-    //                 end else begin
-    //                     unique if (
-    //                         (issue_queue_next[i].insn.ready_src1 && (issue_queue_next[i].insn.tag_src2 == wakeup_tag[j])) ||
-    //                         (issue_queue_next[i].insn.ready_src2 && (issue_queue_next[i].insn.tag_src1 == wakeup_tag[j])) ||
-    //                         ((issue_queue_next[i].insn.tag_src1 == wakeup_tag[j]) && (issue_queue_next[i].insn.tag_src2 == wakeup_tag[j]))
-    //                     ) begin
-    //                        insn_to_ready = issue_queue_next[i]; 
-    //                     end else begin
-    //                         insn_to_ready = insn_to_ready;
-    //                     end
-    //                 end
-    //             end
-    //         end else begin
-    //             insn_to_ready = insn_to_ready;
-    //         end
-    //     end
-    // end
+    // find the first ready insn with the alu tag
+    RS_ENTRY issue_queue_predict [NUM_ENTRIES-1:0]; 
+    always_comb begin
+       issue_queue_predict = issue_queue_curr; 
+       // fake wakeup
+       for (int i=0; i<NUM_ENTRIES; ++i) begin
+            if (issue_queue_predict[i].insn.tag_src1 == alu_ex_tag) begin
+                issue_queue_predict[i].insn.ready_src1 = 1;
+            end
+            if (issue_queue_predict[i].insn.tag_src2 == alu_ex_tag) begin
+                issue_queue_predict[i].insn.ready_src2 = 1;
+            end
+       end
+       insn_to_ready = 0;
+        for (int i=NUM_ENTRIES; i>=0; --i) begin
+            unique if (issue_queue_predict[i].valid && issue_queue_predict[i].insn.ready_src1 && issue_queue_predict[i].insn.ready_src2) begin
+                insn_to_ready = issue_queue_curr[i];
+            end else begin
+                insn_to_ready = insn_to_ready;
+            end
+        end
+    end
 
-    // assign insn_for_ex_next = insn_ready.valid ? insn_ready : insn_to_ready;
-    assign insn_for_ex_next = insn_ready;
+    assign insn_for_ex_next = insn_ready.valid ? insn_ready : insn_to_ready;
     assign is_full =  issue_queue_curr[NUM_ENTRIES-2].valid;
     
 endmodule

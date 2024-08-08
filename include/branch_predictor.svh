@@ -10,9 +10,8 @@
 `define BHB_INDEX_LEN 7
 
 typedef struct packed {
-    logic [`XLEN:0] tag;
-    logic [`XLEN:0] target_pc;
+    logic [`XLEN-1:0] tag;
+    logic [`XLEN-1:0] target_pc;
 } BHB_ENTRY;
 
 `endif
-
