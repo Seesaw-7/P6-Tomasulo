@@ -32,6 +32,7 @@ module decoder(
 	assign valid_inst_in = in_valid;
 	assign decoded_pack.valid = valid_inst_in & ~illegal;
 	assign decoded_pack.pc = in_pc;
+	assign decoded_pack.npc = in_pc + 4;
 
 	always_comb begin
 		// default control values: equivalent to a nop

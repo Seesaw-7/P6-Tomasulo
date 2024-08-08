@@ -17,7 +17,7 @@ module reservation_station_tb;
     logic wakeup;
 
     //output
-    ALU_FUNC func;
+    INSN_FUNC func;
     logic [`ROB_TAG_LEN-1:0] t1, t2, dst;
     logic ready1, ready2;
     logic [`XLEN-1:0] v1, v2;
@@ -29,7 +29,7 @@ module reservation_station_tb;
     logic is_full;
     logic start;
 
-    ALU_FUNC func_out;
+    INSN_FUNC func_out;
     logic [`XLEN-1:0] v1_out, v2_out;
     logic [`XLEN-1:0] pc_out, imm_out;
     logic [`ROB_TAG_LEN-1:0] dst_tag;

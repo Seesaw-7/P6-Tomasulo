@@ -5,7 +5,7 @@
 
 typedef struct packed {
     FUNC_UNIT fu;
-    ALU_FUNC func;
+    INSN_FUNC func;
     logic unsigned [`ROB_TAG_LEN-1:0] insn_tag;
     logic unsigned [`ROB_TAG_LEN-1:0] tag_dest;
     logic unsigned [`ROB_TAG_LEN-1:0] tag_src1;

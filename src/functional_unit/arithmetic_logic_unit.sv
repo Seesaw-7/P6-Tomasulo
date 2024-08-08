@@ -15,7 +15,7 @@ module arithmetic_logic_unit(
 	// input [`XLEN-1:0] opa,
 	// input [`XLEN-1:0] opb,
 	input INST_RS insn,
-	// input ALU_FUNC     func, //TODO: input here?
+	// input INSN_FUNC     func, //TODO: input here?
 	input en,
     // TODO: input INST inst
 
@@ -26,7 +26,7 @@ module arithmetic_logic_unit(
 	output done
 );
 	wire [`XLEN-1:0] opa, opb;
-	wire ALU_FUNC func;
+	wire INSN_FUNC func;
 	assign opa = insn.value_src1;
 	assign opb = insn.value_src2;
 	assign func = insn.func;

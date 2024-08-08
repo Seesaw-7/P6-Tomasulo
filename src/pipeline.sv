@@ -6,6 +6,8 @@
 `include "sys_defs.svh"
 `include "ISA.svh"
 
+`define BRANCH_PRE_EN
+
 module pipeline (
 
 	input         clock,                    // System clock
@@ -91,13 +93,15 @@ assign pipeline_commit_NPC = rob_commit_npc;
 //////////////////////////////////////////////////
 PREFETCH_PACKET fetch_stage_packet;
 logic [`XLEN-1:0] proc2Imem_addr;
+logic [`XLEN-1:0] prefetch_queue_branch_target_pc;
+assign prefetch_queue_branch_target_pc = flush ? rob_commit_npc : predict_target; // priority flush > predict_taken
 prefetch_queue fetch_stage_0 (
     .clock(clock),
     .reset(reset),
     .en(!stall),	
     .mem_bus_none(proc2Dmem_command == BUS_NONE),
-    .take_branch(flush),
-    .branch_target_pc(rob_commit_npc),
+    .take_branch(flush || predict_taken),
+    .branch_target_pc(prefetch_queue_branch_target_pc),
     .Imem2proc_data(mem2proc_data),
     .proc2Imem_addr(proc2Imem_addr),
     .packet_out(fetch_stage_packet)
@@ -126,6 +130,36 @@ decoder decoder_0 (
 );
 
 
+DECODED_PACK predicted_pack;
+logic unsigned predict_taken;
+logic [`XLEN-1:0] predict_target;
+branch_predictor branch_predictor_0 (
+    .clk(clock),
+    .reset(reset),
+    .commit_branch(rob_commit_branch),
+    .pc_search(decoded_pack.pc),
+    .pc_from_rob(rob_commit_pc),
+    .branch_taken_from_rob(rob_commit_branch_taken),
+    .branch_target_from_rob(rob_commit_npc),
+    .predict_taken(predict_taken),
+    .predict_target(predict_target)
+);
+
+always_comb begin
+    predicted_pack = decoded_pack;
+    if ((decoded_pack.alu_func == BTU_BEQ) 
+        || (decoded_pack.alu_func == BTU_BNE) 
+        || (decoded_pack.alu_func == BTU_BLT) 
+        || (decoded_pack.alu_func == BTU_BGE) 
+        || (decoded_pack.alu_func == BTU_BLTU) 
+        || (decoded_pack.alu_func == BTU_BGEU) 
+        || (decoded_pack.alu_func == BTU_JAL) 
+        || (decoded_pack.alu_func == BTU_JALR) 
+    ) begin
+       predicted_pack.npc = predict_target;
+    end
+end
+
 // TODO: check whether invalid insn are dropped
 logic stall;
 logic [3:0] RS_load;
@@ -140,7 +174,11 @@ assign dispatcher_RS_is_full[FU_LSU] = 1'b0;
 dispatcher dispatcher_0 (
     .clk(clock),
     .reset(reset || flush),
+`ifdef BRANCH_PRE_EN
+    .decoded_pack(predicted_pack),
+`else
     .decoded_pack(decoded_pack),
+`endif
     .registers(registers), // forward from register (reg)
     .rob(rob_entries), // forward from rob (reg)
     .assign_rob_tag(rob_tag_for_dispatch),
@@ -421,6 +459,9 @@ logic [`XLEN-1:0] wb_data;
 logic [`XLEN-1:0] src1_data_from_rob;
 logic [`XLEN-1:0] src2_data_from_rob;
 logic [`ROB_TAG_LEN-1:0] retire_rob_tag; 
+logic unsigned rob_commit_branch;
+logic unsigned rob_commit_branch_taken;
+logic [`XLEN-1:0] rob_commit_pc;
 logic [`XLEN-1:0] rob_commit_npc;
 reorder_buffer ROB_0 (
     .clk(clock),
@@ -435,6 +476,7 @@ reorder_buffer ROB_0 (
     .reg_addr_from_dispatcher(inst_dispatch_to_rob.register),
     .npc_from_dispatcher(inst_dispatch_to_rob.inst_npc),
     .pc_from_dispatcher(inst_dispatch_to_rob.inst_pc),
+    .func_from_dispatcher(inst_dispatch_to_rob.func),
      
     .cdb_to_rob(rob_enable),
     .rob_tag_from_cdb(rob_tag_from_cdb),
@@ -460,6 +502,9 @@ reorder_buffer ROB_0 (
     .rob_curr(rob_entries),
 
     .retire_rob_tag(retire_rob_tag),
+    .commit_branch(rob_commit_branch),
+    .commit_branch_taken(rob_commit_branch_taken),
+    .commit_pc(rob_commit_pc),
     .commit_npc(rob_commit_npc)
 );
 

@@ -16,7 +16,8 @@ module branch_unit(
     output logic [`ROB_TAG_LEN-1:0] result_tag,
     output logic done
 );
-    ALU_FUNC func;
+    // TODO: compare npc with result as cond
+    INSN_FUNC func;
     logic [`XLEN-1:0] pc, imm, rs1, rs2;
 
     assign func = insn.func;

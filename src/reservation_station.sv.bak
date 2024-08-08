@@ -21,7 +21,7 @@ module reservation_station #(
                         // this should better be set 1 cycle after issue exactly is the FU latency is one, should be stable during clock edge
 
     // input data
-    input ALU_FUNC func,
+    input INSN_FUNC func,
     input logic [`ROB_TAG_LEN-1:0] t1, t2, dst, // previous renaming unit ensures that dst != inp1 and dst != inp2
     input logic ready1, ready2,
     input logic [`XLEN-1:0] v1, v2, 
@@ -34,7 +34,7 @@ module reservation_station #(
     output logic start, // output to FU
 
     // output data
-    output ALU_FUNC func_out, // to FU
+    output INSN_FUNC func_out, // to FU
     output logic [`XLEN-1:0] v1_out, v2_out, // to FU
     output logic [`ROB_TAG_LEN-1:0] dst_tag // to issue unit, TODO: to FU in m3
 );

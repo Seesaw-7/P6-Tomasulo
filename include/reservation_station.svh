@@ -8,7 +8,7 @@
 `define ENTRY_WIDTH 3
 
 // typedef struct packed {
-//     ALU_FUNC                       func;
+//     INSN_FUNC                       func;
 //     logic    [`ROB_TAG_LEN-1:0]     t1;
 //     logic    [`ROB_TAG_LEN-1:0]     t2;
 //     logic    [`ROB_TAG_LEN-1:0]     dst;
@@ -21,7 +21,7 @@
 // } RS_ENTRY; // entry type for all RS
 
 typedef struct packed {
-    ALU_FUNC                       func;
+    INSN_FUNC                       func;
     logic    [`ROB_TAG_LEN-1:0]     t1;
     logic    [`ROB_TAG_LEN-1:0]     t2;
     logic    [`ROB_TAG_LEN-1:0]     dst;

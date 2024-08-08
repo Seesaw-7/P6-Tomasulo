@@ -4,19 +4,20 @@
 `include "reorder_buffer.svh"
 
 module reorder_buffer(
-    input logic clk,
-    input logic reset,
+    input clk,
+    input reset,
     
-    input logic dispatch,
+    input dispatch,
     input [`REG_ADDR_LEN-1:0] reg_addr_from_dispatcher,
     input [`XLEN-1:0] npc_from_dispatcher,
     input [`XLEN-1:0] pc_from_dispatcher,
+    input INSN_FUNC func_from_dispatcher, //TODO: store in rob entry
      
-    input logic cdb_to_rob,
+    input cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
     input [`XLEN-1:0] wb_data_from_cdb,
     input [`XLEN-1:0] target_pc_from_cdb,
-    input logic mispredict_from_cdb,
+    input mispredict_from_cdb,
     
     input [`ROB_TAG_LEN-1:0] search_src1_rob_tag, // from dispatcher
     input [`ROB_TAG_LEN-1:0] search_src2_rob_tag,
@@ -36,6 +37,9 @@ module reorder_buffer(
     output ROB_ENTRY [`ROB_SIZE-1:0] rob_curr ,
     
     output logic [`ROB_TAG_LEN-1:0] retire_rob_tag,
+    output logic commit_branch, // TODO: commit && branch
+    output logic commit_branch_taken, // TODO: cond in commit insn
+    output logic [`XLEN-1:0] commit_pc, // TODO: current pc
     output logic [`XLEN-1:0] commit_npc
     
     //rob_curr output

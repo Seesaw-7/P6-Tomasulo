@@ -119,7 +119,7 @@ typedef enum logic [5:0] {
 	LS_LOAD         = 6'h16,
 	LS_LOADU        = 6'h17,
 	LS_STORE        = 6'h18
-} ALU_FUNC;
+} INSN_FUNC;
 
 typedef enum logic [1:0] {
 	FU_LSU    		= 2'b00, // load/store unit

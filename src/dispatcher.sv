@@ -13,7 +13,7 @@
 module dispatcher (
     // control signals
     input clk,
-    input reset, // TODO: update in m3
+    input reset, 
 
     // input from decoder,
     input DECODED_PACK decoded_pack,
@@ -82,6 +82,7 @@ module dispatcher (
     assign inst_rs.tag_src2 = renamed_pack.src2.rob_tag;
     assign inst_rs.imm = insn_reg.fu == FU_BTU? insn_reg.imm : '0;
     assign inst_rs.pc = insn_reg.fu == FU_BTU? insn_reg.pc : '0;
+    assign inst_rs.npc = insn_reg.fu == FU_BTU? insn_reg.npc : '0;
     assign inst_rs.insn_tag = assign_rob_tag;
 
     always_comb begin
@@ -157,7 +158,8 @@ module dispatcher (
     // assign inst_rob
     assign inst_rob.register = renamed_pack.dest;
     assign inst_rob.inst_pc = insn_reg.pc;
-    assign inst_rob.inst_npc = insn_reg.pc + 4;
+    assign inst_rob.inst_npc = insn_reg.npc;
+    assign inst_rob.func = insn_reg.alu_func;
 
     // assign stall = |(RS_Load);//TODO: use this in m3
 

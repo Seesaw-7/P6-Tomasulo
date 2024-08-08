@@ -5,7 +5,7 @@
 
 typedef struct packed {
     FUNC_UNIT fu;
-    ALU_FUNC func;
+    INSN_FUNC func;
     logic unsigned [`ROB_TAG_LEN-1:0] insn_tag;
     logic unsigned [`ROB_TAG_LEN-1:0] tag_dest;
     logic unsigned [`ROB_TAG_LEN-1:0] tag_src1;
@@ -16,6 +16,7 @@ typedef struct packed {
     logic unsigned [`XLEN-1:0] value_src2;
     logic [`XLEN-1:0] imm;
     logic [`XLEN-1:0] pc;
+    logic [`XLEN-1:0] npc;
     MEM_SIZE func3;
 } INST_RS;
 
@@ -23,6 +24,7 @@ typedef struct packed {
    logic unsigned [`REG_ADDR_LEN-1:0] register; // architectural reg for dest
    logic [`XLEN-1:0] inst_pc; // current pc for this instruction
    logic [`XLEN-1:0] inst_npc; // next pc for this instruction
+   INSN_FUNC func;
 } INST_ROB;
 
 `endif
