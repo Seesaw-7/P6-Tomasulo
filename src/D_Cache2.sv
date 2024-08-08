@@ -1,30 +1,39 @@
+`timescale 1ns / 100ps
+
+// TODO: switch func3 and unsign extension
+// TODO: bus command 
+// TODO: figure out why mem latency is 2
+// TODO: pipeline bus command control
+
 module D_Cache #(
     parameter CACHE_SIZE = 256
 ) (
-    input logic clk,
-    input logic rst,
-    input logic [`XLEN-1:0] proc2cache_addr,
-    input logic [`XLEN-1:0] proc2cache_data,
-    input MEM_SIZE proc2cache_size,
-    input BUS_COMMAND proc2cache_command,
+    input clk,
+    input rst,
+
+    // LS Unit interface
+    input [`XLEN-1:0] proc2cache_addr, //read/write addr
+    input [`XLEN-1:0] proc2cache_data, //write data
+    input [2:0] proc2cache_size, 
+    input BUS_COMMAND proc2cache_command, // mem_command from ls_unit // TODO: cache to mem communicate, and proc to cache communicate
     
-    output logic [`XLEN-1:0] cache2proc_data,
-    output logic cache2proc_valid,
+    output logic [`XLEN-1:0] cache2proc_data, //to ls_unit data // TODO: check communication
+    output logic cache2proc_valid, // to ls_unit hit/miss
     
     // Memory interface
     output logic [`XLEN-1:0] cache2mem_addr,
     output logic [`XLEN-1:0] cache2mem_data,
     output BUS_COMMAND cache2mem_command,
-    output MEM_SIZE cache2mem_size, 
-    
-    input logic [3:0] mem2cache_response,
-    input logic [`XLEN-1:0] mem2cache_data,
-    input logic [3:0] mem2cache_tag
+
+    input [3:0] mem2cache_response,
+    input [`XLEN-1:0] mem2cache_data,
+    input [3:0] mem2cache_tag
 );
 
     // Cache Memory Definition
     typedef struct packed {
-        logic [`XLEN-1:0] data;
+        logic [`XLEN-1:0] data0;
+        logic [`XLEN-1:0] data1;
         logic valid;
         logic [`XLEN-1:0] tag;
     } cache_line_t;
@@ -36,11 +45,11 @@ module D_Cache #(
     logic [`XLEN-1:0] tag;
     
     assign index = proc2cache_addr[31:0] % CACHE_SIZE;
-    assign tag = proc2cache_addr;
+    assign tag = proc2cache_addr[31:1];//
 
     // Cache Hit Detection
     logic cache_hit;
-    assign cache_hit = (cache_mem[index].valid && cache_mem[index].tag == tag);
+    assign cache_hit = (cache_mem[index].tag == tag);
     
     // Processor to Cache Logic
     always_ff @(posedge clk or posedge rst) begin
@@ -77,7 +86,8 @@ module D_Cache #(
             end
         end
     end
-    
+
+/*    
     // Memory to Cache Logic
     always_ff @(posedge clk) begin
         if (mem2cache_response != 4'b0) begin
@@ -89,5 +99,6 @@ module D_Cache #(
             cache2proc_valid <= 1'b1;
         end
     end
+    */
 
 endmodule
