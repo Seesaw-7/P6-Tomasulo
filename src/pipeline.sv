@@ -465,6 +465,15 @@ logic unsigned rob_commit_branch;
 logic unsigned rob_commit_branch_taken;
 logic [`XLEN-1:0] rob_commit_pc;
 logic [`XLEN-1:0] rob_commit_npc;
+logic br_jp;
+br_jp = (inst_dispatch_to_rob.func == BTU_BEQ)
+    || (inst_dispatch_to_rob.func == BTU_BNE)
+    || (inst_dispatch_to_rob.func == BTU_BLT)
+    || (inst_dispatch_to_rob.func == BTU_BGE)
+    || (inst_dispatch_to_rob.func == BTU_BLTU)
+    || (inst_dispatch_to_rob.func == BTU_BGEU)
+    || (inst_dispatch_to_rob.func == BTU_JAL)
+    || (inst_dispatch_to_rob.func == BTU_JALR);
 reorder_buffer ROB_0 (
     .clk(clock),
     .reset(reset), 
@@ -476,8 +485,9 @@ reorder_buffer ROB_0 (
     .reg_addr_from_dispatcher(inst_dispatch_to_rob.register),
     .npc_from_dispatcher(inst_dispatch_to_rob.inst_npc),
     .pc_from_dispatcher(inst_dispatch_to_rob.inst_pc),
-    .func_from_dispatcher(inst_dispatch_to_rob.func),
-    .branch_from_dispatcher(inst_dispatch_to_rob.branch),
+    // .func_from_dispatcher(inst_dispatch_to_rob.func),
+    .br_jp_from_dispatcher(br_jp),
+    .predict_branch_from_dispatcher(inst_dispatch_to_rob.branch),
      
     .cdb_to_rob(rob_enable),
     .rob_tag_from_cdb(rob_tag_from_cdb),
