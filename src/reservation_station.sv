@@ -18,7 +18,7 @@ module reservation_station #(
     input reset,
 
     // from dispatch
-    input logic load,
+    input load,
     input INST_RS insn_load,
 
     // from FU reg 
@@ -133,6 +133,5 @@ module reservation_station #(
     assign is_full =  issue_queue_curr[NUM_ENTRIES-2].valid;
     
 endmodule
-
 
 
