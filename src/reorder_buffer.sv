@@ -11,8 +11,8 @@ module reorder_buffer(
     input [`REG_ADDR_LEN-1:0] reg_addr_from_dispatcher,
     input [`XLEN-1:0] npc_from_dispatcher,
     input [`XLEN-1:0] pc_from_dispatcher,
-    input INSN_FUNC func_from_dispatcher, //TODO: store in rob entry
-    input branch_from_dispatcher,
+    input br_jp_from_dispatcher,  
+    input predict_branch_from_dispatcher,
      
     input cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
@@ -38,11 +38,9 @@ module reorder_buffer(
     output ROB_ENTRY [`ROB_SIZE-1:0] rob_curr ,
     
     output logic [`ROB_TAG_LEN-1:0] retire_rob_tag,
-    output logic commit_branch, // TODO: commit && branch
-    output logic [`XLEN-1:0] commit_pc, // TODO: current pc
+    output logic commit_br_jp, 
+    output logic [`XLEN-1:0] commit_pc,
     output logic [`XLEN-1:0] commit_npc
-    
-    //rob_curr output
 );
     
     // ROB_ENTRY rob_curr [`ROB_SIZE-1:0];
@@ -67,12 +65,14 @@ module reorder_buffer(
         flush = 1'b0;
         assign_rob_tag_to_dispatcher = {`ROB_TAG_LEN{1'b0}};
         retire_rob_tag = {`ROB_TAG_LEN{1'b0}};
+        commit_pc = {`XLEN{1'b0}};
         commit_npc = {`XLEN{1'b0}};
         
         if (dispatch) begin
             rob_next[tail_curr].valid = 1'b1;
             rob_next[tail_curr].ready = 1'b0;
-            rob_next[tail_curr].mispredict = 1'b0;
+            rob_next[tail_curr].br_jp = br_jp_from_dispatcher; 
+            rob_next[tail_curr].mispredict = predict_branch_from_dispatcher;
             rob_next[tail_curr].wb_reg = reg_addr_from_dispatcher;
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
             rob_next[tail_curr].npc = npc_from_dispatcher;
@@ -86,17 +86,27 @@ module reorder_buffer(
         if (cdb_to_rob) begin
             rob_next[rob_tag_from_cdb].wb_data = wb_data_from_cdb;
             //rob_next[rob_tag_from_cdb].target_pc = target_pc_from_cdb;
-            rob_next[rob_tag_from_cdb].mispredict = mispredict_from_cdb;
+            
+            if (rob_next[rob_tag_from_cdb].mispredict != mispredict_from_cdb) begin
+                rob_next[rob_tag_from_cdb].mispredict = 1'b1;
+            end
+            else begin
+                rob_next[rob_tag_from_cdb].mispredict = 1'b0;
+            end
+            
             if (mispredict_from_cdb == 1'b1) begin
                 rob_next[rob_tag_from_cdb].npc = target_pc_from_cdb;
             end
             rob_next[rob_tag_from_cdb].ready = 1'b1;
+            
         end
         
         if (rob_curr[head_curr].valid && rob_curr[head_curr].ready) begin
             wb_en = 1'b1;
             wb_reg = rob_curr[head_curr].wb_reg;
             wb_data = rob_curr[head_curr].wb_data;
+            
+            commit_pc = rob_curr[head_curr].pc;
             commit_npc = rob_curr[head_curr].npc;
             //target_pc = rob_curr[head_curr].target_pc;
             retire_rob_tag = head_curr;
@@ -104,6 +114,11 @@ module reorder_buffer(
             if (rob_curr[head_curr].mispredict == 1'b1) begin
                 flush = 1'b1;
             end
+            
+            if (rob_curr[head_curr].br_jp == 1'b1) begin
+                commit_br_jp = 1'b1; 
+            end
+            
             rob_next[head_curr].valid = 1'b0;
             // head_next = (head_curr + 1) % `ROB_SIZE;
             head_next = head_curr + 1;
