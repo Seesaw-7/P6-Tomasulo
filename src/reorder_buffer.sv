@@ -1,3 +1,7 @@
+/////////////////////////////////////////////////////////////////////////
+// Module name : reorder_buffer.sv
+// Description : The ROB keeps track of the status and results of instructions to ensure correct program order is maintained at retirement. It also manages misprediction recovery by flushing incorrect speculative execution paths.
+/////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
