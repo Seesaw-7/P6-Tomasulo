@@ -225,12 +225,4 @@ typedef enum logic [1:0] {
 } MEM_SIZE;
 `endif
 
-
-typedef struct packed {
-	logic valid; // If low, the data in this struct is garbage
-    INST  inst;  // fetched instruction out
-	logic [`XLEN-1:0] NPC; // PC + 4
-	logic [`XLEN-1:0] PC;  // PC 
-} PREFETCH_PACKET;
-
 `endif // __SYS_DEFS_SVH__
