@@ -466,7 +466,7 @@ logic unsigned rob_commit_branch_taken;
 logic [`XLEN-1:0] rob_commit_pc;
 logic [`XLEN-1:0] rob_commit_npc;
 logic br_jp;
-br_jp = (inst_dispatch_to_rob.func == BTU_BEQ)
+assign br_jp = (inst_dispatch_to_rob.func == BTU_BEQ)
     || (inst_dispatch_to_rob.func == BTU_BNE)
     || (inst_dispatch_to_rob.func == BTU_BLT)
     || (inst_dispatch_to_rob.func == BTU_BGE)
@@ -513,7 +513,7 @@ reorder_buffer ROB_0 (
     .rob_curr(rob_entries),
 
     .retire_rob_tag(retire_rob_tag),
-    .commit_branch(rob_commit_branch),
+    .commit_br_jp(rob_commit_branch),
     .commit_pc(rob_commit_pc),
     .commit_npc(rob_commit_npc)
 );
