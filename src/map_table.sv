@@ -1,19 +1,23 @@
+/////////////////////////////////////////////////////////////////////////
+// Module name : map_table.sv
+// Description : This module implements the map table for register renaming in an out-of-order execution CPU. It supports reading the renamed map of architectural registers at the dispatch stage, updating the mapping when a new instruction is assigned, and returning the physical register when the instruction commits.
+/////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
 `include "sys_defs.svh"
 `include "map_table.svh"
 
 module map_table(
-    input logic clk,
-    input logic reset,
+    input clk,
+    input reset,
     input ARCH_REG arch_reg,
-    input logic assign_flag,
-    input logic return_flag, 
-    input logic ready_flag,
-    input logic [`ROB_TAG_LEN-1:0] assign_rob_tag_reg,
-    input logic [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
-    input logic [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
-    input logic [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
+    input assign_flag,
+    input return_flag, 
+    input ready_flag,
+    input [`ROB_TAG_LEN-1:0] assign_rob_tag_reg,
+    input [`REG_ADDR_LEN-1:0] reg_addr_from_rob, 
+    input [`ROB_TAG_LEN-1:0] rob_tag_from_rob,
+    input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
     output RENAMED_PACK renamed_pack
 );
     
