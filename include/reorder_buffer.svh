@@ -12,6 +12,7 @@ typedef struct packed {
     logic [`XLEN-1:0] wb_data;
     logic [`XLEN-1:0] npc;
     logic [`XLEN-1:0] pc;
+    logic halt;
     //logic [`XLEN-1:0] target_pc;
 } ROB_ENTRY;
 
