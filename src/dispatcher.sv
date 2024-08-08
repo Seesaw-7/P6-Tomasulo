@@ -18,6 +18,7 @@ module dispatcher (
     // input from decoder,
     input DECODED_PACK decoded_pack,
     input [`REG_NUM-1:0] [`XLEN-1:0] registers, // wires from regfile
+    input branch_from_bp,
 
     // input from ROB
     input ROB_ENTRY [`ROB_SIZE-1:0] rob ,
@@ -160,6 +161,7 @@ module dispatcher (
     assign inst_rob.inst_pc = insn_reg.pc;
     assign inst_rob.inst_npc = insn_reg.npc;
     assign inst_rob.func = insn_reg.alu_func;
+    assign inst_rob.branch = branch_from_bp;
 
     // assign stall = |(RS_Load);//TODO: use this in m3
 

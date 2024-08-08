@@ -9,7 +9,6 @@ module branch_predictor(
     
     input [`XLEN-1:0] pc_search,
 
-    input commit_branch, //TODO:
     input [`XLEN-1:0] pc_from_rob,
     input logic branch_taken_from_rob,
     input [`XLEN-1:0] branch_target_from_rob,

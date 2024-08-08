@@ -136,10 +136,9 @@ logic [`XLEN-1:0] predict_target;
 branch_predictor branch_predictor_0 (
     .clk(clock),
     .reset(reset),
-    .commit_branch(rob_commit_branch),
     .pc_search(decoded_pack.pc),
     .pc_from_rob(rob_commit_pc),
-    .branch_taken_from_rob(rob_commit_branch_taken),
+    .branch_taken_from_rob(rob_commit_branch),
     .branch_target_from_rob(rob_commit_npc),
     .predict_taken(predict_taken),
     .predict_target(predict_target)
@@ -176,8 +175,10 @@ dispatcher dispatcher_0 (
     .reset(reset || flush),
 `ifdef BRANCH_PRE_EN
     .decoded_pack(predicted_pack),
+    .branch_from_bp(predict_taken),
 `else
     .decoded_pack(decoded_pack),
+    .branch_from_bp(1'b0), // always not taken
 `endif
     .registers(registers), // forward from register (reg)
     .rob(rob_entries), // forward from rob (reg)
@@ -465,18 +466,17 @@ logic [`XLEN-1:0] rob_commit_pc;
 logic [`XLEN-1:0] rob_commit_npc;
 reorder_buffer ROB_0 (
     .clk(clock),
-    .reset(reset), //TODO: flush when take_branch
-    
+    .reset(reset), 
     // .dispatch(!dispatch_reg_curr.stall),
     // .reg_addr_from_dispatcher(dispatch_reg_curr.inst_rob.register),
     // .npc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_npc),
     // .pc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_pc),
-    // TODO:
     .dispatch(!stall),
     .reg_addr_from_dispatcher(inst_dispatch_to_rob.register),
     .npc_from_dispatcher(inst_dispatch_to_rob.inst_npc),
     .pc_from_dispatcher(inst_dispatch_to_rob.inst_pc),
     .func_from_dispatcher(inst_dispatch_to_rob.func),
+    .branch_from_dispatcher(inst_dispatch_to_rob.branch),
      
     .cdb_to_rob(rob_enable),
     .rob_tag_from_cdb(rob_tag_from_cdb),
