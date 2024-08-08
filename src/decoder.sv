@@ -16,7 +16,7 @@ module decoder(
 	
 	output logic csr_op,    // used for CSR operations, we only used this as a cheap way to get the return code out
 	// output logic halt,      // non-zero on a halt
-	output logic illegal,    // non-zero on an illegal instruction
+	// output logic illegal,    // non-zero on an illegal instruction
 	// output logic valid_inst,  // for counting valid instructions executed
 	//                         // and for making the fetch stage die on halts/
 	//                         // keeping track of when to allow the next
@@ -53,7 +53,7 @@ module decoder(
         
 		csr_op = `FALSE;
 		decoded_pack.halt = `FALSE;
-		illegal = `FALSE;
+		decoded_pack.illegal = `FALSE;
 
 		if(valid_inst_in) begin
 			casez (inst) 
@@ -375,7 +375,7 @@ module decoder(
 				`WFI: begin
 					decoded_pack.halt = `TRUE;
 				end
-				default: illegal = `TRUE;
+				default: decoded_pack.illegal = `TRUE;
 
 		endcase 
 		end 

@@ -80,6 +80,7 @@ module dispatcher (
     assign inst_rs.func = insn_reg.alu_func;
     assign inst_rs.func3 = insn_reg.func3;
     assign inst_rs.halt = insn_reg.halt;
+    assign inst_rs.illegal = insn_reg.illegal;
     assign inst_rs.tag_dest = renamed_pack.rob_tag; 
     assign inst_rs.tag_src1 = renamed_pack.src1.rob_tag;
     assign inst_rs.tag_src2 = renamed_pack.src2.rob_tag;

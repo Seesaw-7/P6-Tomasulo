@@ -22,7 +22,7 @@ module pipeline (
 	// output MEM_SIZE proc2mem_size,          // data size sent to memory
 
 	output logic [3:0]  pipeline_completed_insts,
-	// output EXCEPTION_CODE   pipeline_error_status,
+	output EXCEPTION_CODE   pipeline_error_status,
 	output logic [4:0]  pipeline_commit_wr_idx,
 	output logic [`XLEN-1:0] pipeline_commit_wr_data,
 	output logic        pipeline_commit_wr_en,
@@ -76,10 +76,11 @@ assign proc2mem_addr = proc2Imem_addr;
 assign proc2mem_data = 64'b0;
 
 assign pipeline_completed_insts = {3'b0, wb_en};
-// assign pipeline_error_status =  mem_wb_illegal             ? ILLEGAL_INST :
-//                                 mem_wb_halt                ? HALTED_ON_WFI :
-//                                 (mem2proc_response==4'h0)  ? LOAD_ACCESS_FAULT :
-//                                 NO_ERROR;
+assign pipeline_error_status =  rob_commit_illegal             ? ILLEGAL_INST :
+                                rob_commit_halt                ? HALTED_ON_WFI :
+                                (mem2proc_response==4'h0)  ? LOAD_ACCESS_FAULT :
+                                NO_ERROR;
+
 
 assign pipeline_commit_wr_idx = 5'b0;
 assign pipeline_commit_wr_data = `XLEN'b0;
@@ -125,7 +126,7 @@ decoder decoder_0 (
     .in_pc(fetch_stage_packet.PC),
     .csr_op(decoder_csr_op),
     // .halt(decoder_halt),
-    .illegal(decoder_illegal),
+    // .illegal(decoder_illegal),
     .decoded_pack(decoded_pack)
 );
 
@@ -474,6 +475,8 @@ assign br_jp = (inst_dispatch_to_rob.func == BTU_BEQ)
     || (inst_dispatch_to_rob.func == BTU_BGEU)
     || (inst_dispatch_to_rob.func == BTU_JAL)
     || (inst_dispatch_to_rob.func == BTU_JALR);
+logic rob_commit_halt, rob_commit_illegal;
+
 reorder_buffer ROB_0 (
     .clk(clock),
     .reset(reset), 
@@ -489,6 +492,7 @@ reorder_buffer ROB_0 (
     .br_jp_from_dispatcher(br_jp),
     .predict_branch_from_dispatcher(inst_dispatch_to_rob.branch),
     .halt_from_dispatcher(inst_dispatch_to_rob.halt),
+    .illegal_from_dispatcher(inst_dispatch_to_rob.illegal),
      
     .cdb_to_rob(rob_enable),
     .rob_tag_from_cdb(rob_tag_from_cdb),
@@ -516,7 +520,10 @@ reorder_buffer ROB_0 (
     .retire_rob_tag(retire_rob_tag),
     .commit_br_jp(rob_commit_branch),
     .commit_pc(rob_commit_pc),
-    .commit_npc(rob_commit_npc)
+    .commit_npc(rob_commit_npc),
+
+    .halt(rob_commit_halt),
+    .illegal(rob_commit_illegal)
 );
 
 

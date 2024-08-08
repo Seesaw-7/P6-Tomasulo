@@ -27,6 +27,7 @@ typedef struct packed {
    INSN_FUNC func;
    logic branch;
    logic halt;
+   logic illegal;
 } INST_ROB;
 
 `endif

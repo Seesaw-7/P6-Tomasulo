@@ -69,7 +69,7 @@ module testbench;
 	logic flush;
 	logic stall;
 
-	assign pipeline_error_status = NO_ERROR;
+	// assign pipeline_error_status = NO_ERROR;
 
 	// logic [`XLEN-1:0] if_NPC_out;
 	// logic [31:0]      if_IR_out;
@@ -106,7 +106,7 @@ module testbench;
 //`endif
 
 		.pipeline_completed_insts (pipeline_completed_insts),
-		// .pipeline_error_status    (pipeline_error_status),
+		.pipeline_error_status    (pipeline_error_status),
 		.pipeline_commit_wr_data  (pipeline_commit_wr_data),
 		.pipeline_commit_wr_idx   (pipeline_commit_wr_idx),
 		.pipeline_commit_wr_en    (pipeline_commit_wr_en),
@@ -370,8 +370,8 @@ module testbench;
 			end
 
 			// deal with any halting conditions
-			if(pipeline_error_status != NO_ERROR || debug_counter > 5000) begin
-			// if(pipeline_error_status != NO_ERROR || debug_counter > 50000000) begin
+			// if(pipeline_error_status != NO_ERROR || debug_counter > 5000) begin
+			if(pipeline_error_status != NO_ERROR || debug_counter > 50000000) begin
 				$display("@@@ Unified Memory contents hex on left, decimal on right: ");
 				show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
 				// 8Bytes per line, 16kB total
