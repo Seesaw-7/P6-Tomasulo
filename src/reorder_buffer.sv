@@ -13,6 +13,7 @@ module reorder_buffer(
     input [`XLEN-1:0] pc_from_dispatcher,
     input br_jp_from_dispatcher,  
     input predict_branch_from_dispatcher,
+    input halt_from_dispatcher, 
      
     input cdb_to_rob,
     input [`ROB_TAG_LEN-1:0] rob_tag_from_cdb,
@@ -77,6 +78,7 @@ module reorder_buffer(
             rob_next[tail_curr].wb_data = {`XLEN{1'b0}};
             rob_next[tail_curr].npc = npc_from_dispatcher;
             rob_next[tail_curr].pc = pc_from_dispatcher;
+            rob_next[tail_curr].pc = halt_from_dispatcher;
             // tail_next = (tail_curr + `ROB_TAG_LEN'd1) % `ROB_SIZE;
             tail_next = tail_curr + 1;
             
@@ -138,11 +140,13 @@ module reorder_buffer(
             for (int i=0; i<`ROB_SIZE; i++) begin
                 rob_curr[i].valid <= 1'b0;
                 rob_curr[i].ready <= 1'b0; 
+                rob_curr[i].br_jp <= 1'b0;
                 rob_curr[i].mispredict <= 1'b0;
                 rob_curr[i].wb_reg <= {`REG_ADDR_LEN{1'b0}};
                 rob_curr[i].wb_data <= {`XLEN{1'b0}};
                 rob_curr[i].npc <= {`XLEN{1'b0}};
                 rob_curr[i].pc <= {`XLEN{1'b0}};
+                rob_curr[i].halt <= 1'b0;
             end
         end
         else begin
