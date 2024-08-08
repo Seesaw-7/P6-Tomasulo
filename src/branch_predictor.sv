@@ -8,13 +8,13 @@
 `include "branch_predictor.svh"
 
 module branch_predictor(
-    input logic clk,
-    input logic reset,
+    input clk,
+    input reset,
     
     input [`XLEN-1:0] pc_search,
 
     input [`XLEN-1:0] pc_from_rob,
-    input logic branch_taken_from_rob,
+    input branch_taken_from_rob,
     input [`XLEN-1:0] branch_target_from_rob,
     
     output logic predict_taken,
