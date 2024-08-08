@@ -12,13 +12,13 @@ module ls_unit(
 
     output BUS_COMMAND mem_command,
     output logic [`XLEN-1:0] mem_addr, 
-    output MEM_SIZE mem_size,
+    output logic [2:0] func3,
     output logic [`XLEN-1:0] proc2Dmem_data,
     output logic [`XLEN-1:0] wb_data, // load from mem
     output logic [`ROB_TAG_LEN-1:0] inst_tag, 
     output logic done
 );
-   
+    
     logic [`XLEN-1:0] data_from_mem, unsigned_result;  
     logic signed [`XLEN-1:0] signed_result;
     
@@ -26,7 +26,7 @@ module ls_unit(
         // Default values
         mem_command = BUS_NONE;
         mem_addr = '0;
-        mem_size = BYTE; // Default to BYTE, adjust as needed
+        func3 = 3'b0;
         proc2Dmem_data = '0;
         wb_data = '0;
         inst_tag = '0;
@@ -34,7 +34,7 @@ module ls_unit(
 
         if (en == 1'b1) begin
             mem_addr = insn_in.insn.value_src1 + insn_in.insn.imm;
-            mem_size = MEM_SIZE'(insn_in.insn.func3); 
+            func3 = insn_in.insn.func3; 
             mem_command = insn_in.mem_command; // Use the mem_command from insn_in
             
             // load
