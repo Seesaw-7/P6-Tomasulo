@@ -97,7 +97,7 @@ logic stall_fetch;
 always_comb begin
     rs_full = 1'b0;
     stall_fetch = 1'b0;
-    if (rs_alu_full || rs_btu_full || rs_mult_full || rs_lsu_full) begin
+    if (rs_alu_full || rs_btu_full || rs_mult_full || lsq_full) begin
         rs_full = 1'b1;
     end
     if (rs_full || rob_full) begin 
@@ -283,23 +283,44 @@ dispatcher dispatcher_0 (
     );
 
 // load store unit
-    logic rs_lsu_full;
-    RS_ENTRY lsu_entry_out;
+    logic lsq_full; // TODO: change to ls queue
+    RS_ENTRY lsu_entry_out; //TODO: change
 
-    reservation_station RS_LSU (
+    logic lsq2lsu_en;
+    logic lsu2lsq_done;
+    LS_UNIT_PACK lsq2lsu_insn;
+
+    // reservation_station RS_LSU (
+    //     .clk(clock),
+    //     .reset(reset || flush), // flush when mis predict
+    //     .load(RS_load[FU_LSU]),
+    //     .insn_load(inst_dispatch_to_rs),
+    //     .wakeup(execute_reg_curr.ready), 
+    //     .wakeup_value(execute_reg_curr.result),
+    //     .wakeup_tag(execute_reg_curr.tag_result), 
+    //     .clear(rs_clear[FU_LSU]), 
+    //     .clear_tag(fu_insn[FU_LSU].insn_tag),
+    //     .alu_ex_tag(fu_insn[FU_ALU].tag_dest),
+    //     .insn_for_ex(lsu_entry_out),
+    //     .is_full(rs_lsu_full)
+    // );
+    ls_queue LSQ (
         .clk(clock),
-        .reset(reset || flush), // flush when mis predict
-        .load(RS_load[FU_LSU]),
-        .insn_load(inst_dispatch_to_rs),
-        .wakeup(execute_reg_curr.ready), 
-        .wakeup_value(execute_reg_curr.result),
-        .wakeup_tag(execute_reg_curr.tag_result), 
-        .clear(rs_clear[FU_LSU]), 
-        .clear_tag(fu_insn[FU_LSU].insn_tag),
-        .alu_ex_tag(fu_insn[FU_ALU].tag_dest),
-        .insn_for_ex(lsu_entry_out),
-        .is_full(rs_lsu_full)
-    );
+        .reset(reset),
+        .flush(flush),
+        .dispatch(RS_load[FU_LSU]),
+        .insn_in(inst_dispatch_to_rs),
+
+    input commit_store, 
+    input [`ROB_TAG_LEN-1:0] commit_store_rob_tag, 
+    
+    input [`ROB_TAG_LEN-1:0] forwarding_rob_tag, // synchronize with rs wake up 
+    input [`XLEN-1:0] forwarding_data,
+    
+        .done_from_ls_unit(lsu2lsq_done),
+        .to_ls_unit(lsq2lsu_en),
+        .insn_out_to_ls_unit(lsq2lsu_insn)
+);
 
 //////////////////////////////////////////////////
 //                                              //
@@ -382,6 +403,36 @@ dispatcher dispatcher_0 (
     );
 
 // load store unit
+    logic dcache_hit;
+    logic [`XLEN-1:0] dcache2lsu_data;
+    logic lsu2dcache_rd;
+    logic lsu2dcache_wr;
+    logic [`XLEN-1:0] lsu2dcache_mem_addr;
+    logic [2:0] lsu2dcache_func3;
+    logic [`XLEN-1:0] lsu2dcache_data;
+    // logic [`XLEN-1:0] 
+
+
+    ls_unit LSU (
+        .insn_in(lsq2lsu_insn),
+        .en(lsq2lsu_en),
+        .mem_hit(dcache_hit),
+        .load_data(dcache2lsu_data),
+        .mem_read(lsu2dcache_rd),
+        .mem_write(lsu2dcache_wr),
+        .mem_addr(lsu2dcache_mem_addr),
+        .func3(lsu2dcache_func3),
+        .proc2Dmem_data(lsu2dcache_data),
+
+    output logic [`XLEN-1:0] wb_data, // TODO: jie
+    output logic [`ROB_TAG_LEN-1:0] inst_tag, 
+
+        .done(lsu2lsq_done)
+);
+
+
+
+
 
 // memory
 logic [1:0]  proc2Dmem_command;

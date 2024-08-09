@@ -59,6 +59,7 @@ module mem (
 			if(cycles_left[i]>16'd0) begin
 				cycles_left[i] = cycles_left[i]-16'd1;
 
+			// if slot empty (no data needed to be transferred), begin to store value to slot and wait for bus
 			end else if(acquire_tag && !waiting_for_bus[i]) begin
 				next_mem2proc_response = i;
 				acquire_tag            = 1'b0;
@@ -75,6 +76,7 @@ module mem (
 				end
 			end
 
+			// use bus to transfer data if waiting for bus
 			if((cycles_left[i]==16'd0) && waiting_for_bus[i] && !bus_filled) begin
 					bus_filled         = 1'b1;
 					next_mem2proc_tag  = i;
