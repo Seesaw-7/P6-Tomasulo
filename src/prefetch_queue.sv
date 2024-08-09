@@ -25,7 +25,7 @@ module prefetch_queue #(
     // output decoder_enable
 );
 
-    PREFETCH_QUEUE queue_curr, queue_next;
+    PREFETCH_QUEUE queue_curr, queue_next, queue_buffer;
     logic [`XLEN-1:0] proc2Icache_addr;
     logic cache_data_valid;
     assign cache_data_valid = reset || mem_bus_none;
@@ -44,41 +44,49 @@ module prefetch_queue #(
         end
     end
 
-    logic [3:0] num;
+//    logic [3:0] num;
     always_comb begin
-        queue_next = queue_curr;
-        // if en and queue not empty, output one insn
-        unique if (en && queue_curr.num != 0) begin
-            packet_out.valid = 1;
-            packet_out.inst = queue_curr.entries[0].inst;
-            packet_out.PC = queue_curr.entries[0].PC;
-            packet_out.NPC = queue_curr.entries[0].PC + 4;
-            // shift right entries
-            for (int i=0; i<`PF_ENTRY_NUM-1; ++i) begin
-                queue_next.entries[i] = queue_curr.entries[i+1];
+        queue_buffer = queue_curr;
+        queue_next = 0;
+        if (!take_branch) begin
+            // if en and queue not empty, output one insn
+            unique if (en && queue_curr.num != 0) begin
+                // shift right entries
+                for (int i=0; i<`PF_ENTRY_NUM-1; ++i) begin
+                    queue_buffer.entries[i] = queue_curr.entries[i+1];
+                end
+                queue_buffer.entries[`PF_ENTRY_NUM-1] = 0;
+                queue_buffer.num = queue_curr.num - 1;
+    //            queue_next.PC = queue_curr.PC;
+            end else begin
+               queue_buffer.num = queue_curr.num;
+//               queue_next = queue_curr; 
             end
-            queue_next.entries[`PF_ENTRY_NUM-1] = 0;
-            num = queue_curr.num - 1;
-            queue_next.PC = queue_curr.PC;
         end else begin
-           packet_out = 0;
-           num = queue_curr.num;
-           queue_next = queue_curr; 
+            queue_buffer = 0;
+            queue_buffer.PC = branch_target_pc;
         end
-        unique if (num < `PF_ENTRY_NUM) begin
+        
+        queue_next = queue_buffer;
+        unique if (queue_buffer.num < `PF_ENTRY_NUM) begin
             // fetch one insn from cache
             if (cache_data_valid) begin
-                queue_next.entries[num].inst = queue_curr.PC[2] ? Icache2proc_data[63:32] : Icache2proc_data[31:0]; 
-                queue_next.num = num + 1;
-                queue_next.entries[queue_next.num].PC = queue_curr.PC;
+                queue_next.entries[queue_buffer.num].inst = queue_curr.PC[2] ? Icache2proc_data[63:32] : Icache2proc_data[31:0]; 
+                queue_next.num = queue_buffer.num + 1;
+                queue_next.entries[queue_buffer.num].PC = queue_curr.PC;
                 // update PC
                 queue_next.PC = take_branch ? branch_target_pc : queue_curr.PC + 4;
             end
         end else begin
-            queue_next.num = num;
+            queue_next.num = queue_buffer.num;
         end
     end
-
+    always_comb begin
+        packet_out.valid = en && (queue_curr.num != 0);
+        packet_out.inst = queue_curr.entries[0].inst;
+        packet_out.PC = queue_curr.entries[0].PC;
+        packet_out.NPC = queue_curr.entries[0].PC + 4;
+    end
 
 
 endmodule
