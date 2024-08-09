@@ -310,14 +310,13 @@ dispatcher dispatcher_0 (
         .flush(flush),
         .dispatch(RS_load[FU_LSU]),
         .insn_in(inst_dispatch_to_rs),
-
-    input commit_store, 
-    input [`ROB_TAG_LEN-1:0] commit_store_rob_tag, 
+        .commit_store(wb_en), 
+        .commit_store_rob_tag(retire_rob_tag), 
+        // TODO: forwarding accept signal
+        .forwarding_rob_tag(rob_tag_from_cdb), // use cdb broadcast here
+        .forwarding_data(value_from_cdb),
     
-    input [`ROB_TAG_LEN-1:0] forwarding_rob_tag, // synchronize with rs wake up 
-    input [`XLEN-1:0] forwarding_data,
-    
-        .done_from_ls_unit(lsu2lsq_done),
+        .done_from_ls_unit(lsu2lsq_done), //TODO: circlic?
         .to_ls_unit(lsq2lsu_en),
         .insn_out_to_ls_unit(lsq2lsu_insn)
 );
@@ -411,6 +410,10 @@ dispatcher dispatcher_0 (
     logic [2:0] lsu2dcache_func3;
     logic [`XLEN-1:0] lsu2dcache_data;
     // logic [`XLEN-1:0] 
+    logic lsu_done;
+    logic [`XLEN-1:0] lsu_wb_data;
+    logic [`ROB_TAG_LEN-1:0] lsu_insn_tag;
+    logic [`ROB_TAG_LEN-1:0] lsu_result_tag;
 
 
     ls_unit LSU (
@@ -424,12 +427,13 @@ dispatcher dispatcher_0 (
         .func3(lsu2dcache_func3),
         .proc2Dmem_data(lsu2dcache_data),
 
-    output logic [`XLEN-1:0] wb_data, // TODO: jie
-    output logic [`ROB_TAG_LEN-1:0] inst_tag, 
+        .wb_data(lsu_wb_data), // TODO: jie
+        .inst_tag(lsu_insn_tag), 
 
-        .done(lsu2lsq_done)
+        .done(lsu_done)
 );
 
+assign lsu_result_tag = lsu_insn_tag; //TODO: whether they are the same
 
 
 
@@ -458,22 +462,28 @@ assign proc2Dmem_command = BUS_NONE;
     EXECUTE_PACK execute_reg_curr, execute_reg_next;
 
     always_comb begin
+        // alu
         execute_reg_next.ready[FU_ALU] = alu_done ? 1'b1 : (cdb_select_fu == FU_ALU) ? 1'b0 : execute_reg_curr.ready[FU_ALU];
-        execute_reg_next.ready[FU_MULT] = mult_done ? 1'b1 : (cdb_select_fu == FU_MULT) ? 1'b0 : execute_reg_curr.ready[FU_MULT];
-        execute_reg_next.ready[FU_BTU] = btu_done ? 1'b1 : (cdb_select_fu == FU_BTU) ? 1'b0 : execute_reg_curr.ready[FU_BTU];
-        // TODO:
         execute_reg_next.result[FU_ALU] = alu_result;
-        execute_reg_next.result[FU_MULT] = mult_result[31:0];
-        execute_reg_next.result[FU_BTU] = btu_wb_data;
         execute_reg_next.tag_insn_ex[FU_ALU] = alu_insn_tag;
         execute_reg_next.tag_result[FU_ALU] = alu_result_tag;
+        // mult
+        execute_reg_next.ready[FU_MULT] = mult_done ? 1'b1 : (cdb_select_fu == FU_MULT) ? 1'b0 : execute_reg_curr.ready[FU_MULT];
+        execute_reg_next.result[FU_MULT] = mult_result[31:0];
         execute_reg_next.tag_insn_ex[FU_MULT] = mult_insn_tag;
         execute_reg_next.tag_result[FU_MULT] = mult_result_tag;
+        // btu
+        execute_reg_next.ready[FU_BTU] = btu_done ? 1'b1 : (cdb_select_fu == FU_BTU) ? 1'b0 : execute_reg_curr.ready[FU_BTU];
+        execute_reg_next.result[FU_BTU] = btu_wb_data;
         execute_reg_next.tag_insn_ex[FU_BTU] = btu_insn_tag;
         execute_reg_next.tag_result[FU_BTU] = btu_result_tag;
         execute_reg_next.target_pc = btu_target_pc;
         execute_reg_next.miss_predict = btu_mis_predict;
-        //TODO:
+        // lsu
+        execute_reg_next.ready[FU_LSU] = lsu_done ? 1'b1 : (cdb_select_fu == FU_BTU) ? 1'b0 : execute_reg_curr.ready[FU_BTU];
+        execute_reg_next.result[FU_LSU] = lsu_wb_data;
+        execute_reg_next.tag_insn_ex[FU_LSU] = lsu_insn_tag;
+        execute_reg_next.tag_result[FU_LSU] = lsu_result_tag;
     end
 
     // synopsys sync_set_reset "reset"
