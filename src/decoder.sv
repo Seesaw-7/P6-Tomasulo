@@ -11,7 +11,6 @@
 module decoder(
 	input in_valid,
 	input INST inst,
-	input flush,
 	input [`XLEN-1:0] in_pc,
 	
 	output logic csr_op,    // used for CSR operations, we only used this as a cheap way to get the return code out
