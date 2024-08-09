@@ -145,6 +145,7 @@ decoder decoder_0 (
 
 
 DECODED_PACK predicted_pack;
+logic unsigned predict_taken_all;
 logic unsigned predict_taken;
 logic [`XLEN-1:0] predict_target;
 branch_predictor branch_predictor_0 (
@@ -154,22 +155,25 @@ branch_predictor branch_predictor_0 (
     .pc_from_rob(rob_commit_pc),
     .branch_taken_from_rob(rob_commit_branch),
     .branch_target_from_rob(rob_commit_npc),
-    .predict_taken(predict_taken),
+    .predict_taken(predict_taken_all),
     .predict_target(predict_target)
 );
 
 always_comb begin
     predicted_pack = decoded_pack;
-    if ((decoded_pack.alu_func == BTU_BEQ) 
+    predict_taken = 0;
+    if (((decoded_pack.alu_func == BTU_BEQ) 
         || (decoded_pack.alu_func == BTU_BNE) 
         || (decoded_pack.alu_func == BTU_BLT) 
         || (decoded_pack.alu_func == BTU_BGE) 
         || (decoded_pack.alu_func == BTU_BLTU) 
         || (decoded_pack.alu_func == BTU_BGEU) 
         || (decoded_pack.alu_func == BTU_JAL) 
-        || (decoded_pack.alu_func == BTU_JALR) 
+        || (decoded_pack.alu_func == BTU_JALR))
+        &&  decoded_pack.valid
     ) begin
        predicted_pack.npc = predict_target;
+       predict_taken = predict_taken_all;
     end
 end
 
