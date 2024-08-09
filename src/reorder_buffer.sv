@@ -150,7 +150,7 @@ module reorder_buffer(
     assign search_src1_data = rob_curr[search_src1_rob_tag].wb_data;
     assign search_src2_data = rob_curr[search_src2_rob_tag].wb_data;
 
-    assign rob_full_adv = (head_curr == tail_next);
+    assign rob_full_adv = (head_curr == tail_next) && (rob_curr[tail_curr].valid);
     
     always_ff @(posedge clk) begin
         if (reset || flush) begin

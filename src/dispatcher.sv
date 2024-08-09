@@ -32,7 +32,8 @@ module dispatcher (
 
     // stall prefetch, decoder and rob
     // the decoded_packed just received will be kept in dispatcher
-    output logic stall,
+    //output logic stall,
+    output logic dispatch,
 
     // forward to map table
     input return_flag,
@@ -72,7 +73,7 @@ module dispatcher (
     ARCH_REG arch_reg;
     assign arch_reg = insn_reg.arch_reg; 
     logic assign_flag;
-    assign assign_flag = ~stall;
+    assign assign_flag = dispatch;
     map_table mt (.*); 
 
     // assign inst_rs
@@ -135,24 +136,22 @@ module dispatcher (
     //     else RS_load_cnt <= !RS_load_cnt;
     // end
 
+    assign dispatch = insn_reg.valid;
+    
     always_comb begin
-        RS_load = 4'b0;
-        stall = 0;
+        RS_load = 4'b0;       
         case (insn_reg.fu)
             FU_LSU : begin
-                RS_load[FU_LSU] = 1; 
-            end // Load Store Unit TODO: edit stall and rs_load in m3
+                RS_load[FU_LSU] = dispatch;
+            end 
             FU_MULT: begin 
-                RS_load[FU_MULT] = RS_is_full[FU_MULT] ? 1'b0 : 1'b1; // Mult Unit
-                stall = ~RS_is_full[FU_MULT] ? 1'b0 : 1'b1; 
+                RS_load[FU_MULT] = dispatch;               
             end
             FU_BTU: begin 
-                RS_load[FU_BTU] = RS_is_full[FU_BTU] ? 1'b0 : 1'b1; // Branch Unit
-                stall = ~RS_is_full[FU_BTU] ? 1'b0 : 1'b1; 
+                RS_load[FU_BTU] = dispatch;               
             end
             FU_ALU: begin 
-                RS_load[FU_ALU] = RS_is_full[FU_ALU] ? 1'b0 : 1'b1; // ALU
-                stall = ~RS_is_full[FU_ALU] ? 1'b0 : 1'b1; 
+                RS_load[FU_ALU] = dispatch;               
             end
         endcase
     end

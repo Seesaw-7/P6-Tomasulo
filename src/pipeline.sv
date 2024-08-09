@@ -9,7 +9,6 @@
 `define BRANCH_PRE_EN
 
 module pipeline (
-
 	input         clock,                    // System clock
 	input         reset,                    // System reset
 	input [3:0]   mem2proc_response,        // Tag from memory about current request
@@ -92,6 +91,20 @@ assign pipeline_commit_NPC = rob_commit_npc;
 //                 Fetch-Stage                  //
 //                                              //
 //////////////////////////////////////////////////
+logic rs_full;
+logic stall_fetch; 
+
+always_comb begin
+    rs_full = 1'b0;
+    stall_fetch = 1'b0;
+    if (rs_alu_full || rs_btu_full || rs_mult_full || rs_lsu_full) begin
+        rs_full = 1'b1;
+    end
+    if (rs_full || rob_full) begin 
+        stall_fetch = 1'b1;
+    end
+end
+
 PREFETCH_PACKET fetch_stage_packet;
 logic [`XLEN-1:0] proc2Imem_addr;
 logic [`XLEN-1:0] prefetch_queue_branch_target_pc;
@@ -99,7 +112,7 @@ assign prefetch_queue_branch_target_pc = flush ? rob_commit_npc : predict_target
 prefetch_queue fetch_stage_0 (
     .clock(clock),
     .reset(reset),
-    .en(!stall && !rob_full),	
+    .en(!stall_fetch),	
     .mem_bus_none(proc2Dmem_command == BUS_NONE),
     .take_branch(flush || predict_taken),
     .branch_target_pc(prefetch_queue_branch_target_pc),
@@ -122,7 +135,7 @@ DECODED_PACK decoded_pack;
 decoder decoder_0 (
     .in_valid(fetch_stage_packet.valid),
     .inst(fetch_stage_packet.inst),
-    .flush(stall),
+    //.flush(stall),
     .in_pc(fetch_stage_packet.PC),
     .csr_op(decoder_csr_op),
     // .halt(decoder_halt),
@@ -161,7 +174,8 @@ always_comb begin
 end
 
 // TODO: check whether invalid insn are dropped
-logic stall;
+//logic stall;
+logic dispatch_rob;
 logic [3:0] RS_load;
 INST_RS inst_dispatch_to_rs;
 INST_ROB inst_dispatch_to_rob;
@@ -186,7 +200,8 @@ dispatcher dispatcher_0 (
     .assign_rob_tag(rob_tag_for_dispatch),
     .inst_rs(inst_dispatch_to_rs), //output
     .inst_rob(inst_dispatch_to_rob), //output
-    .stall(stall), // output
+    //.stall(stall), // output
+    .dispatch(dispatch_rob),
     .return_flag(wb_en), 
     .ready_flag(rob_enable),
     .reg_addr_from_rob(wb_reg),
@@ -484,7 +499,7 @@ reorder_buffer ROB_0 (
     // .reg_addr_from_dispatcher(dispatch_reg_curr.inst_rob.register),
     // .npc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_npc),
     // .pc_from_dispatcher(dispatch_reg_curr.inst_rob.inst_pc),
-    .dispatch(!stall),
+    .dispatch(dispatch_rob),
     .reg_addr_from_dispatcher(inst_dispatch_to_rob.register),
     .npc_from_dispatcher(inst_dispatch_to_rob.inst_npc),
     .pc_from_dispatcher(inst_dispatch_to_rob.inst_pc),
