@@ -1,65 +1,93 @@
-`timescale 1ns/100ps
+`timescale 1ns / 100ps
 
-`include "sys_defs.svh"
+`include "cache.svh"
 
-module I_Cache #(
-    parameter CACHE_SIZE = 256, // 256 blocks
-    parameter BLOCK_SIZE = 8  // 64 bits = 8 bytes, one block contains 2 words (2 instructions or 2 data)
-) (
+// TODO: figure out why mem latency is 2
+// TODO: pipeline bus command control
+
+module I_Cache
+(
     input clk,
-    input reset,
-    input [`XLEN-1:0] proc2Imem_addr,
-    input mem_ready,
-    input [63:0] mem_data,
-    output logic [63:0] Imem2proc_data,
-    output logic mem_bus_none,
-    output logic [`XLEN-1:0] mem_addr,
-    output logic mem_request
+    input rst,
+
+    // Prefetch queue interface
+    input cache_read,
+    input [`XLEN-1:0] proc2cache_addr, //read addr
+    
+    output logic [`XLEN-1:0] cache2proc_data, //to ls_unit data
+    output logic cache2proc_valid, // to ls_unit hit/miss
+    
+    // Memory interface
+    output logic [`XLEN-1:0] cache2mem_addr,
+    output logic [`XLEN-1:0] cache2mem_data,
+    output BUS_COMMAND icache2mem_command,
+
+    input mem2cache_valid, // only valid for 1 cycle
+    input [63:0] mem2cache_data
 );
 
-    // Cache line structure
+    // Cache Memory Definition
     typedef struct packed {
-        logic valid;
-        logic [`XLEN-1:3] tag;
         logic [63:0] data;
+        logic valid;
+        logic [`XLEN-4:0] tag;
     } cache_line_t;
 
-    // Cache memory
-    cache_line_t cache [CACHE_SIZE];
+    cache_line_t [CACHE_SIZE-1:0] cache_mem;
+    
+    // Indexing and Tagging
+    logic [CACHE_SIZE_BIT-1+3:3] index;
+    logic [`XLEN-1:CACHE_SIZE_BIT+3] tag;
 
-    // Internal signals
-    logic [$clog2(CACHE_SIZE)-1:0] index;
-    logic [`XLEN-1:3] tag;
-    logic hit;
+    logic [`XLEN-1:0] data_temp;
+    assign data_temp = proc2cache_addr[2] ? cache_mem[index].data[63:32] : cache_mem[index].data[31:0];
+    
+    assign index = proc2cache_addr[31:3] % CACHE_SIZE;
+    assign tag = proc2cache_addr[31:CACHE_SIZE_BIT+3];//
 
-    // Compute index and tag
-    assign index = proc2Imem_addr[$clog2(CACHE_SIZE)+2:3];
-    assign tag = proc2Imem_addr[`XLEN-1:$clog2(CACHE_SIZE)+3];
+    // Cache Hit Detection
+    logic cache_hit;
+    assign cache_hit = (cache_mem[index].valid && cache_mem[index].tag == tag);
 
-    // Check for cache hit
-    assign hit = cache[index].valid && (cache[index].tag == tag);
 
-    // Output data on hit, otherwise request from memory
-    assign Imem2proc_data = hit ? cache[index].data : 64'b0;
-    assign mem_bus_none = hit;
-
-    // Memory request logic
-    assign mem_request = !hit;
-    assign mem_addr = {proc2Imem_addr[`XLEN-1:3], 3'b0};
-
-    // Cache update logic
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) begin
+    
+    // Processor to Cache Logic
+    // always_ff @(posedge clk or posedge rst) begin
+    always_ff @(posedge clk) begin
+        if (rst) begin
+            // Reset cache
             for (int i = 0; i < CACHE_SIZE; i++) begin
-                cache[i].valid <= 0;
-                cache[i].tag <= '0;
-                cache[i].data <= '0;
+                cache_mem[i].valid <= 1'b0;
             end
-        end else if (mem_ready && !hit) begin
-            cache[index].valid <= 1;
-            cache[index].tag <= tag;
-            cache[index].data <= mem_data;
+            cache2proc_valid <= 1'b0;
+        end else begin
+            if ( cache_read ) begin
+
+                // Prefetch read cache, and hit
+                if (cache_hit) begin
+                    // Handle Cache Hit
+                    cache2proc_valid <= 1'b1;
+                    cache2proc_data <= data_temp;
+
+                // Prefetch read cache, but miss
+                end else begin
+                    cache2proc_valid <= 1'b0;
+                    if(mem2cache_valid)begin
+                        cache_mem[index].data <= mem2cache_data;
+                        cache_mem[index].valid <= 1'b1;
+                        cache_mem[index].tag <= tag;
+                        icache2mem_command <= BUS_NONE;
+                    end else begin
+                        cache2mem_addr <= proc2cache_addr;
+                        cache2mem_command <= BUS_LOAD;
+                    end
+                end
+            end else begin
+                cache2proc_valid <= 1'b0;
+            end
+
         end
     end
+
 
 endmodule
