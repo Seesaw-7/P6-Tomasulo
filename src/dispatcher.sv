@@ -136,20 +136,22 @@ module dispatcher (
     //     else RS_load_cnt <= !RS_load_cnt;
     // end
 
+    assign dispatch = insn_reg.valid;
+    
     always_comb begin
         RS_load = 4'b0;       
         case (insn_reg.fu)
             FU_LSU : begin
-                RS_load[FU_LSU] = 1; 
-            end // Load Store Unit TODO: edit stall and rs_load in m3
+                RS_load[FU_LSU] = dispatch;
+            end 
             FU_MULT: begin 
-                RS_load[FU_MULT] = RS_is_full[FU_MULT] ? 1'b0 : 1'b1; // Mult Unit                
+                RS_load[FU_MULT] = dispatch;               
             end
             FU_BTU: begin 
-                RS_load[FU_BTU] = RS_is_full[FU_BTU] ? 1'b0 : 1'b1; // Branch Unit                
+                RS_load[FU_BTU] = dispatch;               
             end
             FU_ALU: begin 
-                RS_load[FU_ALU] = RS_is_full[FU_ALU] ? 1'b0 : 1'b1; // ALU               
+                RS_load[FU_ALU] = dispatch;               
             end
         endcase
     end
@@ -162,8 +164,6 @@ module dispatcher (
     assign inst_rob.branch = branch_from_bp;
     assign inst_rob.halt = insn_reg.halt;
     assign inst_rob.illegal = insn_reg.illegal;
-    
-    assign dispatch = insn_reg.valid;
 
     // assign stall = |(RS_Load);//TODO: use this in m3
 
