@@ -13,6 +13,7 @@ module ls_unit(
     input logic en, 
     input logic mem_hit, // from mem; hit or miss
     input [`XLEN-1:0] load_data, // load from mem
+    input fu_reg_empty,
 
     output logic mem_read,
     output logic mem_write, 
@@ -29,7 +30,7 @@ module ls_unit(
     
     always_comb begin
         // Default values
-        mem_command = BUS_NONE;
+        //mem_command = BUS_NONE;
         mem_addr = '0;
         func3 = 3'b0;
         proc2Dmem_data = '0;
@@ -40,27 +41,31 @@ module ls_unit(
         mem_write = 1'b0;
 
         if (en == 1'b1) begin
-            mem_addr = insn_in.insn.value_src1 + insn_in.insn.imm;
-            func3 = insn_in.insn.func3; 
-            mem_command = insn_in.mem_command; // Use the mem_command from insn_in
-            
-            // load
-            if (insn_in.read_write == 1'b1) begin
-                mem_read = 1'b1;
-                mem_write = 1'b0;
-                if (mem_hit == 1'b1) begin
-                    wb_data = load_data; 
+            if (fu_reg_empty) begin 
+                mem_addr = insn_in.insn.value_src1 + insn_in.insn.imm;
+                func3 = insn_in.insn.func3; 
+                //mem_command = insn_in.mem_command; // Use the mem_command from insn_in
+                
+                // load
+                if (insn_in.read_write == 1'b1) begin
+                    mem_read = 1'b1;
+                    mem_write = 1'b0;
+                    if (mem_hit == 1'b1) begin
+                        wb_data = load_data; 
+                    end
                 end
+                // store
+                else begin
+                    mem_read = 1'b0;
+                    mem_write = 1'b1;
+                    proc2Dmem_data = insn_in.insn.value_src2; 
+                end
+                done = mem_hit;
+                inst_tag = insn_in.insn.insn_tag;
             end
-            // store
-            else begin
-                mem_read = 1'b0;
-                mem_write = 1'b1;
-                proc2Dmem_data = insn_in.insn.value_src2; 
-            end
-            done = mem_hit;
-            inst_tag = insn_in.insn.insn_tag;
         end
     end
+    
+    //always_ff @(posedge clk)
     
 endmodule
