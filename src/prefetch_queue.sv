@@ -16,10 +16,10 @@ module prefetch_queue #(
     input clock,
     input reset,
     input en, // enable output	
-    input mem_bus_none,
+    input cache_hit,
     input take_branch,
     input [`XLEN-1:0] branch_target_pc,
-    input [63:0] Imem2proc_data,
+    input [63:0] Icache2proc_data,
     output logic [`XLEN-1:0] proc2Imem_addr,
     output PREFETCH_PACKET packet_out
     // output decoder_enable
@@ -28,13 +28,13 @@ module prefetch_queue #(
     PREFETCH_QUEUE queue_curr, queue_next, queue_buffer;
     logic [`XLEN-1:0] proc2Icache_addr;
     logic cache_data_valid;
-    assign cache_data_valid = reset || mem_bus_none;
+    assign cache_data_valid = reset || cache_hit;
 
     assign proc2Imem_addr = proc2Icache_addr; //TODO: remove when enable icache
     assign proc2Icache_addr = {queue_curr.PC[`XLEN-1:3], 3'b0};
 
-    logic [63:0] Icache2proc_data;
-    assign Icache2proc_data = Imem2proc_data;
+    //logic [63:0] Icache2proc_data;
+    //assign Icache2proc_data = Imem2proc_data;
 
     always_ff @(posedge clock) begin
         if (reset) begin
@@ -75,7 +75,8 @@ module prefetch_queue #(
                 queue_next.num = queue_buffer.num + 1;
                 queue_next.entries[queue_buffer.num].PC = queue_curr.PC;
                 // update PC
-                queue_next.PC = take_branch ? branch_target_pc : queue_curr.PC + 4;
+                //queue_next.PC = take_branch ? branch_target_pc : queue_curr.PC + 4;
+                queue_next.PC = queue_buffer.PC + 4;
             end
         end else begin
             queue_next.num = queue_buffer.num;
