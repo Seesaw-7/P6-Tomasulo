@@ -9,7 +9,7 @@
 
 typedef struct packed {
     logic valid;
-    logic read_write;  // read:1 write:0
+    logic read_write; // read:1 write:0
     INST_RS insn; 
 } LS_QUEUE_ENTRY;
 
