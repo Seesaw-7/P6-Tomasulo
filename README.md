@@ -5,7 +5,9 @@ Course project for ECE4700J, Computer Architecture
 Implementation of a Scalar Intel P6 Style (using Tomasulo Algorithm + ROB) Out-of-Order pipeline for VeriSimpleV using SystemVerilog.
 
 ## Success Tests
+
 Test program 1:
+```
 00000000 <.text>:
    0: 00110113           addi x2,x2,1
    4: 002181b3           add x3,x3,x2
@@ -21,9 +23,11 @@ Test program 1:
 0105259300150513
 1050007300830313
 00000000000
+```
 
 
 Test program 2
+```
 00000000 <_start>:
    0: 00000093           addi x1,x0,0
    4: 00500113           addi x2,x0,5
@@ -48,9 +52,10 @@ Test program 2
 0000000000000000
 0000000000000000
 0000000000000000
-
+```
 
 Test program 3
+```
 00000000 <_start>:
    0: 00100093           addi x1,x0,1
    4: 00500113           addi x2,x0,5
@@ -75,9 +80,10 @@ Test program 3
 0000000000000000
 0000000000000000
 0000000000000000
-
+```
 
 Test program 4
+```
 00000000 <_start>:
    0: 00300093           addi x1,x0,3
    4: 00400113           addi x2,x0,4
@@ -96,9 +102,10 @@ Test program 4
 0000000000000000
 0000000000000000
 0000000000000000
-
+```
 
 Test program 5
+```
 00000000 <.text>:
    0:	00100113          	addi	x2,x0,1
    4:	00300193          	addi	x3,x0,3
@@ -133,9 +140,10 @@ Test program 5
 0000000000000000
 0000000000000000
 0000000000000000
-
+```
 
 Test program 6
+```
 00000000 <.text>:
    0:	00100113          	addi	x2,x0,1
    4:	00300193          	addi	x3,x0,3
@@ -170,7 +178,7 @@ Test program 6
 0000000000000000
 0000000000000000
 0000000000000000
-
+```
 
 ## Run
 
