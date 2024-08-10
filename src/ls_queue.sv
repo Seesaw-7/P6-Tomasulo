@@ -25,8 +25,8 @@ module ls_queue(
     output LS_UNIT_PACK insn_out_to_ls_unit
 );
     
-    LS_QUEUE_ENTRY ls_queue_curr [`LS_QUEUE_SIZE-1:0]; 
-    LS_QUEUE_ENTRY ls_queue_next [`LS_QUEUE_SIZE-1:0]; 
+    LS_QUEUE_ENTRY [`LS_QUEUE_SIZE-1:0] ls_queue_curr; 
+    LS_QUEUE_ENTRY [`LS_QUEUE_SIZE-1:0] ls_queue_next; 
     
     logic [`LS_QUEUE_POINTER_LEN-1:0] head_curr; 
     logic [`LS_QUEUE_POINTER_LEN-1:0] head_next; 
@@ -106,9 +106,8 @@ module ls_queue(
         if (reset || flush) begin
             head_curr <= {(`LS_QUEUE_POINTER_LEN){1'b0}}; 
             tail_curr <= {(`LS_QUEUE_POINTER_LEN){1'b0}}; 
-            // to_ls_unit <= 1'b0;
             for (int i=0; i<`LS_QUEUE_SIZE; i++) begin
-                ls_queue_curr[i] <= 0;
+                ls_queue_curr[i] <= '0;
             end
         end
         else begin
