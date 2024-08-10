@@ -24,7 +24,7 @@ module D_cache
     
     // Memory interface
     output logic [`XLEN-1:0] cache2mem_addr,
-    output logic [`XLEN-1:0] cache2mem_data,
+    output logic [63:0] cache2mem_data,
     output BUS_COMMAND dcache2mem_command,
 
     input mem2cache_valid, // only valid for 1 cycle
@@ -94,8 +94,14 @@ module D_cache
     end
 
     assign cache2proc_valid = !rst && ((cache_read || cache_write ) && cache_hit);
-    assign cache2mem_addr = proc2cache_addr;
-    assign cache2mem_data = proc2cache_data;
+    assign cache2mem_addr = {proc2cache_addr[32:3], 3'b0};
+    always_comb begin
+        if (proc2cache_addr[2]) begin
+            cache2mem_data = {proc2cache_data, cache_mem[index].data[31:0]};
+        end else begin
+            cache2mem_data = {cache_mem[index].data[63:32], proc2cache_data};
+        end
+    end
 
     // update cache2proc_data (load data from cache to proc)
     always_comb begin

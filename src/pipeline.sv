@@ -86,7 +86,7 @@ always_comb begin
         2'b00: begin // bus empty
             proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD : proc2Dmem_command;
             proc2mem_addr = (proc2Dmem_command == BUS_NONE)? proc2Imem_addr : dcache2mem_addr;
-            proc2mem_data = (proc2Dmem_command == BUS_NONE)? 64'b0 : {32'b0, dcache2mem_data};
+            proc2mem_data = (proc2Dmem_command == BUS_NONE)? 64'b0 : dcache2mem_data;
             bus_status_next = (proc2Dmem_command == BUS_NONE)? 2'b01 
                                                 : ((proc2Dmem_command == BUS_LOAD)? 2'b10 : 2'b11);
         end
