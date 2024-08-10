@@ -393,7 +393,7 @@ module testbench;
 				show_clk_count;
 				print_close(); // close the pipe_print output file
 				$fclose(wb_fileno);
-				#100 $finish;
+				#5 $finish;
 			end
 			debug_counter <= debug_counter + 1;
 		end // if(reset)
