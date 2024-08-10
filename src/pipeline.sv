@@ -78,8 +78,8 @@ logic Dstore_finished;
 logic [1:0] bus_status; // 00: bus empty, 01: imem in transmission, 10: dmem load in transmission, 11: dmem store
 logic [1:0] bus_status_next;
 
-assign mem2proc_response_reg = mem2proc_response == 4'b0 ? mem2proc_response_reg : mem2proc_response;
-assign memfinished = mem2proc_response_reg == mem2proc_tag;
+assign mem2proc_response_reg = (flush || predict_taken) ? mem2proc_response : (mem2proc_response == 4'b0 ? mem2proc_response_reg : mem2proc_response);
+assign memfinished = (mem2proc_response_reg == mem2proc_tag);
 
 always_comb begin
     case (bus_status)
@@ -102,15 +102,18 @@ always_comb begin
     endcase
 end
 
-always_ff @posedge(clock) begin 
-    bus_status <= bus_status_next;
+always_ff @(posedge clock) begin 
+    if (reset || flush || predict_taken)
+        bus_status <= 2'b0;
+    else
+        bus_status <= bus_status_next;
 end
 
 
 	//if it's an instruction, then load a double word (64 bits)
-`ifndef CACHE_MODE
-    assign proc2mem_size = DOUBLE;
-`endif
+//`ifndef CACHE_MODE
+//    assign proc2mem_size = DOUBLE;
+//`endif
 
 // assign proc2mem_data = 64'b0;
 
@@ -153,11 +156,11 @@ prefetch_queue fetch_stage_0 (
     .clock(clock),
     .reset(reset),
     .en(!stall_fetch),	
-    // .mem_bus_none(proc2Dmem_command == BUS_NONE), // TODO: revise
-    .mem_bus_none(bus_status == 2'b01),
+//    .mem_bus_none(proc2Dmem_command == BUS_NONE), // TODO: revise
+    .cache_hit(bus_status == 2'b01 && memfinished && !flush),
     .take_branch(flush || predict_taken),
     .branch_target_pc(prefetch_queue_branch_target_pc),
-    .Imem2proc_data(mem2proc_data), // TODO: revise
+    .Icache2proc_data(mem2proc_data), // TODO: revise
     .proc2Imem_addr(proc2Imem_addr),
     .packet_out(fetch_stage_packet)
 );
@@ -349,15 +352,15 @@ dispatcher dispatcher_0 (
         .clk(clock),
         .reset(reset),
         .flush(flush),
-        .dispatch(RS_load[FU_LSU]),
+        .dispatch(RS_load[FU_LSU]),       
         .insn_in(inst_dispatch_to_rs),
         .commit_store(wb_en), 
-        .commit_store_rob_tag(retire_rob_tag), 
+        .commit_store_rob_tag(rob_pre_commit_tag), 
         .valid_forwarding(rob_enable),
         .forwarding_rob_tag(rob_tag_from_cdb), // use cdb broadcast here
         .forwarding_data(value_from_cdb),
-        .fu_reg_empty(execute_reg_curr.ready[FU_LSU]),
-        .done_from_ls_unit(lsu2lsq_done),
+        //.fu_reg_empty(!execute_reg_curr.ready[FU_LSU]),
+        .done_from_ls_unit(lsu_done),
         .to_ls_unit(lsq2lsu_en),
         .insn_out_to_ls_unit(lsq2lsu_insn)
 );
@@ -462,6 +465,7 @@ dispatcher dispatcher_0 (
         .en(lsq2lsu_en),
         .mem_hit(dcache_hit),
         .load_data(dcache2lsu_data),
+        .fu_reg_empty(!execute_reg_curr.ready[FU_LSU]),
         .mem_read(lsu2dcache_rd),
         .mem_write(lsu2dcache_wr),
         .mem_addr(lsu2dcache_mem_addr),
@@ -487,11 +491,11 @@ assign proc2Dmem_command = dcache2mem_command; // TODO: check
 // D cache // TODO: move cache out of pipeline
 logic [`XLEN-1:0] dcache2mem_addr;
 logic [`XLEN-1:0] dcache2mem_data;
-logic BUS_COMMAND dcache2mem_command;
+BUS_COMMAND dcache2mem_command;
 logic mem2dcache_valid; // TODO: deal with this control sgl in cache/mem controller
 logic [63:0] mem2dcache_data;
 
-D_Cache dcache (
+D_cache dcache (
     .clk(clock),
     .rst(reset),
 
@@ -557,7 +561,7 @@ assign mem2dcache_valid = memfinished && bus_status == 2'b10; // TODO: check cuz
         execute_reg_next.target_pc = btu_target_pc;
         execute_reg_next.miss_predict = btu_mis_predict;
         // lsu
-        execute_reg_next.ready[FU_LSU] = lsu_done ? 1'b1 : (cdb_select_fu == FU_BTU) ? 1'b0 : execute_reg_curr.ready[FU_BTU];
+        execute_reg_next.ready[FU_LSU] = lsu_done ? 1'b1 : (cdb_select_fu == FU_LSU) ? 1'b0 : execute_reg_curr.ready[FU_LSU];
         execute_reg_next.result[FU_LSU] = lsu_wb_data;
         execute_reg_next.tag_insn_ex[FU_LSU] = lsu_insn_tag;
         execute_reg_next.tag_result[FU_LSU] = lsu_result_tag;
@@ -623,6 +627,7 @@ logic unsigned rob_commit_branch;
 logic unsigned rob_commit_branch_taken;
 logic [`XLEN-1:0] rob_commit_pc;
 logic [`XLEN-1:0] rob_commit_npc;
+logic [`ROB_TAG_LEN-1:0] rob_pre_commit_tag;
 logic br_jp;
 assign br_jp = (inst_dispatch_to_rob.func == BTU_BEQ)
     || (inst_dispatch_to_rob.func == BTU_BNE)
@@ -678,6 +683,7 @@ reorder_buffer ROB_0 (
     .commit_br_jp(rob_commit_branch),
     .commit_pc(rob_commit_pc),
     .commit_npc(rob_commit_npc),
+    .pre_commit_tag(rob_pre_commit_tag),
 
     .halt(rob_commit_halt),
     .illegal(rob_commit_illegal)
