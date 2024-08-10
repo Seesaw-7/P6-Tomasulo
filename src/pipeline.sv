@@ -65,8 +65,9 @@ module pipeline (
 
 );
 
+
 // assign proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD:proc2Dmem_command; // TODO: change in m3
-// assign proc2mem_addr = proc2Imem_addr;// TODO: change in m2
+// assign proc2mem_addr = proc2Imem_addr;// TODO: change in m3
 
 
 
@@ -78,13 +79,11 @@ logic [1:0] bus_status; // 00: bus empty, 01: imem in transmission, 10: dmem loa
 logic [1:0] bus_status_next;
 
 assign mem2proc_response_reg = mem2proc_response == 4'b0 ? mem2proc_response_reg : mem2proc_response;
-// assign memfinished = mem2proc_response_reg == mem2proc_tag;
 assign memfinished = mem2proc_response_reg == mem2proc_tag;
 
 always_comb begin
     case (bus_status)
         2'b00: begin // bus empty
-            // TODO: connect data & addr 
             proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD : proc2Dmem_command;
             proc2mem_addr = (proc2Dmem_command == BUS_NONE)? proc2Imem_addr : dcache2mem_addr;
             proc2mem_data = (proc2Dmem_command == BUS_NONE)? 64'b0 : {32'b0, dcache2mem_data};
@@ -154,7 +153,8 @@ prefetch_queue fetch_stage_0 (
     .clock(clock),
     .reset(reset),
     .en(!stall_fetch),	
-    .mem_bus_none(proc2Dmem_command == BUS_NONE),
+    // .mem_bus_none(proc2Dmem_command == BUS_NONE), // TODO: revise
+    .mem_bus_none(bus_status == 2'b01),
     .take_branch(flush || predict_taken),
     .branch_target_pc(prefetch_queue_branch_target_pc),
     .Imem2proc_data(mem2proc_data), // TODO: revise
