@@ -1,8 +1,4 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
-// ISA.svh
-// Jielun Tan (jieltan@umich.edu)
-// 07/13/2018
-//
 // This file contains global definitions for all RISC-V ISA related things
 // This decoding format is mostly taken from Bespoke Silicon Group (Michael Taylor's Group)
 // which I guess is taken from VSCALE???
