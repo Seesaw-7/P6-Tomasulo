@@ -1,7 +1,7 @@
 `timescale 1ns / 100ps
 
 `include "sys_defs.svh"
-`include "ls_unit.svh"
+// `include "ls_unit.svh"
 `include "ls_queue.svh"
 
 

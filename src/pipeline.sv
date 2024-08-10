@@ -544,7 +544,7 @@ assign mem2dcache_valid = memfinished && bus_status == 2'b10; // TODO: check cuz
     always_comb begin
         // alu
         execute_reg_next.ready[FU_ALU] = alu_done ? 1'b1 : (cdb_select_fu == FU_ALU) ? 1'b0 : execute_reg_curr.ready[FU_ALU];
-        execute_reg_next.result[FU_ALU] = (cdb_select_fu == FU_ALU) ? alu_result : execute_reg_curr.result[FU_ALU];
+        execute_reg_next.result[FU_ALU] = ((cdb_select_fu == FU_ALU) || alu_done) ? alu_result : execute_reg_curr.result[FU_ALU];
         execute_reg_next.tag_insn_ex[FU_ALU] = alu_insn_tag;
         execute_reg_next.tag_result[FU_ALU] = alu_result_tag;
         // mult
