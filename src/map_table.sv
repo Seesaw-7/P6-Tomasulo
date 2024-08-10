@@ -50,14 +50,14 @@ module map_table(
             end
         end
 
-        if (return_flag) begin
+        if (return_flag && (arch_reg.dest != reg_addr_from_rob)) begin
             if (map_table_curr[reg_addr_from_rob].rob_tag == rob_tag_from_rob) begin
                 map_table_next[reg_addr_from_rob].rob_tag = {`ROB_TAG_LEN{1'b1}};
                 map_table_next[reg_addr_from_rob].ready_in_rob = 1'b0;
             end
         end
 
-        if (ready_flag) begin
+        if (ready_flag && (arch_reg.dest != rob_tag_from_cdb)) begin
             for (int i=1; i<`REG_NUM; i++) begin
                 if (map_table_curr[i].rob_tag == rob_tag_from_cdb) begin
                     map_table_next[i].ready_in_rob = 1'b1;
