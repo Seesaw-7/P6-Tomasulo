@@ -14,9 +14,11 @@ module ls_queue(
     input commit_store, 
     input [`ROB_TAG_LEN-1:0] commit_store_rob_tag, 
     
+    input valid_forwarding,
     input [`ROB_TAG_LEN-1:0] forwarding_rob_tag, // synchronize with rs wake up 
     input [`XLEN-1:0] forwarding_data,
     
+    input fu_reg_empty,
     input done_from_ls_unit, 
     
     output logic to_ls_unit, 
@@ -56,29 +58,33 @@ module ls_queue(
         end
         
         // to ls unit
-        if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].insn.ready_src2 && ls_queue_curr[head_curr].read_write == 1'b0) begin
-            if (commit_store && (commit_store_rob_tag == ls_queue_curr[head_curr].insn.insn_tag)) begin
+        if (fu_reg_empty) begin
+            if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].insn.ready_src2 && ls_queue_curr[head_curr].read_write == 1'b0) begin
+                if (commit_store && (commit_store_rob_tag == ls_queue_curr[head_curr].insn.insn_tag)) begin
+                    to_ls_unit = 1'b1; 
+                    insn_out_to_ls_unit.insn = ls_queue_curr[head_curr].insn;
+                    insn_out_to_ls_unit.read_write = ls_queue_curr[head_curr].read_write;
+                end
+            end // store
+            else if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].read_write == 1'b1) begin
                 to_ls_unit = 1'b1; 
                 insn_out_to_ls_unit.insn = ls_queue_curr[head_curr].insn;
                 insn_out_to_ls_unit.read_write = ls_queue_curr[head_curr].read_write;
-            end
-        end // store
-        else if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].read_write == 1'b1) begin
-            to_ls_unit = 1'b1; 
-            insn_out_to_ls_unit.insn = ls_queue_curr[head_curr].insn;
-            insn_out_to_ls_unit.read_write = ls_queue_curr[head_curr].read_write;
-        end //load
+            end //load
+        end
         
        // syncronize forwarding with rs  
         for (int i=0; i<`LS_QUEUE_SIZE; i++) begin
-            if (ls_queue_curr[i].valid == 1'b1) begin
-                if (ls_queue_curr[i].insn.tag_src1 == forwarding_rob_tag) begin
-                    ls_queue_next[i].insn.value_src1 = forwarding_data;
-                    ls_queue_next[i].insn.ready_src1 = 1'b1;
-                end
-                else if (ls_queue_curr[i].insn.tag_src2 == forwarding_rob_tag) begin
-                    ls_queue_next[i].insn.value_src2 = forwarding_data;
-                    ls_queue_next[i].insn.ready_src2 = 1'b1;
+            if (valid_forwarding == 1'b1) begin
+                if (ls_queue_curr[i].valid == 1'b1) begin
+                    if (ls_queue_curr[i].insn.tag_src1 == forwarding_rob_tag) begin
+                        ls_queue_next[i].insn.value_src1 = forwarding_data;
+                        ls_queue_next[i].insn.ready_src1 = 1'b1;
+                    end
+                    else if (ls_queue_curr[i].insn.tag_src2 == forwarding_rob_tag) begin
+                        ls_queue_next[i].insn.value_src2 = forwarding_data;
+                        ls_queue_next[i].insn.ready_src2 = 1'b1;
+                    end
                 end
             end         
         end
