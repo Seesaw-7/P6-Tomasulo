@@ -38,6 +38,8 @@
 `define FALSE  1'h0
 `define TRUE  1'h1
 
+`define CACHE_MODE
+
 //
 // actually, you might have to change this if you change VERILOG_CLOCK_PERIOD
 // JK you don't ^^^
