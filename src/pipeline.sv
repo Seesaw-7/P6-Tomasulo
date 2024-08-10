@@ -353,11 +353,11 @@ dispatcher dispatcher_0 (
         .insn_in(inst_dispatch_to_rs),
         .commit_store(wb_en), 
         .commit_store_rob_tag(retire_rob_tag), 
-        // TODO: forwarding accept signal
+        .valid_forwarding(rob_enable),
         .forwarding_rob_tag(rob_tag_from_cdb), // use cdb broadcast here
         .forwarding_data(value_from_cdb),
-    
-        .done_from_ls_unit(lsu2lsq_done), //TODO: circlic?
+        .fu_reg_empty(execute_reg_curr.ready[FU_LSU]),
+        .done_from_ls_unit(lsu2lsq_done),
         .to_ls_unit(lsq2lsu_en),
         .insn_out_to_ls_unit(lsq2lsu_insn)
 );
