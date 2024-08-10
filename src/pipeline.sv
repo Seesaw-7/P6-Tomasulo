@@ -72,29 +72,33 @@ module pipeline (
 
 logic [3:0] mem2proc_response_reg;
 logic memfinished;
-logic [1:0] bus_status; // 00: bus empty, 01: imem in transmission, 10: dmem in transmission
+logic Dstore_finished;
+// TODO: type bus_status
+logic [1:0] bus_status; // 00: bus empty, 01: imem in transmission, 10: dmem load in transmission, 11: dmem store
 logic [1:0] bus_status_next;
 
 assign mem2proc_response_reg = mem2proc_response == 4'b0 ? mem2proc_response_reg : mem2proc_response;
+// assign memfinished = mem2proc_response_reg == mem2proc_tag;
 assign memfinished = mem2proc_response_reg == mem2proc_tag;
 
 always_comb begin
     case (bus_status)
-        2'b00: begin
+        2'b00: begin // bus empty
             // TODO: connect data & addr 
             proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD : proc2Dmem_command;
             proc2mem_addr = (proc2Dmem_command == BUS_NONE)? proc2Imem_addr : dcache2mem_addr;
             proc2mem_data = (proc2Dmem_command == BUS_NONE)? 64'b0 : {32'b0, dcache2mem_data};
-            bus_status_next = (proc2Dmem_command == BUS_NONE)? 2'b01 : 2'b10;
+            bus_status_next = (proc2Dmem_command == BUS_NONE)? 2'b01 
+                                                : ((proc2Dmem_command == BUS_LOAD)? 2'b10 : 2'b11);
         end
-        2'b01: begin
-            bus_status_next == memfinished ? 2'b00 : bus_status;
+        2'b01: begin // iMem load
+            bus_status_next = memfinished ? 2'b00 : bus_status;
         end
-        2'b10: begin
-            bus_status_next == memfinished ? 2'b00 : bus_status;
+        2'b10: begin // dMem load
+            bus_status_next = memfinished ? 2'b00 : bus_status;
         end 
-        default: begin
-            bus_status_next == memfinished ? 2'b00 : bus_status;
+        2'b11: begin // dMem store
+            bus_status_next = 2'b00;
         end 
     endcase
 end
@@ -153,7 +157,7 @@ prefetch_queue fetch_stage_0 (
     .mem_bus_none(proc2Dmem_command == BUS_NONE),
     .take_branch(flush || predict_taken),
     .branch_target_pc(prefetch_queue_branch_target_pc),
-    .Imem2proc_data(mem2proc_data),
+    .Imem2proc_data(mem2proc_data), // TODO: revise
     .proc2Imem_addr(proc2Imem_addr),
     .packet_out(fetch_stage_packet)
 );
@@ -514,8 +518,7 @@ D_Cache dcache (
 // TODO: check whether response is to Icache or Dcache after adding Icache
 
 // cache/mem controller
-
-assign mem2dcache_valid = (mem2proc_tag != 4'b0) && (dcache2mem_command != BUS_NONE);
+assign mem2dcache_valid = memfinished && bus_status == 2'b10; // TODO: check cuz bus_status change at posedge
 
 
 //////////////////////////////////////////////////
