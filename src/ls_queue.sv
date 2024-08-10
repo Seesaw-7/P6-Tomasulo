@@ -57,7 +57,7 @@ module ls_queue(
             tail_next = tail_curr + 1; 
         end
         
-        // to ls unit 
+        // to ls unit
         if (fu_reg_empty) begin
             if (ls_queue_curr[head_curr].valid && ls_queue_curr[head_curr].insn.ready_src1 && ls_queue_curr[head_curr].insn.ready_src2 && ls_queue_curr[head_curr].read_write == 1'b0) begin
                 if (commit_store && (commit_store_rob_tag == ls_queue_curr[head_curr].insn.insn_tag)) begin
