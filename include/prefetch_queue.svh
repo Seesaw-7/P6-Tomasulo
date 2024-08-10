@@ -19,7 +19,7 @@ typedef struct packed {
 
 typedef struct packed {
 	PREFETCH_ENTRY [`PF_ENTRY_NUM-1:0] entries;
-	logic unsigned [2:0] num;
+	logic unsigned [3:0] num;
     logic [`XLEN-1:0] PC;
 } PREFETCH_QUEUE;
 
