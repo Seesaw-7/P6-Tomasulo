@@ -83,9 +83,10 @@ module dispatcher (
     assign inst_rs.tag_dest = renamed_pack.rob_tag; 
     assign inst_rs.tag_src1 = renamed_pack.src1.rob_tag;
     assign inst_rs.tag_src2 = renamed_pack.src2.rob_tag;
-    assign inst_rs.imm = insn_reg.fu == FU_BTU? insn_reg.imm : '0;
-    assign inst_rs.pc = insn_reg.fu == FU_BTU? insn_reg.pc : '0;
-    assign inst_rs.npc = insn_reg.fu == FU_BTU? insn_reg.npc : '0;
+    //assign inst_rs.imm = insn_reg.fu == (FU_BTU || FU_LSU) ? insn_reg.imm : '0;
+    assign inst_rs.imm = insn_reg.imm;
+    assign inst_rs.pc = insn_reg.fu == FU_BTU ? insn_reg.pc : '0;
+    assign inst_rs.npc = insn_reg.fu == FU_BTU ? insn_reg.npc : '0;
     assign inst_rs.insn_tag = assign_rob_tag;
 
     always_comb begin
@@ -93,18 +94,18 @@ module dispatcher (
         unique case (renamed_pack.src1.data_stat)
             2'b00: begin // ready in RegFile
                 inst_rs.ready_src1 = 1'b1;
-                inst_rs.value_src1 = (insn_reg.fu != FU_BTU && insn_reg.pc_valid) ?
+                inst_rs.value_src1 = ((insn_reg.fu != FU_BTU)  && insn_reg.pc_valid) ?
                                     insn_reg.pc : registers[renamed_pack.src1.reg_addr];
             end
             2'b11: begin // ready in ROB
                 inst_rs.ready_src1 = 1'b1;
-                inst_rs.value_src1 = (insn_reg.fu != FU_BTU && insn_reg.pc_valid) ? 
+                inst_rs.value_src1 = ((insn_reg.fu != FU_BTU) && insn_reg.pc_valid) ? 
                                     insn_reg.pc : rob[renamed_pack.src1.rob_tag].wb_data; 
             end
             default: begin // not ready
-                inst_rs.ready_src1 = (insn_reg.fu != FU_BTU && insn_reg.pc_valid) ?
+                inst_rs.ready_src1 = ((insn_reg.fu != FU_BTU) && insn_reg.pc_valid) ?
                                         1'b1: 1'b0;
-                inst_rs.value_src1 = (insn_reg.fu != FU_BTU && insn_reg.pc_valid) ? 
+                inst_rs.value_src1 = ((insn_reg.fu != FU_BTU) && insn_reg.pc_valid) ? 
                                     insn_reg.pc : 0; 
             end 
         endcase
@@ -112,18 +113,19 @@ module dispatcher (
         unique case (renamed_pack.src2.data_stat)
             2'b00: begin
                 inst_rs.ready_src2 = 1'b1;
-                inst_rs.value_src2 = (insn_reg.fu != FU_BTU && insn_reg.imm_valid) ?
+//                inst_rs.value_src2 = registers[renamed_pack.src2.reg_addr];
+                inst_rs.value_src2 = (((insn_reg.fu != FU_BTU) && (insn_reg.fu != FU_LSU)) && insn_reg.imm_valid) ?
                                     insn_reg.imm : registers[renamed_pack.src2.reg_addr];
             end
             2'b11: begin 
                 inst_rs.ready_src2 = 1'b1;
-                inst_rs.value_src2 = (insn_reg.fu != FU_BTU && insn_reg.imm_valid) ?
+                inst_rs.value_src2 = (((insn_reg.fu != FU_BTU) && (insn_reg.fu != FU_LSU)) && insn_reg.imm_valid) ?
                                     insn_reg.imm : rob[renamed_pack.src2.rob_tag].wb_data; 
             end
             default: begin
-                inst_rs.ready_src2 = (insn_reg.fu != FU_BTU && insn_reg.imm_valid) ?
+                inst_rs.ready_src2 = (((insn_reg.fu != FU_BTU) && (insn_reg.fu != FU_LSU)) && insn_reg.imm_valid) ?
                                         1'b1:1'b0;
-                inst_rs.value_src2 = (insn_reg.fu != FU_BTU && insn_reg.imm_valid) ?
+                inst_rs.value_src2 = (((insn_reg.fu != FU_BTU) && (insn_reg.fu != FU_LSU)) && insn_reg.imm_valid) ?
                                         insn_reg.imm : 0; 
             end 
         endcase   
