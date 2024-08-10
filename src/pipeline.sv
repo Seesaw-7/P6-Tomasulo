@@ -65,14 +65,51 @@ module pipeline (
 
 );
 
-assign proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD:proc2Dmem_command;
-assign proc2mem_addr = proc2Imem_addr;
+// assign proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD:proc2Dmem_command; // TODO: change in m3
+// assign proc2mem_addr = proc2Imem_addr;// TODO: change in m2
+
+
+
+logic [3:0] mem2proc_response_reg;
+logic memfinished;
+logic [1:0] bus_status; // 00: bus empty, 01: imem in transmission, 10: dmem in transmission
+logic [1:0] bus_status_next;
+
+assign mem2proc_response_reg = mem2proc_response == 4'b0 ? mem2proc_response_reg : mem2proc_response;
+assign memfinished = mem2proc_response_reg == mem2proc_tag;
+
+always_comb begin
+    case (bus_status)
+        2'b00: begin
+            // TODO: connect data & addr 
+            proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD : proc2Dmem_command;
+            proc2mem_addr = (proc2Dmem_command == BUS_NONE)? proc2Imem_addr : dcache2mem_addr;
+            proc2mem_data = (proc2Dmem_command == BUS_NONE)? 64'b0 : {32'b0, dcache2mem_data};
+            bus_status_next = (proc2Dmem_command == BUS_NONE)? 2'b01 : 2'b10;
+        end
+        2'b01: begin
+            bus_status_next == memfinished ? 2'b00 : bus_status;
+        end
+        2'b10: begin
+            bus_status_next == memfinished ? 2'b00 : bus_status;
+        end 
+        default: begin
+            bus_status_next == memfinished ? 2'b00 : bus_status;
+        end 
+    endcase
+end
+
+always_ff @posedge(clock) begin 
+    bus_status <= bus_status_next;
+end
+
+
 	//if it's an instruction, then load a double word (64 bits)
 `ifndef CACHE_MODE
     assign proc2mem_size = DOUBLE;
 `endif
 
-assign proc2mem_data = 64'b0;
+// assign proc2mem_data = 64'b0;
 
 assign pipeline_completed_insts = {3'b0, wb_en};
 assign pipeline_error_status =  rob_commit_illegal             ? ILLEGAL_INST :
@@ -427,11 +464,11 @@ dispatcher dispatcher_0 (
         .func3(lsu2dcache_func3),
         .proc2Dmem_data(lsu2dcache_data),
 
-        .wb_data(lsu_wb_data), // TODO: jie
+        .wb_data(lsu_wb_data),
         .inst_tag(lsu_insn_tag), 
 
         .done(lsu_done)
-);
+    );
 
 assign lsu_result_tag = lsu_insn_tag; //TODO: whether they are the same
 
@@ -440,8 +477,45 @@ assign lsu_result_tag = lsu_insn_tag; //TODO: whether they are the same
 
 // memory
 logic [1:0]  proc2Dmem_command;
-assign proc2Dmem_command = BUS_NONE;
+assign proc2Dmem_command = dcache2mem_command; // TODO: check
 // logic [63:0] Imem2proc_data;
+
+// D cache // TODO: move cache out of pipeline
+logic [`XLEN-1:0] dcache2mem_addr;
+logic [`XLEN-1:0] dcache2mem_data;
+logic BUS_COMMAND dcache2mem_command;
+logic mem2dcache_valid; // TODO: deal with this control sgl in cache/mem controller
+logic [63:0] mem2dcache_data;
+
+D_Cache dcache (
+    .clk(clock),
+    .rst(reset),
+
+    // LS Unit interface
+    .cache_read(lsu2dcache_rd),
+    .cache_write(lsu2dcache_wr),
+    .proc2cache_addr(lsu2dcache_mem_addr), //read/write addr
+    .proc2cache_data(lsu2dcache_data), //write data
+    .proc2cache_size(lsu2dcache_func3), 
+    
+    .cache2proc_data(dcache2lsu_data), //to ls_unit data
+    .cache2proc_valid(dcache_hit), // to ls_unit hit/miss
+    
+    // Memory interface
+    .cache2mem_addr(dcache2mem_addr),
+    .cache2mem_data(dcache2mem_data),
+    .dcache2mem_command(dcache2mem_command),
+
+    .mem2cache_valid(mem2dcache_valid), // only valid for 1 cycle
+    .mem2cache_data(mem2dcache_data)
+);
+
+
+// TODO: check whether response is to Icache or Dcache after adding Icache
+
+// cache/mem controller
+
+assign mem2dcache_valid = (mem2proc_tag != 4'b0) && (dcache2mem_command != BUS_NONE);
 
 
 //////////////////////////////////////////////////

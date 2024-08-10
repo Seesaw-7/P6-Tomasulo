@@ -5,6 +5,7 @@
 
 // TODO: figure out why mem latency is 2
 // TODO: pipeline bus command control
+// TODO: move to always_comb
 
 module D_Cache
 (
@@ -123,7 +124,7 @@ module D_Cache
                         dcache2mem_command <= BUS_NONE;
                     end else begin
                         cache2mem_addr <= proc2cache_addr;
-                        cache2mem_command <= BUS_LOAD;
+                        dcache2mem_command <= BUS_LOAD;
                     end
                 end
             end else begin
