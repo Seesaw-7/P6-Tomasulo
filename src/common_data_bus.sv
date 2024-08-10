@@ -29,7 +29,7 @@ module common_data_bus (
         cdb_value = 0;
         cdb_tag = 0;
         for (int i=3; i>=0; --i) begin
-//     for (int i=0; i<4; ++i) begin
+//    for (int i=0; i<4; ++i) begin
             if (fu_result_ready[i]) begin
                 select_fu = 2'(i);
                 cdb_value = fu_results[i];
