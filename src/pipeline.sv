@@ -65,14 +65,57 @@ module pipeline (
 
 );
 
-assign proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD:proc2Dmem_command;
-assign proc2mem_addr = proc2Imem_addr;
-	//if it's an instruction, then load a double word (64 bits)
-`ifndef CACHE_MODE
-    assign proc2mem_size = DOUBLE;
-`endif
 
-assign proc2mem_data = 64'b0;
+// assign proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD:proc2Dmem_command; // TODO: change in m3
+// assign proc2mem_addr = proc2Imem_addr;// TODO: change in m3
+
+
+
+logic [3:0] mem2proc_response_reg;
+logic memfinished;
+logic Dstore_finished;
+// TODO: type bus_status
+logic [1:0] bus_status; // 00: bus empty, 01: imem in transmission, 10: dmem load in transmission, 11: dmem store
+logic [1:0] bus_status_next;
+
+assign mem2proc_response_reg = (flush || predict_taken) ? mem2proc_response : (mem2proc_response == 4'b0 ? mem2proc_response_reg : mem2proc_response);
+assign memfinished = (mem2proc_response_reg == mem2proc_tag);
+
+always_comb begin
+    case (bus_status)
+        2'b00: begin // bus empty
+            proc2mem_command = (proc2Dmem_command == BUS_NONE)? BUS_LOAD : proc2Dmem_command;
+            proc2mem_addr = (proc2Dmem_command == BUS_NONE)? proc2Imem_addr : dcache2mem_addr;
+            proc2mem_data = (proc2Dmem_command == BUS_NONE)? 64'b0 : dcache2mem_data;
+            bus_status_next = (proc2Dmem_command == BUS_NONE)? 2'b01 
+                                                : ((proc2Dmem_command == BUS_LOAD)? 2'b10 : 2'b11);
+        end
+        2'b01: begin // iMem load
+            bus_status_next = memfinished ? 2'b00 : bus_status;
+        end
+        2'b10: begin // dMem load
+            bus_status_next = memfinished ? 2'b00 : bus_status;
+        end 
+        2'b11: begin // dMem store
+            bus_status_next = 2'b00;
+        end 
+    endcase
+end
+
+always_ff @(posedge clock) begin 
+    if (reset || flush || predict_taken)
+        bus_status <= 2'b0;
+    else
+        bus_status <= bus_status_next;
+end
+
+
+	//if it's an instruction, then load a double word (64 bits)
+//`ifndef CACHE_MODE
+//    assign proc2mem_size = DOUBLE;
+//`endif
+
+// assign proc2mem_data = 64'b0;
 
 assign pipeline_completed_insts = {3'b0, wb_en};
 assign pipeline_error_status =  rob_commit_illegal             ? ILLEGAL_INST :
@@ -97,7 +140,7 @@ logic stall_fetch;
 always_comb begin
     rs_full = 1'b0;
     stall_fetch = 1'b0;
-    if (rs_alu_full || rs_btu_full || rs_mult_full || rs_lsu_full) begin
+    if (rs_alu_full || rs_btu_full || rs_mult_full || lsq_full) begin
         rs_full = 1'b1;
     end
     if (rs_full || rob_full) begin 
@@ -113,10 +156,11 @@ prefetch_queue fetch_stage_0 (
     .clock(clock),
     .reset(reset),
     .en(!stall_fetch),	
-    .mem_bus_none(proc2Dmem_command == BUS_NONE),
+//    .mem_bus_none(proc2Dmem_command == BUS_NONE), // TODO: revise
+    .cache_hit(bus_status == 2'b01 && memfinished && !flush),
     .take_branch(flush || predict_taken),
     .branch_target_pc(prefetch_queue_branch_target_pc),
-    .Imem2proc_data(mem2proc_data),
+    .Icache2proc_data(mem2proc_data), // TODO: revise
     .proc2Imem_addr(proc2Imem_addr),
     .packet_out(fetch_stage_packet)
 );
@@ -283,23 +327,42 @@ dispatcher dispatcher_0 (
     );
 
 // load store unit
-    logic rs_lsu_full;
-    RS_ENTRY lsu_entry_out;
+    logic lsq_full; // TODO: change to ls queue
+    RS_ENTRY lsu_entry_out; //TODO: change
 
-    reservation_station RS_LSU (
+    logic lsq2lsu_en;
+    logic lsu2lsq_done;
+    LS_UNIT_PACK lsq2lsu_insn;
+
+    // reservation_station RS_LSU (
+    //     .clk(clock),
+    //     .reset(reset || flush), // flush when mis predict
+    //     .load(RS_load[FU_LSU]),
+    //     .insn_load(inst_dispatch_to_rs),
+    //     .wakeup(execute_reg_curr.ready), 
+    //     .wakeup_value(execute_reg_curr.result),
+    //     .wakeup_tag(execute_reg_curr.tag_result), 
+    //     .clear(rs_clear[FU_LSU]), 
+    //     .clear_tag(fu_insn[FU_LSU].insn_tag),
+    //     .alu_ex_tag(fu_insn[FU_ALU].tag_dest),
+    //     .insn_for_ex(lsu_entry_out),
+    //     .is_full(rs_lsu_full)
+    // );
+    ls_queue LSQ (
         .clk(clock),
-        .reset(reset || flush), // flush when mis predict
-        .load(RS_load[FU_LSU]),
-        .insn_load(inst_dispatch_to_rs),
-        .wakeup(execute_reg_curr.ready), 
-        .wakeup_value(execute_reg_curr.result),
-        .wakeup_tag(execute_reg_curr.tag_result), 
-        .clear(rs_clear[FU_LSU]), 
-        .clear_tag(fu_insn[FU_LSU].insn_tag),
-        .alu_ex_tag(fu_insn[FU_ALU].tag_dest),
-        .insn_for_ex(lsu_entry_out),
-        .is_full(rs_lsu_full)
-    );
+        .reset(reset),
+        .flush(flush),
+        .dispatch(RS_load[FU_LSU]),       
+        .insn_in(inst_dispatch_to_rs),
+        .commit_store(wb_en), 
+        .commit_store_rob_tag(rob_pre_commit_tag), 
+        .valid_forwarding(rob_enable),
+        .forwarding_rob_tag(rob_tag_from_cdb), // use cdb broadcast here
+        .forwarding_data(value_from_cdb),
+        .done_from_ls_unit(lsu_done),
+        .to_ls_unit(lsq2lsu_en),
+        .insn_out_to_ls_unit(lsq2lsu_insn)
+);
 
 //////////////////////////////////////////////////
 //                                              //
@@ -382,11 +445,83 @@ dispatcher dispatcher_0 (
     );
 
 // load store unit
+    logic dcache_hit;
+    logic [`XLEN-1:0] dcache2lsu_data;
+    logic lsu2dcache_rd;
+    logic lsu2dcache_wr;
+    logic [`XLEN-1:0] lsu2dcache_mem_addr;
+    logic [2:0] lsu2dcache_func3;
+    logic [`XLEN-1:0] lsu2dcache_data;
+    // logic [`XLEN-1:0] 
+    logic lsu_done;
+    logic [`XLEN-1:0] lsu_wb_data;
+    logic [`ROB_TAG_LEN-1:0] lsu_insn_tag;
+    logic [`ROB_TAG_LEN-1:0] lsu_result_tag;
+
+
+    ls_unit LSU (
+        .insn_in(lsq2lsu_insn),
+        .en(lsq2lsu_en),
+        .mem_hit(dcache_hit),
+        .load_data(dcache2lsu_data),
+        .fu_reg_empty(!execute_reg_curr.ready[FU_LSU]),
+        .mem_read(lsu2dcache_rd),
+        .mem_write(lsu2dcache_wr),
+        .mem_addr(lsu2dcache_mem_addr),
+        .func3(lsu2dcache_func3),
+        .proc2Dmem_data(lsu2dcache_data),
+
+        .wb_data(lsu_wb_data),
+        .inst_tag(lsu_insn_tag), 
+
+        .done(lsu_done)
+    );
+
+assign lsu_result_tag = lsu_insn_tag; //TODO: whether they are the same
+
+
+
 
 // memory
 logic [1:0]  proc2Dmem_command;
-assign proc2Dmem_command = BUS_NONE;
+assign proc2Dmem_command = dcache2mem_command; // TODO: check
 // logic [63:0] Imem2proc_data;
+
+// D cache // TODO: move cache out of pipeline
+logic [`XLEN-1:0] dcache2mem_addr;
+logic [63:0] dcache2mem_data;
+BUS_COMMAND dcache2mem_command;
+logic mem2dcache_valid; // TODO: deal with this control sgl in cache/mem controller
+logic [63:0] mem2dcache_data;
+
+D_cache dcache (
+    .clk(clock),
+    .rst(reset),
+
+    // LS Unit interface
+    .cache_read(lsu2dcache_rd),
+    .cache_write(lsu2dcache_wr),
+    .proc2cache_addr(lsu2dcache_mem_addr), //read/write addr
+    .proc2cache_data(lsu2dcache_data), //write data
+    .proc2cache_size(lsu2dcache_func3), 
+    
+    .cache2proc_data(dcache2lsu_data), //to ls_unit data
+    .cache2proc_valid(dcache_hit), // to ls_unit hit/miss
+    
+    // Memory interface
+    .cache2mem_addr(dcache2mem_addr),
+    .cache2mem_data(dcache2mem_data),
+    .dcache2mem_command(dcache2mem_command),
+
+    .mem2cache_valid(mem2dcache_valid), // only valid for 1 cycle
+    .mem2cache_data(mem2proc_data)
+);
+
+
+// TODO: check whether response is to Icache or Dcache after adding Icache
+
+// cache/mem controller
+assign mem2dcache_valid = memfinished && bus_status == 2'b10; // TODO: check cuz bus_status change at posedge
 
 
 //////////////////////////////////////////////////
@@ -407,22 +542,28 @@ assign proc2Dmem_command = BUS_NONE;
     EXECUTE_PACK execute_reg_curr, execute_reg_next;
 
     always_comb begin
+        // alu
         execute_reg_next.ready[FU_ALU] = alu_done ? 1'b1 : (cdb_select_fu == FU_ALU) ? 1'b0 : execute_reg_curr.ready[FU_ALU];
-        execute_reg_next.ready[FU_MULT] = mult_done ? 1'b1 : (cdb_select_fu == FU_MULT) ? 1'b0 : execute_reg_curr.ready[FU_MULT];
-        execute_reg_next.ready[FU_BTU] = btu_done ? 1'b1 : (cdb_select_fu == FU_BTU) ? 1'b0 : execute_reg_curr.ready[FU_BTU];
-        // TODO:
         execute_reg_next.result[FU_ALU] = alu_result;
-        execute_reg_next.result[FU_MULT] = mult_result[31:0];
-        execute_reg_next.result[FU_BTU] = btu_wb_data;
         execute_reg_next.tag_insn_ex[FU_ALU] = alu_insn_tag;
         execute_reg_next.tag_result[FU_ALU] = alu_result_tag;
+        // mult
+        execute_reg_next.ready[FU_MULT] = mult_done ? 1'b1 : (cdb_select_fu == FU_MULT) ? 1'b0 : execute_reg_curr.ready[FU_MULT];
+        execute_reg_next.result[FU_MULT] = mult_result[31:0];
         execute_reg_next.tag_insn_ex[FU_MULT] = mult_insn_tag;
         execute_reg_next.tag_result[FU_MULT] = mult_result_tag;
+        // btu
+        execute_reg_next.ready[FU_BTU] = btu_done ? 1'b1 : (cdb_select_fu == FU_BTU) ? 1'b0 : execute_reg_curr.ready[FU_BTU];
+        execute_reg_next.result[FU_BTU] = btu_wb_data;
         execute_reg_next.tag_insn_ex[FU_BTU] = btu_insn_tag;
         execute_reg_next.tag_result[FU_BTU] = btu_result_tag;
         execute_reg_next.target_pc = btu_target_pc;
         execute_reg_next.miss_predict = btu_mis_predict;
-        //TODO:
+        // lsu
+        execute_reg_next.ready[FU_LSU] = lsu_done ? 1'b1 : (cdb_select_fu == FU_LSU) ? 1'b0 : execute_reg_curr.ready[FU_LSU];
+        execute_reg_next.result[FU_LSU] = lsu_wb_data;
+        execute_reg_next.tag_insn_ex[FU_LSU] = lsu_insn_tag;
+        execute_reg_next.tag_result[FU_LSU] = lsu_result_tag;
     end
 
     // synopsys sync_set_reset "reset"
@@ -485,6 +626,7 @@ logic unsigned rob_commit_branch;
 logic unsigned rob_commit_branch_taken;
 logic [`XLEN-1:0] rob_commit_pc;
 logic [`XLEN-1:0] rob_commit_npc;
+logic [`ROB_TAG_LEN-1:0] rob_pre_commit_tag;
 logic br_jp;
 assign br_jp = (inst_dispatch_to_rob.func == BTU_BEQ)
     || (inst_dispatch_to_rob.func == BTU_BNE)
@@ -540,6 +682,7 @@ reorder_buffer ROB_0 (
     .commit_br_jp(rob_commit_branch),
     .commit_pc(rob_commit_pc),
     .commit_npc(rob_commit_npc),
+    .pre_commit_tag(rob_pre_commit_tag),
 
     .halt(rob_commit_halt),
     .illegal(rob_commit_illegal)
