@@ -47,6 +47,7 @@ module reorder_buffer(
     output logic commit_br_jp, 
     output logic [`XLEN-1:0] commit_pc,
     output logic [`XLEN-1:0] commit_npc,
+    output logic [`ROB_TAG_LEN-1:0] pre_commit_tag,
     output logic halt,
     output logic illegal
 );
@@ -77,6 +78,7 @@ module reorder_buffer(
         commit_npc = {`XLEN{1'b0}};
         halt = 1'b0;
         illegal = 1'b0;
+        pre_commit_tag = head_curr;
         
         if (dispatch) begin
             rob_next[tail_curr].valid = 1'b1;
@@ -96,7 +98,7 @@ module reorder_buffer(
             assign_rob_tag_to_dispatcher = tail_curr;
         end
         
-        if (cdb_to_rob) begin
+        if (cdb_to_rob && !rob_curr[rob_tag_from_cdb].ready) begin
             rob_next[rob_tag_from_cdb].wb_data = wb_data_from_cdb;
             //rob_next[rob_tag_from_cdb].target_pc = target_pc_from_cdb;
             
